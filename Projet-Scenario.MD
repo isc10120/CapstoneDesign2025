@@ -8,7 +8,54 @@
 | **무엇을 만들고자 하는가** | 본 프로젝트는 의지 부족으로 학습을 지속하기 어려운 사용자를 위해, 스마트폰 중독성을 역이용한 넛지와 게이미피케이션을 결합한 언어학습 앱을 개발합니다. 사용자는 스마트폰 사용 중 자연스럽게 학습 콘텐츠에 노출되어 짧은 틈새 시간을 활용해 학습할 수 있고, 단어 수집과 전투 시스템을 통해 수집욕·승부욕이 자극되어 재미를 느낌으로써 지속적인 학습을 이어 갈 수 있습니다. |
 | **고객** | **이감자 (24세, 여)**<br>직업: 대학생<br>배경: 공인 영어 시험에서 고득점을 받아야 취업이 가능하여 영어 공부가 필요함. 모바일 기기로 접근하기 쉬운 학습을 원하지만, ADHD로 인해 공부를 지속하지 못하고 3일 이상 앱을 사용하지 않게 되었음.<br>요구: 찾아서 접속하지 않아도 **휴대폰 사용만으로 자연스럽게 공부할 수 있는 서비스**<br><br>**공일이 (42세, 남)**<br>직업: 회사원<br>배경: 1년 뒤 스페인 장기 출장 예정. 영어는 가능하지만 스페인어는 아예 몰라 기본 회화 학습이 필요함. 시간이 없고 체력도 부족하여 공부를 계속 미루고 있음.<br>요구: **매일 짧고 꾸준하게, 효율적으로 언어를 공부할 수 있는 모바일 어플** |
 | **Pain Point** | 1. **의지 부족 및 자기통제력의 한계**<br> - 언어 학습의 필요성은 인식하고 있지만 꾸준히 학습할 의지와 통제력이 부족함.<br> - SNS, 게임 등 즉각적인 자극에 쉽게 주의가 분산됨.<br><br>2. **공부를 위한 시간 부족**<br> - 대학생, 직장인 등은 책상 앞에 오래 앉아 있을 시간이 없음.<br> - 짧은 틈새 시간에 학습할 수 있는 가벼운 콘텐츠가 필요함.<br><br>3. **기존 어플리케이션의 낮은 지속률과 번거로움**<br> - 일반 언어 학습 앱은 강제성이 부족하고 개인화 기능이 미흡함.<br> - 앱을 직접 찾아서 실행해야 하므로 ADHD 사용자 등은 금방 포기하게 됨. |
-| **사용할 소프트웨어 패키지의 명칭과 핵심기능/용도, 사용 시나리오** | - **Backend**: Spring Boot (Kotlin)<br> - **Frontend**: React Native<br> - **Database**: PostgreSQL, DynamoDB, WatermelonDB(Client Side) <br> - Database Connection: JPA, Spring Data DynamoDB <br> - **협업 툴**: Git, GitHub, Figma, Notion, Discord<br> - **AI / API**: Gemini API |
+| **사용할 소프트웨어 패키지의 명칭과 핵심기능/용도, 사용 시나리오** |### **Frontend**
+- **React Native**
+  - iOS와 Android를 모두 지원하는 **크로스플랫폼 모바일 앱 프레임워크**
+  - 언어 학습, 카드 수집, 넛지 알림 등 주요 기능의 UI 구현
+  - **WatermelonDB**와 연동하여 오프라인 상태에서도 데이터 저장 및 자동 동기화 지원  
+- **WatermelonDB (Client DB)**
+  - 오프라인 퍼스트(Local-First) 데이터베이스
+  - 학습 단어, 카드, 퀘스트 진행 상태 등을 클라이언트 단에서 관리
+  - 서버 연결 시 변경사항을 동기화하여 일관된 데이터 유지
+
+### **Backend**
+- **Spring Boot (Kotlin)**
+  - 서버의 핵심 프레임워크로 REST API 제공 및 비즈니스 로직 처리
+  - 클라이언트와의 통신, 데이터 동기화, 인증 로직 등을 담당
+- **Spring Data JPA / Spring Data DynamoDB**
+  - 데이터 접근 계층 관리
+  - 관계형(PostgreSQL)과 비정형(DynamoDB) 데이터베이스를 모두 ORM 형태로 통합 관리
+
+### **Database**
+- **PostgreSQL (AWS RDS)**
+  - 관계형 데이터베이스로 사용자 정보, 학습 진행도, 로그 등 정형 데이터 저장
+- **DynamoDB (AWS)**
+  - JSON 기반 문서형 데이터베이스
+  - 단어 메타데이터, 카드 속성, AI 분석 결과 등 비정형 데이터 관리
+- **WatermelonDB (Client Side)**
+  - 오프라인 상태에서도 데이터 접근 가능
+  - 서버와 자동 동기화하여 사용자 경험 향상
+
+### **AI / API**
+- **Gemini API (Google AI Studio)**
+  - 사용자의 입력 문장 및 단어 사용 패턴을 분석
+  - 단어 난이도 평가, 문장 피드백, 발음 점수 등 AI 기반 학습 지원 기능 제공
+  - 클라이언트 요청 → 백엔드 서버(Spring Boot) → Gemini API 연동 구조로 구현
+
+### **협업 / 개발 환경**
+- **Git & GitHub**
+  - 버전 관리 및 코드 협업
+  - 브랜치 전략을 통한 병렬 개발과 PR 기반 코드 리뷰 진행
+- **Figma**
+  - UI/UX 설계 및 프로토타이핑 도구
+  - 앱 화면 설계, 사용자 플로우 시각화
+- **Notion**
+  - 프로젝트 문서 관리 및 일정 관리
+  - 회의록, API 명세, 일정표 등 팀 내 공유 자료 관리
+- **Discord**
+  - 팀 커뮤니케이션 및 실시간 협의 채널
+  - 회의 및 작업 피드백, 진행 상황 공유
+ |
 | **사용할 소프트웨어 패키지의 명칭과 URL** | [Spring Boot](https://spring.io/projects/spring-boot) <br> [React Native](https://reactnative.dev) <br> [PostgreSQL](https://www.postgresql.org) <br> [WatermelonDB](https://nozbe.github.io/WatermelonDB/) <br>[JPA](https://spring.io/projects/spring-data-jpa) <br> [Spring Data DynamoDB](https://github.com/derjust/spring-data-dynamodb) <br> [Gemini API](https://ai.google.dev/gemini-api/docs?hl=ko) |
 | **팀 그라운드룰** | [Ground Rule 링크](https://github.com/isc10120/CapstoneDesign2025/blob/main/GroudRule.MD) |
 | **최종 수정일** | 2025.09.16. TUE PM 04:42 |
