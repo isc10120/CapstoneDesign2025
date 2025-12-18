@@ -1,0 +1,47 @@
+body { font-family: system-ui, sans-serif; margin: 0; background:#0b1220; color:#e8eefc; }
+.wrap { max-width: 880px; margin: 40px auto; padding: 0 16px; }
+.card { background:#121a2b; border:1px solid #22304e; border-radius: 12px; padding: 16px; }
+label { display:block; margin: 10px 0; }
+input { width:100%; padding:10px; border-radius:10px; border:1px solid #2b3a5e; background:#0e1627; color:#e8eefc; }
+.row { display:flex; gap:12px; align-items:center; margin-top: 12px; }
+.chk { display:flex; gap:8px; align-items:center; margin:0; }
+button { padding:10px 14px; border-radius:10px; border:0; background:#4c7dff; color:white; cursor:pointer; }
+.out { margin-top: 12px; background:#0e1627; border:1px solid #2b3a5e; border-radius: 10px; padding: 12px; overflow:auto; }
+
+.result {
+    margin-top: 16px;
+}
+/* 이미지 표시 박스 */
+.img-box {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;      /* 박스 밖으로 나가면 자름 */
+    border-radius: 12px;   /* 선택 */
+}
+
+/* 이미지 자체: 컨테이너 폭에 맞추고 비율 유지 */
+.img-box img {
+    display: block;        /* 아래 여백 제거 */
+    width: 100%;
+    height: auto;          /* 비율 유지 */
+    max-width: 100%;
+    object-fit: contain;   /* 잘리지 않고 안에 맞춤 (cover로 바꾸면 꽉 채우며 일부 잘림) */
+}
+/* 폭 계산을 예측 가능하게 */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* label을 세로 배치 + 내부 input이 100% 먹게 */
+.card label {
+    display: block;
+    margin-bottom: 12px;
+}
+
+/* 입력창이 카드 폭을 넘지 않게 */
+.card input {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;          /* flex/그리드에서 튐 방지 */
+}

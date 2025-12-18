@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JamgaVOCA - Translation Evaluator</title>
+  <link rel="stylesheet" href="/translation.css" />
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <div>
+      <h1>잠가보카 번역 평가</h1>
+      <p class="sub">Step 1 문제 생성 → Step 2 사용자 번역 평가</p>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2 class="card-title">1) 문제 생성</h2>
+
+    <div class="grid">
+      <label class="field">
+        <span class="label">학습 단어</span>
+        <input id="targetWord" placeholder="예: brave" autocomplete="off" />
+      </label>
+
+      <label class="field">
+        <span class="label">레벨</span>
+        <select id="userLevel">
+          <option value="beginner">beginner</option>
+          <option value="intermediate" selected>intermediate</option>
+          <option value="advanced">advanced</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="row">
+      <button id="btnQuestion" class="btn primary">문제 만들기</button>
+      <button id="btnReset" class="btn ghost">초기화</button>
+    </div>
+
+    <div class="result">
+      <div class="kv">
+        <div class="k">한국어 문장</div>
+        <div class="v"><span id="koreanSentence" class="mono dim">-</span></div>
+      </div>
+
+      <div class="kv">
+        <div class="k">단어 힌트</div>
+        <div class="v"><span id="wordHint" class="mono dim">-</span></div>
+      </div>
+
+      <details class="details">
+        <summary>모범 답안(ideal) 보기</summary>
+        <pre id="idealTranslation" class="pre"></pre>
+      </details>
+    </div>
+
+    <pre id="questionRaw" class="pre dim"></pre>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title">2) 번역 제출 & 평가</h2>
+
+    <label class="field">
+      <span class="label">사용자 번역(영어)</span>
+      <textarea id="userAnswer" rows="3" placeholder="예: I was brave when I faced the challenge."></textarea>
+    </label>
+
+    <div class="row">
+      <button id="btnEvaluate" class="btn primary">평가하기</button>
+    </div>
+
+    <section class="scoreCard" id="scoreCard" style="display:none;">
+      <div class="scoreTop">
+        <div class="scoreNum">
+          <span id="score">-</span><span class="scoreUnit">/100</span>
+        </div>
+        <div class="scoreMeta">
+          <div class="pill" id="levelPill">level: -</div>
+          <div class="pill" id="wordPill">word: -</div>
+        </div>
+      </div>
+
+      <div class="bars">
+        <div class="barRow">
+          <div class="barLabel">meaning</div>
+          <div class="barTrack"><div class="barFill" id="barMeaning"></div></div>
+          <div class="barVal" id="valMeaning">-</div>
+        </div>
+        <div class="barRow">
+          <div class="barLabel">grammar</div>
+          <div class="barTrack"><div class="barFill" id="barGrammar"></div></div>
+          <div class="barVal" id="valGrammar">-</div>
+        </div>
+        <div class="barRow">
+          <div class="barLabel">word_usage</div>
+          <div class="barTrack"><div class="barFill" id="barWordUsage"></div></div>
+          <div class="barVal" id="valWordUsage">-</div>
+        </div>
+        <div class="barRow">
+          <div class="barLabel">naturalness</div>
+          <div class="barTrack"><div class="barFill" id="barNaturalness"></div></div>
+          <div class="barVal" id="valNaturalness">-</div>
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="k">피드백</div>
+        <div class="v" id="feedback"></div>
+      </div>
+
+      <div class="kv">
+        <div class="k">교정(있으면)</div>
+        <div class="v"><span id="correction" class="mono dim">null</span></div>
+      </div>
+
+      <div class="kv">
+        <div class="k">모범 답안</div>
+        <div class="v"><span id="idealAnswer2" class="mono dim">-</span></div>
+      </div>
+    </section>
+
+    <pre id="evalRaw" class="pre dim"></pre>
+  </section>
+
+  <footer class="foot">
+    <div class="dim">API: /api/translation/question, /api/translation/evaluate</div>
+  </footer>
+</main>
+
+<script src="/translation.js"></script>
+</body>
+</html>

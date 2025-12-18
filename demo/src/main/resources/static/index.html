@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Skill Generator</title>
+    <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<main class="wrap">
+    <h1>Skill Generator</h1>
+
+    <div class="card">
+        <label>단어 <input id="word" placeholder="예: brave" /></label>
+        <label>뜻(한국어) <input id="meaning" placeholder="예: 용감한" /></label>
+
+        <button id="btn">생성</button>
+
+        <!-- 이미지 섹션: card 중첩 대신 별도 섹션 클래스 사용 -->
+        <section class="result">
+            <h2 class="card-title">생성된 이미지</h2>
+
+            <div class="img-box">
+                <img id="preview" alt="generated" />
+            </div>
+        </section>
+
+        <pre id="out" class="out"></pre>
+    </div>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
