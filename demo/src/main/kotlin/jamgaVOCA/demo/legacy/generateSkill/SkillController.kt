@@ -1,7 +1,7 @@
-package jamgaVOCA.demo.generateSkill
+package jamgaVOCA.demo.legacy.generateSkill
 
-import jamgaVOCA.demo.generateSkill.dto.SkillGenerateRequest
-import jamgaVOCA.demo.generateSkill.dto.SkillGenerateResponse
+import jamgaVOCA.demo.legacy.generateSkill.dto.SkillGenerateRequest
+import jamgaVOCA.demo.legacy.generateSkill.dto.SkillGenerateResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController

@@ -7,8 +7,8 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(
-    name = "user",
-    indexes = [Index(name = "idx_user_email", columnList = "email")]
+    name = "users",
+    indexes = [Index(name = "idx_users_email", columnList = "email")]
 )
 class User(
 

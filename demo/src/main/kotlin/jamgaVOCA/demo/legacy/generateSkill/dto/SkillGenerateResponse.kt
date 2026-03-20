@@ -1,4 +1,4 @@
-package jamgaVOCA.demo.generateSkill.dto
+package jamgaVOCA.demo.legacy.generateSkill.dto
 
 data class SkillGenerateResponse(
     val id: Long?,

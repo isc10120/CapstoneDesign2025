@@ -1,10 +1,10 @@
-package jamgaVOCA.demo.generateSkill
+package jamgaVOCA.demo.legacy.generateSkill
 
 import jakarta.persistence.*
 
 @Entity
 @Table(
-    name = "skill",
+    name = "skill_legacy",
     indexes = [Index(name = "idx_skill_word", columnList = "word")],
     uniqueConstraints = [UniqueConstraint(name = "uk_skill_word", columnNames = ["word"])]
 )

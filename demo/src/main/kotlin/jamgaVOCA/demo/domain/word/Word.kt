@@ -7,6 +7,10 @@ import jakarta.persistence.*
 @Entity
 @Table(
     name = "word",
+    uniqueConstraints = [
+        UniqueConstraint(
+            name = "uk_word_english_word_korean_meaning", columnNames = ["english_word", "korean_meaning"]
+        )],
     indexes = [Index(name = "idx_word_word_level", columnList = "word_level")]
 )
 class Word(

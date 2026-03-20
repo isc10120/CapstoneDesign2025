@@ -1,4 +1,4 @@
-package jamgaVOCA.demo.generateSkill.dto
+package jamgaVOCA.demo.legacy.generateSkill.dto
 import jakarta.validation.constraints.NotBlank
 
 data class SkillGenerateRequest(

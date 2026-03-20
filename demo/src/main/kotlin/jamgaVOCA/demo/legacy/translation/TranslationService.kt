@@ -1,8 +1,11 @@
-package jamgaVOCA.demo.translation
+package jamgaVOCA.demo.legacy.translation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import jamgaVOCA.demo.config.OpenAiProperties
-import jamgaVOCA.demo.translation.dto.*
+import jamgaVOCA.demo.legacy.translation.dto.CreateQuestionRequest
+import jamgaVOCA.demo.legacy.translation.dto.CreateQuestionResponse
+import jamgaVOCA.demo.legacy.translation.dto.EvaluateRequest
+import jamgaVOCA.demo.legacy.translation.dto.EvaluateResponse
 import org.springframework.stereotype.Service
 import java.net.URI
 import java.net.http.HttpClient

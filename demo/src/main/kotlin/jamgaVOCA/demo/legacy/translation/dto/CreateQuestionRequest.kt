@@ -1,4 +1,4 @@
-package jamgaVOCA.demo.translation.dto
+package jamgaVOCA.demo.legacy.translation.dto
 
 data class CreateQuestionRequest(
     val targetWord: String,

@@ -1,9 +1,9 @@
-package jamgaVOCA.demo.generateSkill
+package jamgaVOCA.demo.legacy.generateSkill
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import jamgaVOCA.demo.generateSkill.dto.ImageStatus
-import jamgaVOCA.demo.generateSkill.dto.SkillGenerateResponse
+import jamgaVOCA.demo.legacy.generateSkill.dto.ImageStatus
+import jamgaVOCA.demo.legacy.generateSkill.dto.SkillGenerateResponse
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import java.net.URI
@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 
 @Service
 class SkillGeneratorService(
-    private val repo: SkillRepository
+    private val repo: SkillLegacyRepository
 ) {
     private val mapper = ObjectMapper()
     private val client = HttpClient.newHttpClient()

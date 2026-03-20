@@ -1,6 +1,9 @@
-package jamgaVOCA.demo.translation
+package jamgaVOCA.demo.legacy.translation
 
-import jamgaVOCA.demo.translation.dto.*
+import jamgaVOCA.demo.legacy.translation.dto.CreateQuestionRequest
+import jamgaVOCA.demo.legacy.translation.dto.CreateQuestionResponse
+import jamgaVOCA.demo.legacy.translation.dto.EvaluateRequest
+import jamgaVOCA.demo.legacy.translation.dto.EvaluateResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
