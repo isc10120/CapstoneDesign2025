@@ -1,58 +1,39 @@
 package jamgaVOCA.demo.legacy.translation
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import jamgaVOCA.demo.config.OpenAiProperties
 import jamgaVOCA.demo.legacy.translation.dto.CreateQuestionRequest
 import jamgaVOCA.demo.legacy.translation.dto.CreateQuestionResponse
 import jamgaVOCA.demo.legacy.translation.dto.EvaluateRequest
 import jamgaVOCA.demo.legacy.translation.dto.EvaluateResponse
+import org.springframework.ai.chat.messages.SystemMessage
+import org.springframework.ai.chat.messages.UserMessage
+import org.springframework.ai.chat.model.ChatModel
+import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.stereotype.Service
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.nio.charset.StandardCharsets
 
 @Service
 class TranslationService(
-    private val props: OpenAiProperties
+    private val chatModel: ChatModel
 ) {
 
     private val mapper = ObjectMapper()
-    private val client = HttpClient.newHttpClient()
-    private val CHAT_API_URL = "https://api.openai.com/v1/chat/completions"
-    private val MODEL = "gpt-4o-mini"
 
     private fun callGpt(prompt: String, system: String? = null): String {
-        val messages = mutableListOf<Map<String, String>>()
-        system?.let { messages.add(mapOf("role" to "system", "content" to it)) }
-        messages.add(mapOf("role" to "user", "content" to prompt))
+        val messages = mutableListOf<org.springframework.ai.chat.messages.Message>()
+        system?.let { messages.add(SystemMessage(it)) }
+        messages.add(UserMessage(prompt))
 
-        val body = mapOf(
-            "model" to MODEL,
-            "messages" to messages,
-            "temperature" to 0.7,
-            "max_tokens" to 500,
-            "response_format" to mapOf("type" to "json_object")
-        )
+        val response = chatModel.call(Prompt(messages))
+        var content = response.result.output.content ?: ""
 
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(CHAT_API_URL))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer ${props.apiKey}")
-            .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body), StandardCharsets.UTF_8))
-            .build()
-
-        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-        if (response.statusCode() != 200) {
-            throw IllegalStateException(response.body())
+        // Markdown JSON block 제거
+        if (content.startsWith("```json")) {
+            content = content.removePrefix("```json").removeSuffix("```").trim()
+        } else if (content.startsWith("```")) {
+            content = content.removePrefix("```").removeSuffix("```").trim()
         }
-
-        return mapper.readTree(response.body())
-            .path("choices")[0]
-            .path("message")
-            .path("content")
-            .asText()
+        
+        return content
     }
 
     /**

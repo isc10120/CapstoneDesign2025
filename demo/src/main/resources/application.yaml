@@ -1,8 +1,3 @@
-openai:
-  api-key: ${OPENAI_API_KEY}
-  chat-model: gpt-3.5-turbo
-  image-model: dall-e-3
-
 spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/app}
@@ -11,3 +6,25 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-3.5-turbo
+          temperature: 0.8
+          responseFormat:
+            type: JSON_OBJECT
+      image:
+        options:
+          model: dall-e-3
+          size: 1024x1024
+          response-format: b64_json
+    retry:
+      max-attempts: 5
+
+logging:
+  level:
+    org.springframework.ai.openai: DEBUG
+    org.springframework.ai.chat: DEBUG
+    org.springframework.ai.image: DEBUG

@@ -1,21 +1,12 @@
 package jamgaVOCA.demo.config
 
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpHeaders
-import org.springframework.web.client.RestClient
+import org.springframework.retry.annotation.EnableRetry
 
 @Configuration
-@EnableConfigurationProperties(OpenAiProperties::class)
-class OpenAiConfig(
-    private val props: OpenAiProperties
-) {
-    @Bean
-    fun openAiRestClient(): RestClient =
-        RestClient.builder()
-            .baseUrl("https://api.openai.com/v1")
-            .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer ${props.apiKey}")
-            .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .build()
+@EnableRetry
+class OpenAiConfig {
+    // Spring AI auto-configuration은 application.yaml의 설정을 자동으로 적용합니다
+    // - ChatModel: spring.ai.openai.chat.options (model, response-format 등)
+    // - ImageModel: spring.ai.openai.image.options (model, size, response-format 등)
 }
