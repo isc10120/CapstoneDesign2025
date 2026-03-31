@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 넛지 ③ 훈련봇 테마 — 배경 이미지 + 텍스트 오버레이 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/nudge_bounce_root"
+    android:layout_width="120dp"
+    android:layout_height="140dp"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:elevation="12dp"
+    android:background="@drawable/overlay_shield">
+
+    <!-- 단어 -->
+    <TextView
+        android:id="@+id/tv_bounce_word"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ephemeral"
+        android:textAlignment="center"
+        android:textColor="@color/main_navy"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/dnfforgedblade_bold"
+        android:layout_marginBottom="4dp"/>
+
+    <!-- 뜻 -->
+    <TextView
+        android:id="@+id/tv_bounce_meaning"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="일시적인"
+        android:textAlignment="center"
+        android:textColor="@color/main_navy"
+        android:textSize="13sp"
+        android:fontFamily="@font/dnfforgedblade_medium"/>
+
+</LinearLayout>
