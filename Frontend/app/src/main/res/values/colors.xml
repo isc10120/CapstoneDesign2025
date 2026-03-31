@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Overlay Colors -->
+    <color name="overlay_dim_background">#CC000000</color>
+    <color name="overlay_card_background">#FFFFFFFF</color>
+    <color name="overlay_card_stroke">#FFE0E0E0</color>
+    <color name="overlay_header_background">#FF6200EE</color>
+    <color name="overlay_text_primary">#FF212121</color>
+    <color name="overlay_text_secondary">#FF555555</color>
+    <color name="overlay_text_hint">#FFAAAAAA</color>
+
+    <!-- Difficulty Colors -->
+    <color name="difficulty_easy">#FF4CAF50</color>
+    <color name="difficulty_medium">#FFFF9800</color>
+    <color name="difficulty_hard">#FFF44336</color>
+
+    <!-- Nudge Colors -->
+    <color name="nudge_progress_tint">#FF6200EE</color>
+    <color name="nudge_dot_filled">#FF6200EE</color>
+    <color name="nudge_corner_inactive">#FFAAAAAA</color>
+    <color name="nudge_corner_active">#FF6200EE</color>
+
+    <!-- Figma Design Colors -->
+    <color name="main_navy">#FF001740</color>
+    <color name="overlay_accent_yellow">#FFF4A700</color>
+    <color name="overlay_yellow_card">#B3F4C400</color>
+    <color name="main_yellow">#F4C400</color>
+    <color name="overlay_white_94">#F0FFFFFF</color>
+    <color name="overlay_dark_dim">#663D3D3D</color>
+    <color name="overlay_primary_navy">#FF001740</color>
+</resources>
