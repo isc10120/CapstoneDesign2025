@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/overlay_dim_background">
+
+    <LinearLayout
+        android:layout_width="295dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/overlay_card_bg"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="3dp"
+            android:text="@string/morning_greeting"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/dnfforgedblade_bold"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="5dp"
+            android:gravity="center"
+            android:text="@string/morning_difficulty_prompt"
+            android:textColor="@color/overlay_text_secondary"
+            android:textSize="14sp"
+            android:fontFamily="@font/dnfforgedblade_medium"/>
+
+        <Button
+            android:id="@+id/btn_difficulty_easy"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="@color/main_yellow"
+            android:text="@string/difficulty_easy"
+            android:textSize="15sp"
+            android:textColor="@color/main_navy"
+            android:fontFamily="@font/dnfforgedblade_bold"/>
+
+        <Button
+            android:id="@+id/btn_difficulty_medium"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="@color/main_yellow"
+            android:text="@string/difficulty_medium"
+            android:textSize="15sp"
+            android:textColor="@color/main_navy"
+            android:fontFamily="@font/dnfforgedblade_bold"/>
+
+        <Button
+            android:id="@+id/btn_difficulty_hard"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:backgroundTint="@color/main_yellow"
+            android:text="@string/difficulty_hard"
+            android:textSize="15sp"
+            android:textColor="@color/main_navy"
+            android:fontFamily="@font/dnfforgedblade_bold" />
+
+    </LinearLayout>
+
+</FrameLayout>
