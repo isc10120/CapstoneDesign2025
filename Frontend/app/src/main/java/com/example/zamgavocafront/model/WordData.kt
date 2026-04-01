@@ -4,6 +4,11 @@ data class WordData(
     val id: Int,
     val word: String,
     val meaning: String,
+
+    // ✅ 추가
+    val exampleEn: String = "",
+    val exampleKr: String = "",
+
     val difficulty: Difficulty = Difficulty.MEDIUM
 )
 
