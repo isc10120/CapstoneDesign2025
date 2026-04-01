@@ -1,88 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 넛지 ② 운동 테마 — Figma 디자인 적용 (전체화면) -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/nudge_tap_root"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="230dp"
+    android:layout_height="220dp"
+    android:elevation="12dp">
 
-    <!-- 배경 이미지 (실제 사진으로 교체 예정: res/drawable/bg_nudge_exercise.jpg) -->
-    <View
+    <!-- 방패 이미지 -->
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/overlay_primary_navy" />
+        android:src="@drawable/overlay_trainingbot"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true" />
 
-    <!-- 어두운 딤 rgba(61,61,61,0.4) -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/overlay_dark_dim" />
-
-    <!-- 중앙 콘텐츠 -->
+    <!-- 텍스트 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="32dp">
+        android:gravity="center"
+        android:padding="8dp">
 
-        <!-- 운동 이미지 (실제 이미지로 교체 예정) -->
-        <ImageView
-            android:layout_width="180dp"
-            android:layout_height="140dp"
-            android:layout_marginBottom="40dp"
-            android:background="@color/overlay_accent_yellow"
-            android:contentDescription="운동 이미지"
-            android:scaleType="centerCrop" />
-
-        <!-- 단어 -->
         <TextView
             android:id="@+id/tv_nudge_tap_word"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
             android:text="ephemeral"
-            android:textColor="@color/white"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:textColor="@color/main_navy"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="1dp"
+            android:layout_marginTop="65dp"
+            android:fontFamily="@font/dnfforgedblade_bold"/>
 
-        <!-- 뜻 -->
         <TextView
             android:id="@+id/tv_nudge_tap_meaning"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="36dp"
-            android:gravity="center"
-            android:text="일시적인, 단명하는"
-            android:textColor="#CCffffff"
-            android:textSize="16sp" />
+            android:text="일시적인"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:breakStrategy="balanced"
+            android:hyphenationFrequency="normal"
+            android:textColor="@color/main_navy"
+            android:textSize="13sp"
+            android:fontFamily="@font/dnfforgedblade_medium"/>
 
-        <!-- 탭 도트 표시 -->
-        <LinearLayout
-            android:id="@+id/tap_dots_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:orientation="horizontal" />
-
-        <!-- 탭 카운터 -->
+        <!-- 카운터
         <TextView
             android:id="@+id/tv_tap_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
             android:text="0 / 6"
             android:textColor="@color/overlay_accent_yellow"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <!-- 안내 문구 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/tap_instruction"
-            android:textColor="#99ffffff"
-            android:textSize="13sp" />
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp"/> -->
 
     </LinearLayout>
 
