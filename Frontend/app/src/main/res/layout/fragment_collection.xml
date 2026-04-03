@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_collected_cards"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="12dp"
+        android:clipToPadding="false" />
+
+    <TextView
+        android:id="@+id/tv_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="아직 수집된 카드가 없어요.\nPVP에서 문제를 맞히면 스킬 카드를 획득할 수 있어요!"
+        android:textColor="@color/overlay_text_hint"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+</LinearLayout>
