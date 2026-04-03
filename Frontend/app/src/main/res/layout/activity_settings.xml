@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="설정"
+        android:textColor="@color/main_navy"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="24dp"
+        android:background="@color/overlay_card_stroke" />
+
+    <!-- 아침 오버레이 시각 설정 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="아침 오버레이 시각 설정"
+        android:textColor="@color/overlay_text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="매일 아침 단어 오버레이가 표시될 시각을 설정합니다."
+        android:textColor="@color/overlay_text_hint"
+        android:textSize="13sp" />
+
+    <Button
+        android:id="@+id/btn_setting_morning_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="설정하기 →"
+        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+    <!-- 방해금지 앱 설정 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="방해금지 앱 설정"
+        android:textColor="@color/overlay_text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="선택한 앱 사용 중에는 넛지 오버레이가 표시되지 않습니다."
+        android:textColor="@color/overlay_text_hint"
+        android:textSize="13sp" />
+
+    <Button
+        android:id="@+id/btn_setting_dnd_apps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="설정하기 →"
+        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+    <!-- 넛지 출현 주기 설정 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="넛지 출현 주기 설정"
+        android:textColor="@color/overlay_text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="넛지 오버레이가 등장하는 최소·최대 간격(분)을 설정합니다."
+        android:textColor="@color/overlay_text_hint"
+        android:textSize="13sp" />
+
+    <Button
+        android:id="@+id/btn_setting_nudge_interval"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:text="설정하기 →"
+        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <Button
+        android:id="@+id/btn_settings_back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="뒤로가기"
+        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+</LinearLayout>
