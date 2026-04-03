@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
 
     <application
         android:allowBackup="true"
@@ -27,6 +29,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".TodayWordActivity"
+            android:exported="false"
+            android:label="오늘의 단어" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="설정" />
+
+        <activity
+            android:name=".MorningTimeSettingActivity"
+            android:exported="false"
+            android:label="아침 오버레이 시각 설정" />
+
+        <activity
+            android:name=".DndAppsSettingActivity"
+            android:exported="false"
+            android:label="방해금지 앱 설정" />
+
+        <activity
+            android:name=".NudgeIntervalSettingActivity"
+            android:exported="false"
+            android:label="넛지 출현 주기 설정" />
 
         <service
             android:name=".service.OverlayService"
