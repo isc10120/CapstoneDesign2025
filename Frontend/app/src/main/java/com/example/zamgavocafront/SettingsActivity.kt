@@ -20,6 +20,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_setting_nudge_interval).setOnClickListener {
             startActivity(Intent(this, NudgeIntervalSettingActivity::class.java))
         }
+        findViewById<Button>(R.id.btn_overlay_test).setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+        }
         findViewById<Button>(R.id.btn_settings_back).setOnClickListener {
             finish()
         }

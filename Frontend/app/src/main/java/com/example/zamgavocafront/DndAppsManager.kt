@@ -29,7 +29,7 @@ object DndAppsManager {
     fun getForegroundApp(context: Context): String? {
         val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val now = System.currentTimeMillis()
-        val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, now - 10_000, now)
+        val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, now - 60_000, now)
         return stats?.maxByOrNull { it.lastTimeUsed }?.packageName
     }
 
