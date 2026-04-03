@@ -30,4 +30,9 @@ object WordProgressManager {
     fun getAvailableWords(context: Context, words: List<WordData>): List<WordData> {
         return words.filter { !isCompleted(context, it.id) }
     }
+
+    /** 매주 월요일 리셋 시 모든 진행도를 초기화한다. */
+    fun resetAll(context: Context) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+    }
 }
