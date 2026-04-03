@@ -23,11 +23,20 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="12dp"
             android:text="오버레이 테스트 화면"
             android:textColor="@color/overlay_text_hint"
             android:textSize="14sp" />
 
+        <Button
+            android:id="@+id/btn_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:backgroundTint="@color/main_navy"
+            android:text="⚙  설정" />
+
+        <!-- 오버레이 권한 -->
         <TextView
             android:id="@+id/tv_permission_status"
             android:layout_width="match_parent"
@@ -42,8 +51,162 @@
             android:id="@+id/btn_request_permission"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="8dp"
             android:text="오버레이 권한 설정" />
+
+        <!-- Android 12+ 정확한 알람 권한 -->
+        <TextView
+            android:id="@+id/tv_alarm_permission_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:padding="12dp"
+            android:text="알람 권한 확인 중..."
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btn_request_alarm_permission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="정확한 알람 권한 설정 (Alarms &amp; Reminders)"
+            android:textSize="13sp" />
+
+        <!-- ───── 아침 알람 설정 ───── -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/overlay_card_stroke" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="아침 알람 설정 (난이도 선택 위젯)"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="설정 시각"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_morning_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="07:00"
+                android:textColor="@color/main_navy"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="12dp" />
+
+            <Button
+                android:id="@+id/btn_set_morning_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="변경"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="아침 알람 활성화"
+                android:textSize="14sp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switch_morning_alarm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <!-- ───── 넛지 알람 설정 ───── -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="16dp"
+            android:background="@color/overlay_card_stroke" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="넛지 위젯 자동 등장"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="랜덤 넛지 알람 활성화"
+                android:textSize="14sp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switch_nudge_alarm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="(10~30분 간격으로 랜덤 등장 · AlarmScheduler.kt에서 조절 가능)"
+            android:textColor="@color/overlay_text_hint"
+            android:textSize="12sp" />
+
+        <!-- ───── 오늘의 단어 ───── -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/overlay_card_stroke" />
+
+        <Button
+            android:id="@+id/btn_today_words"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="오늘의 단어 보기"
+            android:backgroundTint="@color/main_navy" />
+
+        <!-- ───── 오버레이 테스트 ───── -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/overlay_card_stroke" />
 
         <TextView
             android:layout_width="wrap_content"
