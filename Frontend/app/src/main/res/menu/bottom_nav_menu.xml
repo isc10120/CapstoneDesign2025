@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_today"
+        android:icon="@drawable/ic_nav_today"
+        android:title="오늘의 단어" />
+    <item
+        android:id="@+id/nav_leaderboard"
+        android:icon="@drawable/ic_nav_leaderboard"
+        android:title="리더보드" />
+    <item
+        android:id="@+id/nav_pvp"
+        android:icon="@drawable/ic_nav_pvp"
+        android:title="PVP" />
+    <item
+        android:id="@+id/nav_pve"
+        android:icon="@drawable/ic_nav_pve"
+        android:title="PVE" />
+    <item
+        android:id="@+id/nav_collection"
+        android:icon="@drawable/ic_nav_collection"
+        android:title="컬렉션" />
+</menu>

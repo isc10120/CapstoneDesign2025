@@ -11,6 +11,13 @@ import android.view.WindowManager
 import com.example.zamgavocafront.MainActivity
 import com.example.zamgavocafront.WordProgressManager
 import com.example.zamgavocafront.WordRepository
+import com.example.zamgavocafront.api.SkillCache
+import com.example.zamgavocafront.pvp.PvpWordManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.model.WordData
 import com.example.zamgavocafront.overlay.MorningOverlayManager
@@ -35,6 +42,7 @@ class OverlayService : Service() {
     }
 
     private lateinit var windowManager: WindowManager
+    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private var morningOverlay: MorningOverlayManager? = null
     private var wordListOverlay: WordListOverlayManager? = null
@@ -87,6 +95,10 @@ class OverlayService : Service() {
     }
 
     private fun showWordListOverlay(words: List<WordData>, difficulty: Difficulty) {
+        // 난이도 선택 시점에 스킬 카드 백그라운드 미리 생성
+        serviceScope.launch {
+            SkillCache.preGenerate(words)
+        }
         wordListOverlay?.dismiss()
         wordListOverlay = WordListOverlayManager(this, windowManager, words) {
             wordListOverlay?.dismiss()
@@ -108,7 +120,10 @@ class OverlayService : Service() {
         nudgeDragOverlay?.dismiss()
         nudgeDragOverlay = NudgeDragOverlayManager(this, windowManager, word) {
             nudgeDragOverlay = null
-            WordProgressManager.incrementCount(this, word.id)
+            val newCount = WordProgressManager.incrementCount(this, word.id)
+            if (newCount >= WordProgressManager.MAX_COUNT) {
+                PvpWordManager.addUnlockedWord(this, word.id)
+            }
         }
         nudgeDragOverlay?.show()
     }
@@ -117,7 +132,10 @@ class OverlayService : Service() {
         nudgeTapOverlay?.dismiss()
         nudgeTapOverlay = NudgeTapOverlayManager(this, windowManager, word) {
             nudgeTapOverlay = null
-            WordProgressManager.incrementCount(this, word.id)
+            val newCount = WordProgressManager.incrementCount(this, word.id)
+            if (newCount >= WordProgressManager.MAX_COUNT) {
+                PvpWordManager.addUnlockedWord(this, word.id)
+            }
         }
         nudgeTapOverlay?.show()
     }
@@ -126,7 +144,10 @@ class OverlayService : Service() {
         nudgeBounceOverlay?.dismiss()
         nudgeBounceOverlay = NudgeBounceOverlayManager(this, windowManager, word) {
             nudgeBounceOverlay = null
-            WordProgressManager.incrementCount(this, word.id)
+            val newCount = WordProgressManager.incrementCount(this, word.id)
+            if (newCount >= WordProgressManager.MAX_COUNT) {
+                PvpWordManager.addUnlockedWord(this, word.id)
+            }
         }
         nudgeBounceOverlay?.show()
     }
@@ -142,6 +163,7 @@ class OverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         dismissAll()
+        serviceScope.cancel()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
