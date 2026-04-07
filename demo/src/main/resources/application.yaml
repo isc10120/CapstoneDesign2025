@@ -1,8 +1,16 @@
 spring:
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/app}
-    username: ${DB_USER:app}
-    password: ${DB_PASSWORD:app}
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local} # default
+    group:
+      local:
+        - common
+      prod:
+        - common
+---
+spring:
+  config:
+    activate:
+      on-profile: common
   jpa:
     hibernate:
       ddl-auto: update
@@ -28,3 +36,21 @@ logging:
     org.springframework.ai.openai: DEBUG
     org.springframework.ai.chat: DEBUG
     org.springframework.ai.image: DEBUG
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/app}
+    username: ${DB_USER:app}
+    password: ${DB_PASSWORD:app}
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://moavoca-rds.c9ac4wwc0hi3.ap-northeast-2.rds.amazonaws.com:5432/postgres
+    username: app
+    password: ${DB_PASSWORD}
