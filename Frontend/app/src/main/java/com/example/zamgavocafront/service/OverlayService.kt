@@ -6,8 +6,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.view.WindowManager
+import com.example.zamgavocafront.AlarmScheduler
 import com.example.zamgavocafront.MainActivity
 import com.example.zamgavocafront.WordProgressManager
 import com.example.zamgavocafront.WordRepository
@@ -35,6 +38,8 @@ class OverlayService : Service() {
         const val ACTION_SHOW_NUDGE_TAP = "ACTION_SHOW_NUDGE_TAP"
         const val ACTION_SHOW_NUDGE_BOUNCE = "ACTION_SHOW_NUDGE_BOUNCE"
         const val ACTION_SHOW_NUDGE_RANDOM = "ACTION_SHOW_NUDGE_RANDOM"
+        const val ACTION_START_NUDGE_SCHEDULE = "ACTION_START_NUDGE_SCHEDULE"
+        const val ACTION_STOP_NUDGE_SCHEDULE = "ACTION_STOP_NUDGE_SCHEDULE"
         const val ACTION_STOP = "ACTION_STOP"
         const val EXTRA_DIFFICULTY = "EXTRA_DIFFICULTY"
         private const val CHANNEL_ID = "overlay_service_channel"
@@ -50,11 +55,23 @@ class OverlayService : Service() {
     private var nudgeTapOverlay: NudgeTapOverlayManager? = null
     private var nudgeBounceOverlay: NudgeBounceOverlayManager? = null
 
+    private val nudgeHandler = Handler(Looper.getMainLooper())
+    private val nudgeRunnable = object : Runnable {
+        override fun run() {
+            showRandomNudge()
+            scheduleNextNudgeInternal()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         createNotificationChannel()
         startForeground(NOTIF_ID, buildNotification())
+        // 서비스 시작 시 넛지 스케줄 복원 (START_STICKY 재시작 포함)
+        if (AlarmScheduler.isNudgeEnabled(this)) {
+            scheduleNextNudgeInternal()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -69,13 +86,35 @@ class OverlayService : Service() {
             ACTION_SHOW_NUDGE_DRAG -> pickAvailableWord()?.let { showNudgeDrag(it) }
             ACTION_SHOW_NUDGE_TAP -> pickAvailableWord()?.let { showNudgeTap(it) }
             ACTION_SHOW_NUDGE_BOUNCE -> pickAvailableWord()?.let { showNudgeBounce(it) }
-            ACTION_SHOW_NUDGE_RANDOM -> showRandomNudge()
+            ACTION_SHOW_NUDGE_RANDOM -> {
+                // AlarmManager 경유 시: 즉시 표시 후 Handler 타이머 리셋
+                showRandomNudge()
+                scheduleNextNudgeInternal()
+            }
+            ACTION_START_NUDGE_SCHEDULE -> {
+                // 넛지 활성화 시 Handler 기반 스케줄 시작
+                scheduleNextNudgeInternal()
+            }
+            ACTION_STOP_NUDGE_SCHEDULE -> {
+                nudgeHandler.removeCallbacks(nudgeRunnable)
+            }
             ACTION_STOP -> {
+                nudgeHandler.removeCallbacks(nudgeRunnable)
                 dismissAll()
                 stopSelf()
             }
         }
         return START_STICKY
+    }
+
+    /** 설정된 간격(min~max 분) 후에 넛지를 표시하도록 예약한다. */
+    private fun scheduleNextNudgeInternal() {
+        nudgeHandler.removeCallbacks(nudgeRunnable)
+        if (!AlarmScheduler.isNudgeEnabled(this)) return
+        val (min, max) = AlarmScheduler.getNudgeIntervalMinutes(this)
+        val range = if (min >= max) min..min else min..max
+        val delayMs = range.random() * 60 * 1000L
+        nudgeHandler.postDelayed(nudgeRunnable, delayMs)
     }
 
     /** 완료(카운트 3) 되지 않은 단어 중 랜덤 1개를 반환한다. */
@@ -162,6 +201,7 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        nudgeHandler.removeCallbacks(nudgeRunnable)
         dismissAll()
         serviceScope.cancel()
     }

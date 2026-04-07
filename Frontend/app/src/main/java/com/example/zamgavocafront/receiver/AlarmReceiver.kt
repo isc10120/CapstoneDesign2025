@@ -21,9 +21,10 @@ class AlarmReceiver : BroadcastReceiver() {
                 }
             }
             "com.example.zamgavocafront.NUDGE_ALARM" -> {
-                // 방해금지 앱 사용 중이 아닐 때만 오버레이 표시
+                // 서비스가 살아있으면 Handler가 넛지를 담당하므로 ACTION_START_NUDGE_SCHEDULE만 전달.
+                // 서비스가 죽어있으면 onCreate에서 자동으로 스케줄을 복원함.
                 if (!DndAppsManager.isForegroundAppBlocked(context)) {
-                    startOverlayService(context, OverlayService.ACTION_SHOW_NUDGE_RANDOM)
+                    startOverlayService(context, OverlayService.ACTION_START_NUDGE_SCHEDULE)
                 }
                 if (AlarmScheduler.isNudgeEnabled(context)) {
                     AlarmScheduler.scheduleNextNudgeAlarm(context)

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp">
+
+        <!-- 스테이지 이모지 -->
+        <TextView
+            android:id="@+id/tv_stage_emoji"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="🌲"
+            android:textSize="28sp"
+            android:gravity="center"
+            android:layout_marginEnd="14dp" />
+
+        <!-- 스테이지 정보 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_stage_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="스테이지 1 - 마법의 숲"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/main_navy"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tv_stage_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="잡몹 4라운드 + 보스 1라운드"
+                android:textSize="12sp"
+                android:textColor="@color/overlay_text_secondary"
+                android:layout_marginBottom="2dp" />
+
+            <TextView
+                android:id="@+id/tv_stage_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="미클리어"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#FF9800"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:background="@drawable/bg_count_badge" />
+        </LinearLayout>
+
+        <!-- 진입 버튼 (랜덤 입장으로 교체됨, 현황 표시 전용) -->
+        <Button
+            android:id="@+id/btn_enter_stage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="입장"
+            android:textSize="13sp"
+            android:backgroundTint="@color/main_navy"
+            android:visibility="gone"
+            style="@style/Widget.MaterialComponents.Button" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
