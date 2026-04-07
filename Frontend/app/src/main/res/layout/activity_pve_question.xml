@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#1A1A2E">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- 카드 정보 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#2A2A4E">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/tv_card_skill_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="스킬명"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:id="@+id/tv_card_grade"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="동급"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        android:background="@drawable/bg_count_badge" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tv_card_effect"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚔ 공격"
+                        android:textSize="12sp"
+                        android:textColor="#F4C400"
+                        android:layout_marginEnd="12dp" />
+
+                    <TextView
+                        android:id="@+id/tv_card_damage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="데미지: 50"
+                        android:textSize="12sp"
+                        android:textColor="#FF7777" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 문제 안내 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✏ 다음 한국어 문장을 영어로 번역하세요:"
+            android:textSize="13sp"
+            android:textColor="#AAAACC"
+            android:layout_marginBottom="10dp" />
+
+        <!-- 문제 카드 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#2A2A4E">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tv_korean_sentence"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="문제 로딩 중..."
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tv_word_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="14sp"
+                    android:textColor="#AAAACC"
+                    android:fontFamily="monospace" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 답안 입력 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="영어로 번역하세요"
+            android:layout_marginBottom="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:minLines="2"
+                android:textColor="@color/white" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 제출 버튼 -->
+        <Button
+            android:id="@+id/btn_submit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="스킬 발동!"
+            android:backgroundTint="#F4C400"
+            android:textColor="@color/main_navy"
+            android:layout_marginBottom="8dp"
+            style="@style/Widget.MaterialComponents.Button" />
+
+        <!-- 포기 버튼 -->
+        <Button
+            android:id="@+id/btn_skip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="다른 카드 선택"
+            android:backgroundTint="#555577"
+            android:layout_marginBottom="12dp"
+            style="@style/Widget.MaterialComponents.Button" />
+
+        <!-- 피드백 -->
+        <TextView
+            android:id="@+id/tv_feedback"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="14sp"
+            android:padding="12dp"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp" />
+
+    </LinearLayout>
+</ScrollView>
