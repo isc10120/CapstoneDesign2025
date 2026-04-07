@@ -62,8 +62,12 @@ class MainActivity : AppCompatActivity() {
         switchNudge.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 AlarmScheduler.startNudgeSchedule(this)
+                // 서비스를 즉시 시작해 Handler 기반 스케줄을 활성화
+                // (포그라운드 활동 중이므로 FGS 시작 제한 없음)
+                sendAction(OverlayService.ACTION_START_NUDGE_SCHEDULE)
             } else {
                 AlarmScheduler.stopNudgeSchedule(this)
+                sendAction(OverlayService.ACTION_STOP_NUDGE_SCHEDULE)
             }
         }
     }
