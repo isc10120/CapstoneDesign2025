@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="120dp"
+    android:layout_height="150dp"
+    android:layout_margin="5dp">
+
+    <!-- 카드 본체 -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#2A2A4E">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="8dp">
+
+            <!-- 등급 뱃지 -->
+            <TextView
+                android:id="@+id/tv_card_grade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="동급"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:background="@drawable/bg_count_badge"
+                android:layout_marginBottom="4dp" />
+
+            <!-- 스킬 이름 -->
+            <TextView
+                android:id="@+id/tv_card_skill_name"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="스킬명"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
+            <!-- 효과 아이콘 + 데미지 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tv_card_effect_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚔"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_card_damage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="50"
+                    android:textSize="12sp"
+                    android:textColor="#FF7777" />
+            </LinearLayout>
+
+            <!-- 단어 -->
+            <TextView
+                android:id="@+id/tv_card_word"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="word"
+                android:textSize="9sp"
+                android:textColor="#8888AA"
+                android:gravity="center"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 쿨타임 오버레이 -->
+    <FrameLayout
+        android:id="@+id/cooldown_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_cooldown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="쿨타임\n3턴"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:gravity="center" />
+    </FrameLayout>
+</FrameLayout>

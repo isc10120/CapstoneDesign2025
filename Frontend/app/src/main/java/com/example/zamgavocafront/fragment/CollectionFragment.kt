@@ -1,5 +1,6 @@
 package com.example.zamgavocafront.fragment
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
@@ -13,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.zamgavocafront.R
+import com.example.zamgavocafront.pve.CardDetailActivity
 import com.example.zamgavocafront.pvp.CollectedCardManager
 
 class CollectionFragment : Fragment() {
@@ -88,6 +90,18 @@ class CollectionFragment : Fragment() {
                 }
             } else {
                 holder.ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
+            }
+
+            holder.itemView.setOnClickListener {
+                startActivity(Intent(requireContext(), CardDetailActivity::class.java).apply {
+                    putExtra(CardDetailActivity.EXTRA_WORD_ID, card.wordId)
+                    putExtra(CardDetailActivity.EXTRA_WORD, card.word)
+                    putExtra(CardDetailActivity.EXTRA_SKILL_NAME, card.skillName)
+                    putExtra(CardDetailActivity.EXTRA_SKILL_DESC, card.skillDescription)
+                    putExtra(CardDetailActivity.EXTRA_DAMAGE, card.damage)
+                    putExtra(CardDetailActivity.EXTRA_GRADE, card.grade)
+                    putExtra(CardDetailActivity.EXTRA_IMAGE_B64, card.imageBase64)
+                })
             }
         }
 

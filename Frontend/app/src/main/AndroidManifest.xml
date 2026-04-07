@@ -90,6 +90,32 @@
             android:exported="false"
             android:label="수집된 카드" />
 
+        <!-- PVE 관련 Activity -->
+        <activity
+            android:name=".pve.PveDungeonActivity"
+            android:exported="false"
+            android:label="PVE 던전" />
+
+        <activity
+            android:name=".pve.PveQuestionActivity"
+            android:exported="false"
+            android:label="PVE 문제" />
+
+        <activity
+            android:name=".pve.DeckSelectActivity"
+            android:exported="false"
+            android:label="덱 선택" />
+
+        <activity
+            android:name=".pve.DeckBuildActivity"
+            android:exported="false"
+            android:label="덱 구성" />
+
+        <activity
+            android:name=".pve.CardDetailActivity"
+            android:exported="false"
+            android:label="카드 상세" />
+
         <service
             android:name=".service.OverlayService"
             android:exported="false"

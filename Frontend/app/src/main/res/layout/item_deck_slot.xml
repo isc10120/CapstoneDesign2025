@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tv_deck_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="덱 1"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/main_navy" />
+
+            <!-- 활성 표시 -->
+            <TextView
+                android:id="@+id/tv_active_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="선택됨"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:background="@drawable/bg_count_badge"
+                android:backgroundTint="#4CAF50"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_deck_cards_count"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="카드 10장"
+            android:textSize="13sp"
+            android:textColor="@color/overlay_text_secondary"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tv_deck_last_used"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="마지막 사용: -"
+            android:textSize="11sp"
+            android:textColor="@color/overlay_text_hint"
+            android:layout_marginBottom="10dp" />
+
+        <!-- 버튼 행 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end">
+
+            <Button
+                android:id="@+id/btn_delete_deck"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="삭제"
+                android:textSize="12sp"
+                android:backgroundTint="#EF5350"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.Button" />
+
+            <Button
+                android:id="@+id/btn_edit_deck"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="편집"
+                android:textSize="12sp"
+                android:backgroundTint="@color/overlay_text_secondary"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.Button" />
+
+            <Button
+                android:id="@+id/btn_select_deck"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="선택"
+                android:textSize="12sp"
+                android:backgroundTint="@color/main_navy"
+                style="@style/Widget.MaterialComponents.Button" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
