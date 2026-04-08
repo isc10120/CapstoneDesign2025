@@ -1,15 +1,13 @@
-package jamgaVOCA.demo.bootstrap
+package jamgaVOCA.demo.infrastructure.bootstrap
 
 import jamgaVOCA.demo.domain.word.PartOfSpeech
 import jamgaVOCA.demo.domain.word.Word
-import jamgaVOCA.demo.domain.word.WordLevel
 import jamgaVOCA.demo.domain.word.CefrLevel
 import jamgaVOCA.demo.domain.word.WordRepository
 
 import com.opencsv.bean.CsvToBeanBuilder
 import org.springframework.stereotype.Component
 import org.springframework.boot.CommandLineRunner
-import org.springframework.context.annotation.Profile
 import org.springframework.transaction.annotation.Transactional
 
 //@Profile("local")
