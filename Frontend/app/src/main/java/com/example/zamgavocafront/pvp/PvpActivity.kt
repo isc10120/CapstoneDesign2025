@@ -5,11 +5,15 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.zamgavocafront.R
 import com.example.zamgavocafront.WordRepository
+import com.example.zamgavocafront.api.ApiClient
+import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.model.WordData
+import kotlinx.coroutines.launch
 
 class PvpActivity : AppCompatActivity() {
 
@@ -57,21 +61,49 @@ class PvpActivity : AppCompatActivity() {
     }
 
     private fun refreshUi() {
-        val availableIds = PvpWordManager.getPvpAvailableWordIds(this)
-        val words = WordRepository.allWords.filter { it.id in availableIds }
-
         tvTotalDamage.text = PvpWordManager.getTotalDamage(this).toString()
-        val attacksLeft = PvpWordManager.getAttacksLeft(this)
-        tvAttacksLeft.text = "$attacksLeft / 10"
+        tvAttacksLeft.text = "${PvpWordManager.getAttacksLeft(this)} / 10"
 
-        adapter.updateWords(words)
-
-        if (words.isEmpty()) {
-            rvWords.visibility = View.GONE
-            tvEmpty.visibility = View.VISIBLE
-        } else {
-            rvWords.visibility = View.VISIBLE
-            tvEmpty.visibility = View.GONE
+        lifecycleScope.launch {
+            val words = loadPvpWords()
+            adapter.updateWords(words)
+            if (words.isEmpty()) {
+                rvWords.visibility = View.GONE
+                tvEmpty.visibility = View.VISIBLE
+            } else {
+                rvWords.visibility = View.VISIBLE
+                tvEmpty.visibility = View.GONE
+            }
         }
+    }
+
+    /** 이번 주 수집 단어를 서버에서 가져온다. 실패 시 로컬 데이터로 fallback. */
+    private suspend fun loadPvpWords(): List<WordData> {
+        return try {
+            val resp = ApiClient.api.getWeekCollectedList()
+            if (resp.success && resp.data != null && resp.data.isNotEmpty()) {
+                resp.data.map { dto ->
+                    // 난이도는 서버가 제공하지 않으므로 로컬 WordRepository에서 보완
+                    val local = WordRepository.allWords.find { it.id.toLong() == dto.id }
+                    WordData(
+                        id = dto.id.toInt(),
+                        word = dto.word,
+                        meaning = dto.definition,
+                        exampleEn = dto.example,
+                        exampleKr = dto.exampleKor,
+                        difficulty = local?.difficulty ?: Difficulty.MEDIUM
+                    )
+                }
+            } else {
+                localFallback()
+            }
+        } catch (_: Exception) {
+            localFallback()
+        }
+    }
+
+    private fun localFallback(): List<WordData> {
+        val availableIds = PvpWordManager.getPvpAvailableWordIds(this)
+        return WordRepository.allWords.filter { it.id in availableIds }
     }
 }

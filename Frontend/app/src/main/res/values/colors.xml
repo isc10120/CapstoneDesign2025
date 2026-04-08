@@ -29,11 +29,12 @@
     <color name="nudge_corner_active">#FF6200EE</color>
 
     <!-- Figma Design Colors -->
-    <color name="main_navy">#FF001740</color>
+    <color name="main_navy">#FF0F2A71</color>
     <color name="overlay_accent_yellow">#FFF4A700</color>
     <color name="overlay_yellow_card">#B3F4C400</color>
-    <color name="main_yellow">#F4C400</color>
+    <color name="main_yellow">#FFDB60</color>
+    <color name="tooltip_yellow">#FFEBA6</color>
     <color name="overlay_white_94">#F0FFFFFF</color>
     <color name="overlay_dark_dim">#663D3D3D</color>
-    <color name="overlay_primary_navy">#FF001740</color>
+    <color name="overlay_primary_navy">#FF0F2A71</color>
 </resources>
