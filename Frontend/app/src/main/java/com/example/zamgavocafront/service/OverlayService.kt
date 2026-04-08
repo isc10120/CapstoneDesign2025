@@ -14,13 +14,16 @@ import com.example.zamgavocafront.AlarmScheduler
 import com.example.zamgavocafront.MainActivity
 import com.example.zamgavocafront.WordProgressManager
 import com.example.zamgavocafront.WordRepository
+import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.api.SkillCache
+import com.example.zamgavocafront.api.dto.NudgeUpdateRequest
 import com.example.zamgavocafront.pvp.PvpWordManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.model.WordData
 import com.example.zamgavocafront.overlay.MorningOverlayManager
@@ -128,7 +131,35 @@ class OverlayService : Service() {
         morningOverlay = MorningOverlayManager(this, windowManager) { difficulty ->
             morningOverlay?.dismiss()
             morningOverlay = null
-            showWordListOverlay(WordRepository.allWords, difficulty)
+            // 난이도 선택 시 백엔드에서 해당 레벨 단어 목록을 새로 받아온다
+            serviceScope.launch {
+                val level = difficulty.name.lowercase()
+                try {
+                    val resp = ApiClient.api.getNewDailyWordList(level)
+                    if (resp.success && resp.data != null) {
+                        val words = resp.data.map { dto ->
+                            WordData(
+                                id = dto.id.toInt(),
+                                word = dto.word,
+                                meaning = dto.definition,
+                                exampleEn = dto.example,
+                                exampleKr = dto.exampleKor,
+                                difficulty = difficulty
+                            )
+                        }
+                        withContext(Dispatchers.Main) {
+                            WordRepository.allWords.clear()
+                            WordRepository.allWords.addAll(words)
+                            showWordListOverlay(WordRepository.allWords, difficulty)
+                        }
+                        return@launch
+                    }
+                } catch (_: Exception) { }
+                // API 실패 시 기존 단어 목록 그대로 사용
+                withContext(Dispatchers.Main) {
+                    showWordListOverlay(WordRepository.allWords, difficulty)
+                }
+            }
         }
         morningOverlay?.show()
     }
@@ -163,6 +194,7 @@ class OverlayService : Service() {
             if (newCount >= WordProgressManager.MAX_COUNT) {
                 PvpWordManager.addUnlockedWord(this, word.id)
             }
+            syncNudge(word.id, newCount)
         }
         nudgeDragOverlay?.show()
     }
@@ -175,6 +207,7 @@ class OverlayService : Service() {
             if (newCount >= WordProgressManager.MAX_COUNT) {
                 PvpWordManager.addUnlockedWord(this, word.id)
             }
+            syncNudge(word.id, newCount)
         }
         nudgeTapOverlay?.show()
     }
@@ -187,8 +220,45 @@ class OverlayService : Service() {
             if (newCount >= WordProgressManager.MAX_COUNT) {
                 PvpWordManager.addUnlockedWord(this, word.id)
             }
+            syncNudge(word.id, newCount)
         }
         nudgeBounceOverlay?.show()
+    }
+
+    // ── 넛지 백엔드 동기화 ──────────────────────────────────────────────────
+
+    /** 넛지 1회 해제 후 호출. 오프라인이면 pending에 저장하고 다음 기회에 재전송. */
+    private fun syncNudge(wordId: Int, count: Int) {
+        savePendingNudge(wordId, count)
+        serviceScope.launch {
+            val pending = getPendingNudges()
+            try {
+                ApiClient.api.updateNudge(pending)
+                clearPendingNudges()
+            } catch (_: Exception) {
+                // 전송 실패 → pending에 남겨두고 다음 nudge 시점에 재시도
+            }
+        }
+    }
+
+    private fun savePendingNudge(wordId: Int, count: Int) {
+        getSharedPreferences("nudge_pending", MODE_PRIVATE)
+            .edit().putInt("nudge_$wordId", count).apply()
+    }
+
+    private fun getPendingNudges(): List<NudgeUpdateRequest> =
+        getSharedPreferences("nudge_pending", MODE_PRIVATE).all
+            .mapNotNull { (key, value) ->
+                if (key.startsWith("nudge_") && value is Int)
+                    NudgeUpdateRequest(
+                        id = key.removePrefix("nudge_").toLongOrNull() ?: return@mapNotNull null,
+                        nudge = value
+                    )
+                else null
+            }
+
+    private fun clearPendingNudges() {
+        getSharedPreferences("nudge_pending", MODE_PRIVATE).edit().clear().apply()
     }
 
     private fun dismissAll() {

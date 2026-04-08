@@ -5,7 +5,7 @@ import com.example.zamgavocafront.model.WordData
 
 object WordRepository {
 
-    val allWords = listOf(
+    val allWords = mutableListOf(
         WordData(
             id = 1,
             word = "ephemeral",

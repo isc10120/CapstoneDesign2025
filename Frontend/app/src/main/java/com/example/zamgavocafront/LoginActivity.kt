@@ -17,9 +17,14 @@ class LoginActivity : AppCompatActivity() {
             goToHome()
         }
 
-        // 게스트로 시작하기
-        findViewById<TextView>(R.id.tv_guest).setOnClickListener {
-            goToHome()
+        // 회원가입 (미구현)
+        findViewById<TextView>(R.id.tv_signup).setOnClickListener {
+            android.widget.Toast.makeText(this, "회원가입 준비 중입니다.", android.widget.Toast.LENGTH_SHORT).show()
+        }
+
+        // 비밀번호 찾기 (미구현)
+        findViewById<TextView>(R.id.tv_find_password).setOnClickListener {
+            android.widget.Toast.makeText(this, "비밀번호 찾기 준비 중입니다.", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 

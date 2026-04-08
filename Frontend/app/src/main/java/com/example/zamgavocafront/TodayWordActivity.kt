@@ -4,10 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.zamgavocafront.model.WordData
 
@@ -24,47 +25,36 @@ class TodayWordActivity : AppCompatActivity() {
         }
 
         findViewById<RecyclerView>(R.id.rv_words).apply {
-            layoutManager = LinearLayoutManager(this@TodayWordActivity)
+            // 2열 그리드 레이아웃 적용
+            layoutManager = GridLayoutManager(this@TodayWordActivity, 2)
             this.adapter = this@TodayWordActivity.adapter
         }
-
-        updateProgressSummary()
     }
 
     override fun onResume() {
         super.onResume()
         adapter.notifyDataSetChanged()
-        updateProgressSummary()
-    }
-
-    private fun updateProgressSummary() {
-        val completed = WordRepository.allWords.count {
-            WordProgressManager.isCompleted(this, it.id)
-        }
-        findViewById<TextView>(R.id.tv_progress_summary).text =
-            "완료 $completed / ${WordRepository.allWords.size}"
     }
 
     private fun showWordDetailDialog(word: WordData) {
-        val count = WordProgressManager.getCount(this, word.id)
-        val max = WordProgressManager.MAX_COUNT
-        val isCompleted = count >= max
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_word_detail, null)
+        val dialog = AlertDialog.Builder(this, R.style.CustomDialogTheme) // 테마 적용 권장
+            .setView(dialogView)
+            .create()
 
-        val message = buildString {
-            append("뜻: ${word.meaning}\n\n")
-            append("[예문]\n")
-            append("${word.exampleEn}\n")
-            append(word.exampleKr)
+        // 다이얼로그 배경을 투명하게 해서 둥근 모서리가 보이게 함
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<TextView>(R.id.tv_detail_word).text = word.word
+        dialogView.findViewById<TextView>(R.id.tv_detail_meaning).text = word.meaning
+        dialogView.findViewById<TextView>(R.id.tv_detail_example_en).text = word.exampleEn
+        dialogView.findViewById<TextView>(R.id.tv_detail_example_kr).text = word.exampleKr
+
+        dialogView.findViewById<Button>(R.id.btn_close).setOnClickListener {
+            dialog.dismiss()
         }
 
-        val countLabel = if (isCompleted) "완료 ($max/$max)" else "$count / $max"
-        val title = "${word.word}  [$countLabel]"
-
-        AlertDialog.Builder(this)
-            .setTitle(title)
-            .setMessage(message)
-            .setPositiveButton("닫기", null)
-            .show()
+        dialog.show()
     }
 
     // ─── RecyclerView Adapter ──────────────────────────────────────────────
@@ -75,14 +65,13 @@ class TodayWordActivity : AppCompatActivity() {
     ) : RecyclerView.Adapter<WordAdapter.ViewHolder>() {
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            val tvWord: TextView = itemView.findViewById(R.id.tv_word)
-            val tvMeaning: TextView = itemView.findViewById(R.id.tv_meaning)
-            val tvCount: TextView = itemView.findViewById(R.id.tv_count_badge)
+            val tvWordEn: TextView = itemView.findViewById(R.id.tv_word_en)
+            val tvWordKr: TextView = itemView.findViewById(R.id.tv_word_kr)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_word, parent, false)
+                .inflate(R.layout.item_word_grid, parent, false)
             return ViewHolder(view)
         }
 
@@ -92,20 +81,11 @@ class TodayWordActivity : AppCompatActivity() {
             val max = WordProgressManager.MAX_COUNT
             val isCompleted = count >= max
 
-            holder.tvWord.text = word.word
-            holder.tvMeaning.text = word.meaning
-            holder.tvCount.text = "$count/$max"
+            holder.tvWordEn.text = word.word
+            holder.tvWordKr.text = word.meaning
 
-            // 완료된 단어는 배지 색상을 노란색으로 표시
-            if (isCompleted) {
-                holder.tvCount.setBackgroundResource(R.drawable.bg_count_badge_done)
-                holder.tvCount.setTextColor(0xFF001740.toInt())
-            } else {
-                holder.tvCount.setBackgroundResource(R.drawable.bg_count_badge)
-                holder.tvCount.setTextColor(0xFFFFFFFF.toInt())
-            }
-
-            holder.itemView.alpha = if (isCompleted) 0.55f else 1f
+            // 완료된 단어는 반투명하게 표시하거나 디자인에 따라 변경
+            holder.itemView.alpha = if (isCompleted) 0.5f else 1f
             holder.itemView.setOnClickListener { onClick(word) }
         }
 
