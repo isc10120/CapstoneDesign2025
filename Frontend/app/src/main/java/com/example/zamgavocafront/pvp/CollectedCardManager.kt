@@ -16,7 +16,8 @@ object CollectedCardManager {
         val damage: Int,
         val imageBase64: String?,
         val grade: String,   // "금급" / "은급" / "동급"
-        val collectedAt: Long = System.currentTimeMillis()
+        val collectedAt: Long = System.currentTimeMillis(),
+        val imageUrl: String? = null   // S3 URL (백엔드에서 제공)
     )
 
     fun addCard(context: Context, card: CollectedCard) {

@@ -1,15 +1,14 @@
 package com.example.zamgavocafront.pvp
 
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.zamgavocafront.R
+import coil.load
 import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.api.SkillCache
 import com.example.zamgavocafront.api.dto.*
@@ -97,7 +96,7 @@ class PvpQuestionActivity : AppCompatActivity() {
 
         scope.launch {
             try {
-                val response = ApiClient.api.createQuestion(
+                val response = ApiClient.mockApi.createQuestion(
                     CreateQuestionRequest(targetWord = wordText, userLevel = userLevel)
                 )
                 if (response.success) {
@@ -135,7 +134,7 @@ class PvpQuestionActivity : AppCompatActivity() {
             updateAttackInfo()
 
             try {
-                val evalResponse = ApiClient.api.evaluate(
+                val evalResponse = ApiClient.mockApi.evaluate(
                     EvaluateRequest(
                         koreanSentence = koreanSentence,
                         userAnswer = userAnswer,
@@ -167,34 +166,55 @@ class PvpQuestionActivity : AppCompatActivity() {
         // 단어 사용 완료 처리
         PvpWordManager.markWordUsed(this, wordId)
 
-        // 스킬 카드 생성 (캐시 우선 → 없으면 API 호출)
+        // 스킬 카드 조회: 캐시 → 실서버 → mock 순으로 fallback
         try {
-            val skillResponse = SkillCache.get(wordId)
-                ?: ApiClient.api.generateSkill(
-                    SkillGenerateRequest(word = wordText, meaningKo = wordMeaning)
+            val skillResponse: SkillResponse? = SkillCache.get(wordId)
+                ?: run {
+                    try {
+                        val resp = ApiClient.api.getSkillInfo(wordId.toLong())
+                        resp.data
+                    } catch (_: Exception) { null }
+                }
+                ?: ApiClient.mockApi.getSkillInfo(wordId.toLong()).data
+
+            if (skillResponse != null) {
+                // 데미지 누적
+                PvpWordManager.addDamage(this, skillResponse.damage)
+
+                // 수집 목록에 추가 (로컬)
+                val (gradeText, _) = gradeInfo(difficulty)
+                CollectedCardManager.addCard(
+                    this,
+                    CollectedCardManager.CollectedCard(
+                        wordId = wordId,
+                        word = wordText,
+                        skillName = skillResponse.name,
+                        skillDescription = skillResponse.explain,
+                        damage = skillResponse.damage,
+                        imageBase64 = null,
+                        grade = gradeText,
+                        imageUrl = skillResponse.imageURL.takeIf { it.isNotBlank() }
+                    )
                 )
 
-            // 데미지 누적
-            PvpWordManager.addDamage(this, skillResponse.damage)
+                // 스킬 수집 백엔드 동기화
+                try {
+                    ApiClient.api.collectSkill(
+                        CollectSkillRequest(
+                            skillId = skillResponse.skillId,
+                            wordId = wordId.toLong()
+                        )
+                    )
+                } catch (_: Exception) { }
 
-            // 수집 목록에 추가
-            val (gradeText, _) = gradeInfo(difficulty)
-            CollectedCardManager.addCard(
-                this,
-                CollectedCardManager.CollectedCard(
-                    wordId = wordId,
-                    word = wordText,
-                    skillName = skillResponse.name,
-                    skillDescription = skillResponse.description,
-                    damage = skillResponse.damage,
-                    imageBase64 = skillResponse.imageBase64,
-                    grade = gradeText
-                )
-            )
-
-            showSkillCardDialog(skillResponse, gradeText)
+                showSkillCardDialog(skillResponse, gradeText)
+            } else {
+                PvpWordManager.addDamage(this, 50)
+                val (gradeText, _) = gradeInfo(difficulty)
+                showCorrectFallback(score, gradeText)
+            }
         } catch (e: Exception) {
-            // 스킬 생성 실패해도 데미지 기본값 처리 (50)
+            // 스킬 조회 실패해도 데미지 기본값 처리 (50)
             PvpWordManager.addDamage(this, 50)
             val (gradeText, _) = gradeInfo(difficulty)
             showCorrectFallback(score, gradeText)
@@ -218,38 +238,43 @@ class PvpQuestionActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSkillCardDialog(skill: SkillGenerateResponse, gradeText: String) {
+    private fun showSkillCardDialog(skill: SkillResponse, gradeText: String) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_skill_card, null)
 
-        val ivImage = dialogView.findViewById<ImageView>(R.id.iv_skill_image)
-        val tvGrade = dialogView.findViewById<TextView>(R.id.tv_skill_grade)
-        val tvName = dialogView.findViewById<TextView>(R.id.tv_skill_name)
-        val tvDamage = dialogView.findViewById<TextView>(R.id.tv_skill_damage)
-        val tvDesc = dialogView.findViewById<TextView>(R.id.tv_skill_desc)
+        val ivImage      = dialogView.findViewById<ImageView>(R.id.iv_skill_image)
+        val tvGrade      = dialogView.findViewById<TextView>(R.id.tv_skill_grade)
+        val tvName       = dialogView.findViewById<TextView>(R.id.tv_skill_name)
+        val tvDamage     = dialogView.findViewById<TextView>(R.id.tv_skill_damage)
+        val tvDesc       = dialogView.findViewById<TextView>(R.id.tv_skill_desc)
+        val tvTotal      = dialogView.findViewById<TextView>(R.id.tv_total_damage)
+        val tvCollected  = dialogView.findViewById<TextView>(R.id.tv_collected_badge)
 
-        // 이미지 디코딩
-        if (skill.imageBase64 != null && skill.imageStatus == ImageStatus.SUCCESS) {
-            try {
-                val bytes = Base64.decode(skill.imageBase64, Base64.DEFAULT)
-                val bm = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                ivImage.setImageBitmap(bm)
-            } catch (e: Exception) {
-                ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
-            }
-        } else {
-            ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
+        ivImage.load(skill.imageURL.takeIf { it.isNotBlank() }) {
+            placeholder(android.R.drawable.ic_menu_gallery)
+            error(android.R.drawable.ic_menu_gallery)
         }
 
         val (_, gradeColor) = gradeInfo(difficulty)
         tvGrade.text = gradeText
         tvGrade.backgroundTintList = android.content.res.ColorStateList.valueOf(gradeColor)
         tvName.text = skill.name
-        tvDamage.text = "⚔ 데미지: +${skill.damage}"
-        tvDesc.text = skill.description
+        tvDesc.text = skill.explain
+        tvDamage.text = "+${skill.damage} 데미지!"
+        tvTotal.text = "누적 데미지: ${PvpWordManager.getTotalDamage(this)}"
+        tvCollected.text = "📦 '${skill.name}' 카드 수집 완료"
+
+        // 카드 등장 애니메이션
+        dialogView.scaleX = 0.6f
+        dialogView.scaleY = 0.6f
+        dialogView.alpha = 0f
+        dialogView.animate()
+            .scaleX(1f).scaleY(1f).alpha(1f)
+            .setDuration(250)
+            .start()
 
         AlertDialog.Builder(this)
             .setView(dialogView)
-            .setPositiveButton("확인") { _, _ -> finish() }
+            .setPositiveButton("⚔ 공격 완료!") { _, _ -> finish() }
             .setCancelable(false)
             .show()
     }

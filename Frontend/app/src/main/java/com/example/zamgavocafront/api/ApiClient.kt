@@ -13,11 +13,10 @@ object ApiClient {
      */
     const val USE_MOCK = true
 
-    // 에뮬레이터: 10.0.2.2 = 호스트 PC의 localhost
-    // 실기기(WiFi): PC의 로컬 IP 주소(예: 192.168.x.x)로 변경
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "http://ec2-54-116-110-178.ap-northeast-2.compute.amazonaws.com:8080/"
 
     val gson: Gson = Gson()
+
 
     private val realApi: ZamgaVocaApiService by lazy {
         Retrofit.Builder()
@@ -29,4 +28,7 @@ object ApiClient {
 
     val api: ZamgaVocaApiService
         get() = if (USE_MOCK) MockApiService() else realApi
+
+    /** 번역 문제(createQuestion/evaluate)는 레거시 미완성이므로 항상 Mock 사용 */
+    val mockApi: ZamgaVocaApiService = MockApiService()
 }

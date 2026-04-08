@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp">
+
+    <!-- 넛지 카운트 (팝업 위) -->
+    <TextView
+        android:id="@+id/tv_nudge_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="0 / 3"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- 팝업 본체 -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@android:color/transparent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- 종이 배경 이미지: 비율(896x1152) 유지하며 너비에 맞게 -->
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:src="@drawable/todays_voca_paper"
+                android:scaleType="fitXY"
+                android:adjustViewBounds="true"
+                android:contentDescription="@null" />
+
+            <!-- 콘텐츠 오버레이 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingHorizontal="24dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="24dp">
+
+                <!-- X 닫기 버튼 (우상단) -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/btn_close"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="end"
+                        android:gravity="center"
+                        android:text="✕"
+                        android:textColor="@color/main_navy"
+                        android:textSize="18sp"
+                        android:layout_marginRight="20dp"
+                        android:layout_marginTop="10dp"/>
+
+                </FrameLayout>
+
+                <!-- 단어 -->
+                <TextView
+                    android:id="@+id/tv_detail_word"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Apple"
+                    android:textColor="@color/main_navy"
+                    android:textSize="30sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- 뜻 -->
+                <TextView
+                    android:id="@+id/tv_detail_meaning"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="사과"
+                    android:textColor="@color/main_navy"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- 구분선 -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#44000000"
+                    android:layout_marginBottom="14dp" />
+
+                <!-- 예문/해석 레이블 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="예문 / 해석"
+                    android:textColor="@color/main_navy"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_tooltip"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginLeft="15dp"/>
+
+                <!-- 영어 예문 -->
+                <TextView
+                    android:id="@+id/tv_detail_example_en"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="An apple a day keeps the doctor away."
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:lineSpacingMultiplier="1.4"
+                    android:layout_marginBottom="6dp"
+                    android:layout_marginLeft="15dp"/>
+
+                <!-- 한국어 번역 -->
+                <TextView
+                    android:id="@+id/tv_detail_example_kr"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="하루 한 알의 사과는 의사를 멀리하게 한다."
+                    android:textColor="#555555"
+                    android:textSize="13sp"
+                    android:lineSpacingMultiplier="1.4"
+                    android:layout_marginLeft="15dp"/>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>
