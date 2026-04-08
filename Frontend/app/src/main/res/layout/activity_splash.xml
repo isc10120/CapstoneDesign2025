@@ -4,35 +4,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="@color/main_navy">
+    android:background="@color/main_yellow">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="⚔"
-        android:textSize="64sp"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ZamgaVoca"
-        android:textColor="@color/white"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="단어로 싸우는 배틀 영단어"
-        android:textColor="#AAFFFFFF"
-        android:textSize="15sp" />
+    <ImageView
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:src="@drawable/moavoca_logo"
+        android:scaleType="fitCenter"
+        android:layout_marginBottom="24dp" />
 
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:indeterminateTint="@color/main_yellow" />
+        android:indeterminateTint="@color/main_navy" />
 
 </LinearLayout>

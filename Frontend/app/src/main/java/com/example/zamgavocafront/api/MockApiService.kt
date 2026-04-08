@@ -10,7 +10,7 @@ import com.example.zamgavocafront.api.dto.*
  */
 class MockApiService : ZamgaVocaApiService {
 
-    // ── /test 단어 Mock API ───────────────────────────────────────────
+    // ── /test 단어 Mock API (구버전) ──────────────────────────────────────
 
     override suspend fun getDailyVocaList(num: Int): DailyVocaListResponse {
         val list = listOf(
@@ -43,7 +43,6 @@ class MockApiService : ZamgaVocaApiService {
                 koreanSentence = word.exampleKr,
                 targetWord = word.word,
                 wordHint = makeHint(word.word),
-                // ideal을 PvpQuestionActivity가 evaluate 호출 시 그대로 돌려줌
                 ideal = word.exampleEn
             )
         } else {
@@ -57,10 +56,6 @@ class MockApiService : ZamgaVocaApiService {
         }
     }
 
-    /**
-     * 채점: 답안에 targetWord가 포함되면 80점 합격.
-     * 실제 API 연결 시 이 로직은 서버가 대체함.
-     */
     override suspend fun evaluate(req: EvaluateRequest): EvaluateResponse {
         val correct = req.userAnswer.contains(req.targetWord, ignoreCase = true)
         return if (correct) {
@@ -100,6 +95,133 @@ class MockApiService : ZamgaVocaApiService {
         )
     }
 
+    // ── /api/v1 Word API ──────────────────────────────────────────────
+
+    override suspend fun getDailyWordList(): ApiResponse<List<WordResponse>> {
+        val list = WordRepository.allWords.map { w ->
+            WordResponse(
+                id = w.id.toLong(),
+                word = w.word,
+                definition = w.meaning,
+                partOfSpeech = "unknown",
+                example = w.exampleEn,
+                exampleKor = w.exampleKr,
+                nudge = 0
+            )
+        }
+        return ApiResponse(success = true, data = list)
+    }
+
+    override suspend fun getNewDailyWordList(level: String): ApiResponse<List<WordResponse>> {
+        val list = WordRepository.allWords.map { w ->
+            WordResponse(
+                id = w.id.toLong(),
+                word = w.word,
+                definition = w.meaning,
+                partOfSpeech = "unknown",
+                example = w.exampleEn,
+                exampleKor = w.exampleKr
+            )
+        }
+        return ApiResponse(success = true, data = list)
+    }
+
+    override suspend fun getWordInfo(id: Long): ApiResponse<WordResponse> {
+        val w = WordRepository.allWords.find { it.id.toLong() == id }
+            ?: return ApiResponse(success = false, data = null,
+                error = ApiError("NOT_FOUND", "단어를 찾을 수 없습니다."))
+        return ApiResponse(
+            success = true,
+            data = WordResponse(
+                id = w.id.toLong(),
+                word = w.word,
+                definition = w.meaning,
+                partOfSpeech = "unknown",
+                example = w.exampleEn,
+                exampleKor = w.exampleKr
+            )
+        )
+    }
+
+    override suspend fun updateNudge(nudgeRequests: List<NudgeUpdateRequest>): ApiResponse<Any?> =
+        ApiResponse(success = true, data = null)
+
+    // ── /api/v1 Skill API ─────────────────────────────────────────────
+
+    override suspend fun getCollectedSkillList(): ApiResponse<List<SkillResponse>> {
+        val list = MOCK_SKILLS.entries.mapIndexed { idx, (word, triple) ->
+            val w = WordRepository.allWords.find { it.word == word }
+            SkillResponse(
+                skillId = (idx + 1).toLong(),
+                name = triple.first,
+                explain = triple.second,
+                damage = triple.third,
+                skillType = "attack",
+                lasting = null,
+                imageURL = "",
+                wordId = w?.id?.toLong() ?: (idx + 1).toLong()
+            )
+        }
+        return ApiResponse(success = true, data = list)
+    }
+
+    override suspend fun getSkillInfo(id: Long): ApiResponse<SkillResponse> {
+        // wordId로 WordRepository에서 단어 텍스트를 찾아 MOCK_SKILLS 조회
+        val wordText = WordRepository.allWords.find { it.id.toLong() == id }?.word?.lowercase()
+        val triple = (wordText?.let { MOCK_SKILLS[it] })
+            ?: MOCK_SKILLS.entries.toList().getOrNull((id - 1).toInt())?.value
+            ?: return ApiResponse(success = false, data = null,
+                error = ApiError("NOT_FOUND", "스킬을 찾을 수 없습니다."))
+        return ApiResponse(
+            success = true,
+            data = SkillResponse(
+                skillId = id,
+                name = triple.first,
+                explain = triple.second,
+                damage = triple.third,
+                skillType = "attack",
+                lasting = null,
+                imageURL = "",
+                wordId = id
+            )
+        )
+    }
+
+    override suspend fun collectSkill(req: CollectSkillRequest): ApiResponse<Any?> =
+        ApiResponse(success = true, data = null)
+
+    override suspend fun getWeekCollectedList(): ApiResponse<List<WordResponse>> {
+        val list = WordRepository.allWords.take(5).map { w ->
+            WordResponse(
+                id = w.id.toLong(),
+                word = w.word,
+                definition = w.meaning,
+                partOfSpeech = "unknown",
+                example = w.exampleEn,
+                exampleKor = w.exampleKr
+            )
+        }
+        return ApiResponse(success = true, data = list)
+    }
+
+    // ── /api/v1 Auth API ──────────────────────────────────────────────
+
+    override suspend fun signUp(req: SignUpRequest): ApiResponse<Any?> =
+        ApiResponse(success = true, data = null)
+
+    override suspend fun signIn(req: SignInRequest): ApiResponse<SignInResponse> =
+        ApiResponse(
+            success = true,
+            data = SignInResponse(
+                userId = 1L,
+                email = req.email,
+                nickName = "테스트유저",
+                nudgeEnabled = true,
+                nudgeInterval = 20,
+                silentNudge = emptyList()
+            )
+        )
+
     // ── helpers ──────────────────────────────────────────────────────
 
     private fun makeHint(word: String): String {
@@ -108,7 +230,6 @@ class MockApiService : ZamgaVocaApiService {
     }
 
     companion object {
-        /** WordRepository 10개 단어에 대한 mock 스킬 데이터 */
         private val MOCK_SKILLS: Map<String, Triple<String, String, Int>> = mapOf(
             "ephemeral"     to Triple("찰나의 베기",    "순간에 모든 것을 담은 강렬한 베기를 날린다.", 120),
             "serendipity"   to Triple("행운의 빛",      "예기치 않은 행운이 상대를 강타한다.",        90),
@@ -120,7 +241,6 @@ class MockApiService : ZamgaVocaApiService {
             "tenacious"     to Triple("집착의 족쇄",    "끈질긴 힘이 상대를 강하게 속박한다.",        130),
             "profound"      to Triple("심연의 충격",    "심오한 힘이 상대에게 깊은 충격을 준다.",     140),
             "candid"        to Triple("진실의 화살",    "솔직한 진실이 화살이 되어 상대를 꿰뚫는다.", 105),
-            // /test mock 단어
             "apple"         to Triple("사과 폭풍",      "수많은 사과가 상대에게 쏟아진다.",           50),
             "banana"        to Triple("바나나 미끄러짐","바나나 껍질로 상대를 넘어뜨린다.",           70),
         )

@@ -1,14 +1,13 @@
 package com.example.zamgavocafront.pve
 
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import coil.load
 import com.example.zamgavocafront.R
 import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.api.SkillCache
@@ -98,7 +97,7 @@ class PveQuestionActivity : AppCompatActivity() {
 
         scope.launch {
             try {
-                val resp = ApiClient.api.createQuestion(
+                val resp = ApiClient.mockApi.createQuestion(
                     CreateQuestionRequest(targetWord = wordText, userLevel = "intermediate")
                 )
                 if (resp.success) {
@@ -133,7 +132,7 @@ class PveQuestionActivity : AppCompatActivity() {
 
         scope.launch {
             try {
-                val evalResp = ApiClient.api.evaluate(
+                val evalResp = ApiClient.mockApi.evaluate(
                     EvaluateRequest(
                         koreanSentence = koreanSentence,
                         userAnswer = answer,
@@ -164,29 +163,44 @@ class PveQuestionActivity : AppCompatActivity() {
         if (existing == null) {
             try {
                 val skillResp = SkillCache.get(wordId)
-                    ?: ApiClient.api.generateSkill(SkillGenerateRequest(word = wordText, meaningKo = ""))
-                CollectedCardManager.addCard(
-                    this,
-                    CollectedCardManager.CollectedCard(
-                        wordId = wordId,
-                        word = wordText,
-                        skillName = skillResp.name,
-                        skillDescription = skillResp.description,
-                        damage = skillResp.damage,
-                        imageBase64 = skillResp.imageBase64,
-                        grade = skillGrade
+                    ?: run {
+                        try {
+                            val resp = ApiClient.api.getSkillInfo(wordId.toLong())
+                            resp.data
+                        } catch (_: Exception) { null }
+                    }
+                    ?: ApiClient.mockApi.getSkillInfo(wordId.toLong()).data
+                if (skillResp != null) {
+                    CollectedCardManager.addCard(
+                        this,
+                        CollectedCardManager.CollectedCard(
+                            wordId = wordId,
+                            word = wordText,
+                            skillName = skillResp.name,
+                            skillDescription = skillResp.explain,
+                            damage = skillResp.damage,
+                            imageBase64 = null,
+                            grade = skillGrade,
+                            imageUrl = skillResp.imageURL.takeIf { it.isNotBlank() }
+                        )
                     )
+                }
+                showSkillActivationDialog(
+                    imageUrl = skillResp?.imageURL?.takeIf { it.isNotBlank() },
+                    newCollect = skillResp != null
                 )
-                showSkillActivationDialog(skillResp.imageBase64, newCollect = true)
             } catch (e: Exception) {
-                showSkillActivationDialog(null, newCollect = false)
+                showSkillActivationDialog(imageUrl = null, newCollect = false)
             }
         } else {
-            showSkillActivationDialog(existing.imageBase64, newCollect = false)
+            showSkillActivationDialog(
+                imageUrl = existing.imageUrl,
+                newCollect = false
+            )
         }
     }
 
-    private fun showSkillActivationDialog(imageBase64: String?, newCollect: Boolean) {
+    private fun showSkillActivationDialog(imageUrl: String?, newCollect: Boolean) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_skill_card, null)
         val ivImage  = dialogView.findViewById<ImageView>(R.id.iv_skill_image)
         val tvGrade  = dialogView.findViewById<TextView>(R.id.tv_skill_grade)
@@ -194,22 +208,35 @@ class PveQuestionActivity : AppCompatActivity() {
         val tvDamage = dialogView.findViewById<TextView>(R.id.tv_skill_damage)
         val tvDesc   = dialogView.findViewById<TextView>(R.id.tv_skill_desc)
 
-        if (imageBase64 != null) {
-            try {
-                val bytes = Base64.decode(imageBase64, Base64.DEFAULT)
-                ivImage.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
-            } catch (_: Exception) { }
+        // tv_total_damage / tv_collected_badge 는 Make Project 후 사용 가능
+        val tvTotal     = dialogView.findViewWithTag<TextView>("tv_total_damage")
+        val tvCollected = dialogView.findViewWithTag<TextView>("tv_collected_badge")
+
+        ivImage.load(imageUrl) {
+            placeholder(android.R.drawable.ic_menu_gallery)
+            error(android.R.drawable.ic_menu_gallery)
         }
 
         tvGrade.text = skillGrade
         tvGrade.backgroundTintList = android.content.res.ColorStateList.valueOf(gradeColor(skillGrade))
-        tvName.text = if (newCollect) "🆕 $skillName 획득!" else "✅ $skillName 발동!"
-        tvDamage.text = "⚔ 기본 데미지: $skillDamage"
-        tvDesc.text = if (newCollect) "카드가 수집 목록에 추가되었습니다!" else "스킬이 발동됩니다!"
+        tvName.text = skillName
+        tvDamage.text = "+$skillDamage 데미지!"
+        tvDesc.text = if (newCollect) "스킬 카드 발동 & 수집!" else "스킬 발동!"
+        tvTotal?.visibility = android.view.View.GONE
+        tvCollected?.text = if (newCollect) "📦 '$skillName' 카드 수집 완료" else "✅ 스킬 발동!"
+
+        // 카드 등장 애니메이션
+        dialogView.scaleX = 0.6f
+        dialogView.scaleY = 0.6f
+        dialogView.alpha = 0f
+        dialogView.animate()
+            .scaleX(1f).scaleY(1f).alpha(1f)
+            .setDuration(250)
+            .start()
 
         AlertDialog.Builder(this)
             .setView(dialogView)
-            .setPositiveButton("발동!") { _, _ ->
+            .setPositiveButton("⚔ 발동!") { _, _ ->
                 val data = android.content.Intent().putExtra(RESULT_WORD_ID, wordId)
                 setResult(RESULT_OK, data)
                 finish()

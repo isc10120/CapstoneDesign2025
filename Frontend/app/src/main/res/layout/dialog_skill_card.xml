@@ -6,15 +6,18 @@
     android:padding="24dp"
     android:gravity="center_horizontal">
 
+    <!-- 스킬 발동 타이틀 -->
     <TextView
+        android:id="@+id/tv_skill_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="✨ 스킬 획득!"
-        android:textSize="20sp"
+        android:text="⚔ 스킬 발동!"
+        android:textSize="22sp"
         android:textStyle="bold"
         android:textColor="@color/main_navy"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="12dp" />
 
+    <!-- 스킬 이미지 -->
     <ImageView
         android:id="@+id/iv_skill_image"
         android:layout_width="120dp"
@@ -23,6 +26,7 @@
         android:background="#EEE"
         android:layout_marginBottom="12dp" />
 
+    <!-- 등급 뱃지 -->
     <TextView
         android:id="@+id/tv_skill_grade"
         android:layout_width="wrap_content"
@@ -36,34 +40,67 @@
         android:background="@drawable/bg_count_badge"
         android:layout_marginBottom="8dp" />
 
+    <!-- 스킬 이름 -->
     <TextView
         android:id="@+id/tv_skill_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="스킬명"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@color/overlay_text_primary"
         android:layout_marginBottom="4dp" />
 
-    <TextView
-        android:id="@+id/tv_skill_damage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="데미지: 0"
-        android:textSize="16sp"
-        android:textColor="#F44336"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
-
+    <!-- 스킬 설명 -->
     <TextView
         android:id="@+id/tv_skill_desc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="스킬 설명"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:textColor="@color/overlay_text_secondary"
         android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <!-- 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginBottom="12dp" />
+
+    <!-- 이번 공격 데미지 -->
+    <TextView
+        android:id="@+id/tv_skill_damage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+0 데미지"
+        android:textSize="28sp"
+        android:textColor="#F44336"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <!-- 누적 총 데미지 -->
+    <TextView
+        android:id="@+id/tv_total_damage"
+        android:tag="tv_total_damage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="누적 데미지: 0"
+        android:textSize="14sp"
+        android:textColor="#666"
+        android:layout_marginBottom="12dp" />
+
+    <!-- 수집 완료 뱃지 -->
+    <TextView
+        android:id="@+id/tv_collected_badge"
+        android:tag="tv_collected_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📦 카드 수집 완료"
+        android:textSize="13sp"
+        android:textColor="#388E3C"
+        android:textStyle="bold"
         android:layout_marginBottom="4dp" />
 
 </LinearLayout>
