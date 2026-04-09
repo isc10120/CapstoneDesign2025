@@ -31,4 +31,7 @@ object ApiClient {
 
     /** 번역 문제(createQuestion/evaluate)는 레거시 미완성이므로 항상 Mock 사용 */
     val mockApi: ZamgaVocaApiService = MockApiService()
+
+    /** 인증(로그인/회원가입)은 항상 실제 서버 사용 */
+    val authApi: ZamgaVocaApiService get() = realApi
 }
