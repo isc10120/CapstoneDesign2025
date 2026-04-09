@@ -20,7 +20,7 @@ class SkillService(
     private val httpSession: HttpSession
 ) {
     fun getCollectedSkillList(): List<SkillResponse> {
-        val userId = httpSession.getAttribute("userId") as? Long ?: throw RuntimeException("User not logged in")
+        val userId =1L
         val collectedItems = userWordSkillRepository.findAllByUserId(userId)
 
         return collectedItems.map { item ->
@@ -54,7 +54,7 @@ class SkillService(
 
     @Transactional
     fun collectSkill(request: CollectSkillRequest) {
-        val userId = httpSession.getAttribute("userId") as? Long ?: throw RuntimeException("User not logged in")
+        val userId = 1L
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
 
         val word = wordRepository.findById(request.wordId).orElseThrow { RuntimeException("Word not found") }

@@ -31,7 +31,7 @@ class WordService(
     private val log = LoggerFactory.getLogger(WordService::class.java)
 
     fun getDailyWordList(): List<WordResponse> {
-        val userId = httpSession.getAttribute("userId") as? Long ?: throw RuntimeException("User not logged in")
+        val userId = 1L
 
         val nudgeWords = dailyNudgeWordRepository.findAllByUserId(userId)
 
@@ -51,7 +51,7 @@ class WordService(
 
     @Transactional
     fun getNewDailyWordList(level: String): List<WordResponse> {
-        val userId = httpSession.getAttribute("userId") as? Long ?: throw RuntimeException("User not logged in")
+        val userId = 1L
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
 
         val wordLevel = WordLevel.entries.find { it.name == level.uppercase() }
@@ -113,7 +113,7 @@ class WordService(
 
     @Transactional
     fun updateNudge(nudgeRequests: List<NudgeRequest>) {
-        val userId = httpSession.getAttribute("userId") as? Long ?: throw RuntimeException("User not logged in")
+        val userId = 1L
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
 
         for (request in nudgeRequests) {
@@ -146,7 +146,7 @@ class WordService(
     }
 
     fun getWeekCollectedList(): List<WordResponse> {
-        val userId = httpSession.getAttribute("userId") as? Long ?: throw RuntimeException("User not logged in")
+        val userId = 1L
 
         val collectedWords = weekCollectedWordRepository.findAllByUserId(userId)
 
