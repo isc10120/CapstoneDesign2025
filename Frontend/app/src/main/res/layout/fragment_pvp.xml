@@ -4,100 +4,423 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="#EEF1FA"
+    android:clipChildren="false">
 
-    <!-- 스탯 카드 -->
-    <androidx.cardview.widget.CardView
+    <!-- 상단 타이머 바: 다음 주 월요일 00시까지 남은 시간 -->
+    <LinearLayout
+        android:id="@+id/layout_timer_bar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@color/main_navy"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚔ 종료까지  "
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tv_pvp_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="--일 --시간 --분"
+            android:textColor="@color/main_yellow"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 배틀 배경 + 플레이어 캐릭터 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="210dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/pvp_background"
+            android:contentDescription="PVP 배경" />
+
+        <ImageView
+            android:id="@+id/iv_player1"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="20dp"
+            android:translationY="18dp"
+            android:contentDescription="플레이어1"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pvp_player1" />
+
+        <ImageView
+            android:id="@+id/iv_player2"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="20dp"
+            android:translationY="18dp"
+            android:src="@drawable/pvp_player2"
+            android:scaleType="fitCenter"
+            android:contentDescription="플레이어2" />
+    </FrameLayout>
+
+    <!-- 플레이어 정보 영역 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
+        android:orientation="horizontal"
+        android:background="@color/white"
+        android:paddingTop="10dp"
+        android:paddingBottom="12dp"
+        android:paddingHorizontal="12dp">
 
+        <!-- Player 1 정보 (내 플레이어) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/tv_player1_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="나"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:textColor="@color/overlay_text_primary" />
+
+            <!-- 누적 데미지 박스 (FFBDBA) -->
+            <TextView
+                android:id="@+id/tv_player1_damage"
+                android:layout_width="121dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_damage_box_p1"
+                android:gravity="center"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="6dp"
+                android:text="0"
+                android:textColor="@color/overlay_text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- 버프/상태이상 아이콘 (항상 표시, 비활성 시 텍스트 빈칸) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="6dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="3dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/buff_stronger"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="공격력 버프" />
+                    <TextView
+                        android:id="@+id/tv_p1_buff_attack"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="9sp"
+                        android:textColor="#C62828"
+                        android:gravity="center"
+                        android:minHeight="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="3dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/buff_shield"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="쉴드" />
+                    <TextView
+                        android:id="@+id/tv_p1_buff_shield"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="9sp"
+                        android:textColor="#C62828"
+                        android:gravity="center"
+                        android:minHeight="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="3dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/buff_paralyzed"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="마비" />
+                    <TextView
+                        android:id="@+id/tv_p1_buff_paralysis"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="9sp"
+                        android:textColor="#C62828"
+                        android:gravity="center"
+                        android:minHeight="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="3dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/buff_poison"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="독" />
+                    <TextView
+                        android:id="@+id/tv_p1_buff_poison"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="9sp"
+                        android:textColor="#C62828"
+                        android:gravity="center"
+                        android:minHeight="14dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- VS 구분 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingHorizontal="10dp"
+            android:text="VS"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:textColor="#BBBBBB" />
+
+        <!-- Player 2 정보 (상대 플레이어) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/tv_player2_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="상대방"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:textColor="@color/overlay_text_primary" />
+
+            <!-- 누적 데미지 박스 (BACDFF) -->
+            <TextView
+                android:id="@+id/tv_player2_damage"
+                android:layout_width="121dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_damage_box_p2"
+                android:gravity="center"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="6dp"
+                android:text="0"
+                android:textColor="@color/overlay_text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- 버프/상태이상 아이콘 (항상 표시, 비활성 시 텍스트 빈칸) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="6dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="3dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/buff_stronger"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="공격력 버프" />
+                    <TextView
+                        android:id="@+id/tv_p2_buff_attack"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="9sp"
+                        android:textColor="#C62828"
+                        android:gravity="center"
+                        android:minHeight="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="3dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/buff_shield"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="쉴드" />
+                    <TextView
+                        android:id="@+id/tv_p2_buff_shield"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="9sp"
+                        android:textColor="#C62828"
+                        android:gravity="center"
+                        android:minHeight="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="3dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/buff_paralyzed"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="마비" />
+                    <TextView
+                        android:id="@+id/tv_p2_buff_paralysis"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="9sp"
+                        android:textColor="#C62828"
+                        android:gravity="center"
+                        android:minHeight="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="3dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/buff_poison"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="독" />
+                    <TextView
+                        android:id="@+id/tv_p2_buff_poison"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="9sp"
+                        android:textColor="#C62828"
+                        android:gravity="center"
+                        android:minHeight="14dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 사용 가능 단어 드로어 (위에 그림자, 둥근 모서리) -->
+    <LinearLayout
+        android:id="@+id/layout_word_drawer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="@drawable/bg_word_drawer"
+        android:elevation="10dp">
+
+        <!-- 드로어 헤더 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="10dp"
+            android:gravity="center_vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
+                android:layout_weight="1"
+                android:text="사용 가능 단어"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="#5C4200" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="이번 주 누적 데미지"
-                    android:textSize="14sp"
-                    android:textColor="@color/overlay_text_secondary" />
-
-                <TextView
-                    android:id="@+id/tv_total_damage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textColor="#F44336"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tv_attacks_left"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="오늘 남은 공격 횟수"
-                    android:textSize="14sp"
-                    android:textColor="@color/overlay_text_secondary" />
-
-                <TextView
-                    android:id="@+id/tv_attacks_left"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="10 / 10"
-                    android:textColor="@color/main_navy"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                android:text="오늘 잔여 공격 횟수 10"
+                android:textSize="18sp"
+                android:textColor="#7A5800" />
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="16dp"
-        android:paddingBottom="8dp"
-        android:text="사용 가능한 단어"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:textColor="@color/overlay_text_primary" />
+        <!-- 단어 그리드 (2열) -->
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_pvp_words"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingHorizontal="16dp"
-        android:clipToPadding="false" />
+        <!-- 단어 없을 때 메시지 -->
 
-    <TextView
-        android:id="@+id/tv_empty"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:text="이번 주에 아직 해제한 단어가 없어요.\n넛지 기믹을 3회 완료하면\nPVP에서 사용 가능한 단어가 생겨요!"
-        android:textColor="@color/overlay_text_hint"
-        android:textSize="14sp"
-        android:visibility="gone" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_pvp_words"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingHorizontal="8dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_empty"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="이번 주에 아직 해제한 단어가 없어요.\n넛지 기믹을 3회 완료하면\nPVP에서 사용 가능한 단어가 생겨요!"
+            android:textColor="#7A5800"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </LinearLayout>
 
 </LinearLayout>

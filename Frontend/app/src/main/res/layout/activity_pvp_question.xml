@@ -1,128 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="#F5F5F5">
+    android:orientation="vertical"
+    android:background="@color/main_yellow">
 
+    <!-- 상단 핸들 + 닫기 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:gravity="center_horizontal"
+        android:paddingTop="10dp"
+        android:paddingBottom="4dp">
 
-        <!-- 단어 헤더 -->
-        <TextView
-            android:id="@+id/tv_word_header"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="단어: word"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/main_navy"
-            android:layout_marginBottom="4dp" />
+        <!-- 드로어 핸들 바 -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:background="#B8A040"
+            android:layout_marginBottom="6dp" />
 
-        <TextView
-            android:id="@+id/tv_grade_badge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="은급"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
-            android:background="@drawable/bg_count_badge"
-            android:layout_marginBottom="20dp" />
-
-        <!-- 문제 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="다음 한국어 문장을 영어로 번역하세요:"
-            android:textSize="14sp"
-            android:textColor="@color/overlay_text_secondary"
-            android:layout_marginBottom="12dp" />
-
-        <androidx.cardview.widget.CardView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:cardCornerRadius="10dp"
-            app:cardElevation="2dp">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tv_word_header"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_weight="1"
+                android:text="단어: word"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/main_navy" />
 
-                <TextView
-                    android:id="@+id/tv_korean_sentence"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="문제 로딩 중..."
-                    android:textSize="16sp"
-                    android:textColor="@color/overlay_text_primary"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:id="@+id/tv_word_hint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text=""
-                    android:textSize="14sp"
-                    android:textColor="@color/overlay_text_secondary"
-                    android:fontFamily="monospace" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- 답안 입력 -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="영어로 번역하세요"
-            android:layout_marginBottom="8dp"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_answer"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tv_grade_badge"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:inputType="textMultiLine"
-                android:minLines="2" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:text="은급"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:background="@drawable/bg_count_badge"
+                android:layout_marginEnd="12dp" />
 
-        <!-- 공격 횟수 표시 -->
-        <TextView
-            android:id="@+id/tv_attacks_info"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="남은 공격: 10회"
-            android:textSize="13sp"
-            android:textColor="@color/overlay_text_hint"
-            android:layout_marginBottom="12dp" />
-
-        <!-- 제출 버튼 -->
-        <Button
-            android:id="@+id/btn_submit"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="제출 (공격!)"
-            android:backgroundTint="@color/main_navy"
-            android:layout_marginBottom="16dp" />
-
-        <!-- 피드백 -->
-        <TextView
-            android:id="@+id/tv_feedback"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="14sp"
-            android:padding="12dp"
-            android:visibility="gone"
-            android:layout_marginBottom="8dp" />
-
+            <ImageButton
+                android:id="@+id/btn_close"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="닫기"
+                app:tint="#7A5800" />
+        </LinearLayout>
     </LinearLayout>
-</ScrollView>
+
+    <!-- 문제 내용 스크롤 영역 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 문제 카드 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="다음 한국어 문장을 영어로 번역하세요:"
+                android:textSize="13sp"
+                android:textColor="#7A5800"
+                android:layout_marginBottom="8dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_korean_sentence"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="문제 로딩 중..."
+                        android:textSize="16sp"
+                        android:textColor="@color/overlay_text_primary"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/tv_word_hint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="14sp"
+                        android:textColor="@color/overlay_text_secondary"
+                        android:fontFamily="monospace" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 답안 입력 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="영어로 번역하세요"
+                android:layout_marginBottom="8dp"
+                app:boxBackgroundColor="@color/white"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_answer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:minLines="2" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 공격 횟수 표시 -->
+            <TextView
+                android:id="@+id/tv_attacks_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="남은 공격: 10 / 10"
+                android:textSize="13sp"
+                android:textColor="#7A5800"
+                android:layout_marginBottom="12dp" />
+
+            <!-- 제출 버튼 -->
+            <Button
+                android:id="@+id/btn_submit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="제출 (공격!)"
+                android:backgroundTint="@color/main_navy"
+                android:layout_marginBottom="16dp" />
+
+            <!-- 피드백 -->
+            <TextView
+                android:id="@+id/tv_feedback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:padding="12dp"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

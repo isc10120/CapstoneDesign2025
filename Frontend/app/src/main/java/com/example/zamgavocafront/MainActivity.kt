@@ -10,7 +10,6 @@ import android.provider.Settings
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.zamgavocafront.pvp.PvpActivity
 import com.example.zamgavocafront.service.OverlayService
 import com.google.android.material.switchmaterial.SwitchMaterial
 
@@ -145,16 +144,6 @@ class MainActivity : AppCompatActivity() {
         // 설정 화면
         findViewById<Button>(R.id.btn_settings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
-        }
-
-        // 오늘의 단어 화면
-        findViewById<Button>(R.id.btn_today_words).setOnClickListener {
-            startActivity(Intent(this, TodayWordActivity::class.java))
-        }
-
-        // PVP 배틀
-        findViewById<Button>(R.id.btn_pvp).setOnClickListener {
-            startActivity(Intent(this, PvpActivity::class.java))
         }
 
         // 오버레이 테스트 버튼

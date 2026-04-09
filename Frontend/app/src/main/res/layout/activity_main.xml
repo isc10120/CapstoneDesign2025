@@ -186,29 +186,6 @@
             android:textColor="@color/overlay_text_hint"
             android:textSize="12sp" />
 
-        <!-- ───── 오늘의 단어 / PVP ───── -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginBottom="16dp"
-            android:background="@color/overlay_card_stroke" />
-
-        <Button
-            android:id="@+id/btn_today_words"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="오늘의 단어 보기"
-            android:backgroundTint="@color/main_navy" />
-
-        <Button
-            android:id="@+id/btn_pvp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:text="⚔  PVP 배틀"
-            android:backgroundTint="#C62828" />
-
         <!-- ───── 오버레이 테스트 ───── -->
         <View
             android:layout_width="match_parent"
