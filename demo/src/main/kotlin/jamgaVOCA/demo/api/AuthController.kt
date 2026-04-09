@@ -5,6 +5,7 @@ import jamgaVOCA.demo.api.dto.SignInRequest
 import jamgaVOCA.demo.api.dto.SignInResponse
 import jamgaVOCA.demo.api.dto.SignUpRequest
 import jamgaVOCA.demo.service.AuthService
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -23,8 +24,9 @@ class AuthController(
     }
 
     @PostMapping("/sign-in")
-    fun signIn(@RequestBody request: SignInRequest): ApiResponse<SignInResponse> {
+    fun signIn(@RequestBody request: SignInRequest, servletRequest: HttpServletRequest): ApiResponse<SignInResponse> {
         val data = authService.signIn(request)
+        servletRequest.getSession(true).setAttribute("userId", data.userId)
         return ApiResponse.success(data)
     }
 }

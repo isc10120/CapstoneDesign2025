@@ -1,4 +1,4 @@
-package jamgaVOCA.demo.infrastructure.bootstrap
+package jamgaVOCA.demo.infra.bootstrap
 
 import jamgaVOCA.demo.domain.word.PartOfSpeech
 import jamgaVOCA.demo.domain.word.Word

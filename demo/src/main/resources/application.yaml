@@ -31,6 +31,14 @@ spring:
     retry:
       max-attempts: 5
 
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+
 logging:
   level:
     org.springframework.ai.openai: DEBUG
@@ -45,6 +53,12 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/app}
     username: ${DB_USER:app}
     password: ${DB_PASSWORD:app}
+
+cloud:
+  aws:
+    s3:
+      bucket: moavoca-dev
+
 ---
 spring:
   config:
@@ -54,3 +68,8 @@ spring:
     url: jdbc:postgresql://moavoca-rds.c9ac4wwc0hi3.ap-northeast-2.rds.amazonaws.com:5432/postgres
     username: app
     password: ${DB_PASSWORD}
+
+cloud:
+  aws:
+    s3:
+      bucket: moavoca-prod

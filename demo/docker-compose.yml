@@ -29,6 +29,8 @@ services:
       DB_USER: app
       DB_PASSWORD: app
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       # 필요 시 모델 오버라이드
       # OPENAI_CHAT_MODEL: gpt-4.1-mini
       # OPENAI_IMAGE_MODEL: gpt-image-1

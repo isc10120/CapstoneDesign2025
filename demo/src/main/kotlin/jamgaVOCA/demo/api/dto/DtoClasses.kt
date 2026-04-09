@@ -8,7 +8,7 @@ data class WordResponse(
     val partOfSpeech: String,
     val example: String,
     val exampleKor: String,
-    val nudge: Int? = null,
+    val nudge: Short = 0,
     val skillId: Long? = null
 )
 

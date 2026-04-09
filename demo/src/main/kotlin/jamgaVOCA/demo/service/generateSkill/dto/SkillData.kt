@@ -1,4 +1,4 @@
-package jamgaVOCA.demo.legacy.generateSkill.dto
+package jamgaVOCA.demo.service.generateSkill.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 

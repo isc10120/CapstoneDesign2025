@@ -1,4 +1,4 @@
-package jamgaVOCA.demo.infrastructure.bootstrap
+package jamgaVOCA.demo.infra.bootstrap
 
 import com.opencsv.bean.CsvBindByName
 

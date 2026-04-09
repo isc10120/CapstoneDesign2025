@@ -35,4 +35,10 @@ class WordController(
         wordService.updateNudge(nudgeRequests)
         return ApiResponse.success(null)
     }
+
+    @GetMapping("/week-collected-list")
+    fun getWeekCollectedList(): ApiResponse<List<WordResponse>> {
+        val data = wordService.getWeekCollectedList()
+        return ApiResponse.success(data)
+    }
 }

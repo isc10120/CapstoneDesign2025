@@ -30,10 +30,4 @@ class SkillController(
         skillService.collectSkill(request)
         return ApiResponse.success(null)
     }
-
-    @GetMapping("/week-collected-list")
-    fun getWeekCollectedList(): ApiResponse<List<WordResponse>> {
-        val data = skillService.getWeekCollectedList()
-        return ApiResponse.success(data)
-    }
 }
