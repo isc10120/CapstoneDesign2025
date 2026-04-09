@@ -1,129 +1,314 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:text="설정"
-        android:textColor="@color/main_navy"
-        android:textSize="26sp"
-        android:textStyle="bold" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginBottom="24dp"
-        android:background="@color/overlay_card_stroke" />
-
-    <!-- 아침 오버레이 시각 설정 -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:text="아침 오버레이 시각 설정"
-        android:textColor="@color/overlay_text_primary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="매일 아침 단어 오버레이가 표시될 시각을 설정합니다."
-        android:textColor="@color/overlay_text_hint"
-        android:textSize="13sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="설정"
+            android:textColor="@color/main_navy"
+            android:textSize="26sp"
+            android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/btn_setting_morning_time"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:text="설정하기 →"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="24dp"
+            android:background="@color/overlay_card_stroke" />
 
-    <!-- 방해금지 앱 설정 -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:text="방해금지 앱 설정"
-        android:textColor="@color/overlay_text_primary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        <!-- 아침 오버레이 시각 설정 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="아침 오버레이 시각 설정"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="선택한 앱 사용 중에는 넛지 오버레이가 표시되지 않습니다."
-        android:textColor="@color/overlay_text_hint"
-        android:textSize="13sp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="매일 아침 단어 오버레이가 표시될 시각을 설정합니다."
+            android:textColor="@color/overlay_text_hint"
+            android:textSize="13sp" />
 
-    <Button
-        android:id="@+id/btn_setting_dnd_apps"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:text="설정하기 →"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        <Button
+            android:id="@+id/btn_setting_morning_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="설정하기 →"
+            android:textSize="16sp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
 
-    <!-- 넛지 출현 주기 설정 -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:text="넛지 출현 주기 설정"
-        android:textColor="@color/overlay_text_primary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        <!-- 방해금지 앱 설정 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="방해금지 앱 설정"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="넛지 오버레이가 등장하는 최소·최대 간격(분)을 설정합니다."
-        android:textColor="@color/overlay_text_hint"
-        android:textSize="13sp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="선택한 앱 사용 중에는 넛지 오버레이가 표시되지 않습니다."
+            android:textColor="@color/overlay_text_hint"
+            android:textSize="13sp" />
 
-    <Button
-        android:id="@+id/btn_setting_nudge_interval"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:text="설정하기 →"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        <Button
+            android:id="@+id/btn_setting_dnd_apps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="설정하기 →"
+            android:textSize="16sp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
 
-    <!-- 오버레이 테스트 (개발용) -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginVertical="20dp"
-        android:background="@color/overlay_card_stroke" />
+        <!-- 넛지 출현 주기 설정 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="넛지 출현 주기 설정"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/btn_overlay_test"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:text="오버레이 테스트 (개발용)"
-        android:textColor="@color/overlay_text_hint"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="넛지 오버레이가 등장하는 최소·최대 간격(분)을 설정합니다."
+            android:textColor="@color/overlay_text_hint"
+            android:textSize="13sp" />
 
-    <Space
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        <Button
+            android:id="@+id/btn_setting_nudge_interval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="설정하기 →"
+            android:textSize="16sp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
 
-    <Button
-        android:id="@+id/btn_settings_back"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="뒤로가기"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        <!-- ───── 아침 알람 활성화 ───── -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="20dp"
+            android:background="@color/overlay_card_stroke" />
 
-</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="아침 알람 설정"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="설정 시각"
+                android:textColor="@color/overlay_text_primary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tv_morning_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="07:00"
+                android:textColor="@color/main_navy"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="12dp" />
+
+            <Button
+                android:id="@+id/btn_set_morning_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="변경"
+                android:textSize="15sp"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="아침 알람 활성화"
+                android:textColor="@color/overlay_text_primary"
+                android:textSize="15sp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switch_morning_alarm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <!-- ───── 넛지 알람 활성화 ───── -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="20dp"
+            android:background="@color/overlay_card_stroke" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="넛지 위젯 자동 등장"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="랜덤 넛지 알람 활성화"
+                android:textColor="@color/overlay_text_primary"
+                android:textSize="15sp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switch_nudge_alarm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="(10~30분 간격으로 랜덤 등장)"
+            android:textColor="@color/overlay_text_hint"
+            android:textSize="12sp" />
+
+        <!-- ───── 오버레이 테스트 ───── -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="20dp"
+            android:background="@color/overlay_card_stroke" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="오버레이 테스트"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_morning_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="아침 오버레이 (난이도 선택)"
+            android:textSize="15sp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btn_word_list_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="오늘의 단어 목록 오버레이"
+            android:textSize="15sp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="넛지 오버레이 (3종)"
+            android:textColor="@color/overlay_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_nudge_drag"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="넛지 ① - 위아래 드래그 (3초)"
+            android:textSize="15sp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btn_nudge_tap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="넛지 ② - 연타 6회"
+            android:textSize="15sp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btn_nudge_bounce"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="넛지 ③ - 모서리 튕기기 4회"
+            android:textSize="15sp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <!-- 하단 버튼 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="20dp"
+            android:background="@color/overlay_card_stroke" />
+
+        <Button
+            android:id="@+id/btn_settings_back"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="뒤로가기"
+            android:textSize="16sp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+    </LinearLayout>
+</ScrollView>
