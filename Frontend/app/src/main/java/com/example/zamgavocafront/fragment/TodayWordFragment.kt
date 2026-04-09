@@ -32,13 +32,8 @@ class TodayWordFragment : Fragment() {
     private lateinit var tvTooltip: TextView
 
     private val tips = listOf(
-        "오늘의 팁: 단어를 소리 내어 읽어보세요!",
-        "단어 카드를 클릭하면 상세 정보를 볼 수 있어요.",
-        "하루 10분, 꾸준한 학습이 실력을 만듭니다.",
-        "나만의 예문을 만들어 기억에 남겨보세요.",
-        "헷갈리는 단어는 여러 번 반복해서 보세요!",
-        "오늘 배운 단어를 친구에게 설명해볼까요?",
-        "잠들기 전 5분 복습은 기억력을 높여줍니다."
+        "용사님, 오늘 학습할 단어들입니다. \n‘랜덤 퀘스트’를 클리어해 학습하세요."
+
     )
 
     override fun onCreateView(
@@ -115,7 +110,7 @@ class TodayWordFragment : Fragment() {
         // 넛지 카운트 (n/3)
         val nudgeCount = WordProgressManager.getCount(requireContext(), word.id)
         dialogView.findViewById<TextView>(R.id.tv_nudge_count).text =
-            "$nudgeCount / ${WordProgressManager.MAX_COUNT}"
+            "퀘스트 진행도  $nudgeCount / ${WordProgressManager.MAX_COUNT}"
 
         dialogView.findViewById<TextView>(R.id.tv_detail_word).text = word.word
         dialogView.findViewById<TextView>(R.id.tv_detail_meaning).text =
