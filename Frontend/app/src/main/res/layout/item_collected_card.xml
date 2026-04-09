@@ -3,77 +3,89 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardCornerRadius="10dp"
-    app:cardElevation="2dp">
+    android:layout_margin="6dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp">
+        android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/iv_card_image"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:scaleType="centerCrop"
-            android:background="#EEE"
-            android:layout_marginEnd="12dp" />
+        <!-- 카드 이미지 영역 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="130dp">
 
+            <ImageView
+                android:id="@+id/iv_card_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="#E8E8E8" />
+
+            <!-- 등급 배지 (우상단 오버레이) -->
+            <TextView
+                android:id="@+id/tv_grade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="7dp"
+                android:text="은급"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="3dp"
+                android:background="@drawable/bg_count_badge" />
+        </FrameLayout>
+
+        <!-- 구분선 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#F0F0F0" />
+
+        <!-- 카드 정보 -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="10dp">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tv_skill_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="2dp">
-
-                <TextView
-                    android:id="@+id/tv_skill_name"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="스킬명"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/overlay_text_primary" />
-
-                <TextView
-                    android:id="@+id/tv_grade"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="은급"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:paddingHorizontal="6dp"
-                    android:paddingVertical="2dp"
-                    android:background="@drawable/bg_count_badge" />
-            </LinearLayout>
+                android:text="스킬명"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/overlay_text_primary"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginBottom="2dp" />
 
             <TextView
                 android:id="@+id/tv_word"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="word"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textColor="@color/overlay_text_hint"
-                android:layout_marginBottom="2dp" />
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginBottom="4dp" />
 
             <TextView
                 android:id="@+id/tv_damage"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⚔ 데미지: 0"
-                android:textSize="13sp"
+                android:text="⚔ 0"
+                android:textSize="12sp"
+                android:textStyle="bold"
                 android:textColor="#F44336" />
         </LinearLayout>
     </LinearLayout>
+
 </androidx.cardview.widget.CardView>

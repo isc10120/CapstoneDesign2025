@@ -10,8 +10,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.example.zamgavocafront.R
 
 class CollectedCardsActivity : AppCompatActivity() {
@@ -30,7 +31,7 @@ class CollectedCardsActivity : AppCompatActivity() {
         } else {
             rv.visibility = View.VISIBLE
             tvEmpty.visibility = View.GONE
-            rv.layoutManager = LinearLayoutManager(this)
+            rv.layoutManager = GridLayoutManager(this, 2)
             rv.adapter = Adapter(cards)
         }
     }
@@ -63,16 +64,18 @@ class CollectedCardsActivity : AppCompatActivity() {
             holder.tvGrade.backgroundTintList =
                 android.content.res.ColorStateList.valueOf(gradeColor)
 
-            if (card.imageBase64 != null) {
-                try {
+            when {
+                !card.imageUrl.isNullOrBlank() -> holder.ivImage.load(card.imageUrl) {
+                    placeholder(android.R.drawable.ic_menu_gallery)
+                    error(android.R.drawable.ic_menu_gallery)
+                }
+                card.imageBase64 != null -> try {
                     val bytes = Base64.decode(card.imageBase64, Base64.DEFAULT)
-                    val bm = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    holder.ivImage.setImageBitmap(bm)
+                    holder.ivImage.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
                 } catch (e: Exception) {
                     holder.ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
                 }
-            } else {
-                holder.ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
+                else -> holder.ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
             }
         }
 

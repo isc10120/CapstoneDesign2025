@@ -10,7 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.zamgavocafront.R
@@ -48,7 +48,7 @@ class CollectionFragment : Fragment() {
             } else {
                 rv.visibility = View.VISIBLE
                 tvEmpty.visibility = View.GONE
-                rv.layoutManager = LinearLayoutManager(requireContext())
+                rv.layoutManager = GridLayoutManager(requireContext(), 2)
                 rv.adapter = CardAdapter(cards)
             }
         }

@@ -7,7 +7,9 @@
       "Bash(xargs ls:*)",
       "Bash(curl:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(xargs wc:*)"
+      "Bash(xargs wc:*)",
+      "Bash(xargs grep:*)",
+      "Bash(./gradlew assembleDebug)"
     ]
   }
 }

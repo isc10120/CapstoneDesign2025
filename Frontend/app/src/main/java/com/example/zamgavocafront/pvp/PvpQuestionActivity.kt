@@ -78,6 +78,12 @@ class PvpQuestionActivity : AppCompatActivity() {
         loadQuestion()
 
         btnSubmit.setOnClickListener { submitAnswer() }
+        findViewById<android.widget.ImageButton>(R.id.btn_close).setOnClickListener { finish() }
+    }
+
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(R.anim.no_anim, R.anim.slide_down)
     }
 
     private fun updateAttackInfo() {
