@@ -40,6 +40,12 @@
             android:theme="@style/Theme.ZamgavocaFront.NoActionBar" />
 
         <activity
+            android:name=".SignUpActivity"
+            android:exported="false"
+            android:label="회원가입"
+            android:theme="@style/Theme.ZamgavocaFront.NoActionBar" />
+
+        <activity
             android:name=".HomeActivity"
             android:exported="false"
             android:theme="@style/Theme.ZamgavocaFront.NoActionBar" />
