@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16
-    container_name: skill-postgres
+    container_name: postgres
     environment:
       POSTGRES_DB: app
       POSTGRES_USER: app
@@ -20,11 +20,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: skill-app
+    container_name: app
     depends_on:
       db:
         condition: service_healthy
     environment:
+      SPRING_PROFILES_ACTIVE: local
       DB_URL: jdbc:postgresql://db:5432/app
       DB_USER: app
       DB_PASSWORD: app
