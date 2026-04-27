@@ -33,7 +33,10 @@ class User(
     var expPoint: Int = 0,
 
     @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
+    var createdAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "is_dummy", nullable = false)
+    val isDummy: Boolean = false
 
 ) {
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
