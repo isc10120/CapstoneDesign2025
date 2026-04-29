@@ -6,13 +6,15 @@ import jamgaVOCA.demo.api.dto.SignUpRequest
 import jamgaVOCA.demo.api.dto.SilentNudgeRange
 import jamgaVOCA.demo.domain.user.*
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AuthService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val battleService: BattleService
 ) {
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun signUp(request: SignUpRequest) {
         val user = User(
             nickname = request.nickName,
@@ -23,6 +25,9 @@ class AuthService(
         val settings = UserSettings(user = user)
         user.settings = settings
         userRepository.save(user)
+
+        // 신규 유저 매칭
+        battleService.matchNewUserWithDummy(user)
     }
 
     fun signIn(request: SignInRequest): SignInResponse {

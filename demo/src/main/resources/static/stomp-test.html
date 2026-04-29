@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>STOMP Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h3>STOMP 테스트</h3>
+<div>
+    <input id="battleId" placeholder="battleId" value="1"/>
+    <button onclick="connect()">연결</button>
+    <button onclick="disconnect()">연결 해제</button>
+</div>
+<br/>
+<div id="log" style="border:1px solid #ccc; padding:10px; height:300px; overflow-y:scroll;"></div>
+
+<script>
+    let client = null;
+
+    function log(msg) {
+        const div = document.getElementById('log');
+        div.innerHTML += `<p>${new Date().toLocaleTimeString()} — ${msg}</p>`;
+        div.scrollTop = div.scrollHeight;
+    }
+
+    function connect() {
+        const battleId = document.getElementById('battleId').value;
+        const socket = new SockJS('http://localhost:8080/ws');
+        client = Stomp.over(socket);
+
+        client.connect({}, () => {
+            log('연결됨');
+            client.subscribe(`/topic/pvp/${battleId}`, msg => {
+                log(`수신: ${msg.body}`);
+            });
+            log(`/topic/pvp/${battleId} 구독 시작`);
+        }, err => {
+            log(`에러: ${err}`);
+        });
+    }
+
+    function disconnect() {
+        if (client) {
+            client.disconnect();
+            log('연결 해제됨');
+        }
+    }
+</script>
+</body>
+</html>

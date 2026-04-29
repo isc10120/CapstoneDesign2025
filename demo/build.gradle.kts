@@ -34,6 +34,7 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation(platform("org.springframework.ai:spring-ai-bom:1.0.0-M5"))
