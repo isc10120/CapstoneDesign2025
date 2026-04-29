@@ -23,6 +23,9 @@ class QuestionGeneratorService(
 
         return when (questionType) {
             "spelling" -> {
+                if (word.englishWord.length <= 3) {
+                    throw IllegalArgumentException("3글자 이하 단어는 spelling 문제를 지원하지 않습니다: ${word.englishWord}")
+                }
                 val blanked = blankMiddle(word.englishWord)
                 QuestionData(
                     questionType = questionType,
@@ -167,7 +170,7 @@ class QuestionGeneratorService(
                     60점 이상이면 correct를 true로 설정하세요.
                     feedback은 반드시 한국어로 작성하고, 비워두지 마세요. 잘된 점과 개선할 점을 구체적으로 작성하세요.
                     반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 포함하지 마세요:
-                    {"correct": true, "score": 85, "feedback": "단어를 올바르게 사용했고 문법도 자연스럽습니다.", "correct_answer": "모범 답안 예시"}
+                    {"correct": true또는false, "score": 실제채점점수, "feedback": "한국어피드백", "correct_answer": "모범답안"}
                 """.trimIndent()
                 val resp = aiChatClient.callJson(prompt, clazz = GptEvaluationResponse::class.java)
                 EvaluateData(
@@ -193,7 +196,7 @@ class QuestionGeneratorService(
                     60점 이상이면 correct를 true로 설정하세요.
                     feedback은 반드시 한국어로 작성하고, 비워두지 마세요. 잘된 점과 개선할 점을 구체적으로 작성하세요.
                     반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 포함하지 마세요:
-                    {"correct": true, "score": 85, "feedback": "의미 전달이 정확하고 문법도 올바릅니다.", "correct_answer": "모범 번역 예시"}
+                    {"correct": true또는false, "score": 실제채점점수, "feedback": "한국어피드백", "correct_answer": "모범번역"}
                 """.trimIndent()
                 val resp = aiChatClient.callJson(prompt, clazz = GptEvaluationResponse::class.java)
                 EvaluateData(
