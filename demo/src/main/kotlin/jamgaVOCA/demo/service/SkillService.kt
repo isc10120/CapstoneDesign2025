@@ -29,7 +29,7 @@ class SkillService(
                 name = skill.name,
                 explain = skill.explanation,
                 damage = skill.damage,
-                skillType = skill.skillType.name.lowercase(),
+                skillType = skill.skillType.name,
                 lasting = skill.lasting,
                 imageURL = skill.imageUrl,
                 wordId = skill.word.id!!
@@ -44,7 +44,7 @@ class SkillService(
             name = skill.name,
             explain = skill.explanation,
             damage = skill.damage,
-            skillType = skill.skillType.name.lowercase(),
+            skillType = skill.skillType.name,
             lasting = skill.lasting,
             imageURL = skill.imageUrl,
             wordId = skill.word.id!!

@@ -41,7 +41,7 @@ class WordService(
                 id = word.id!!,
                 word = word.englishWord,
                 definition = word.koreanMeaning,
-                partOfSpeech = word.partOfSpeech.name.lowercase(),
+                partOfSpeech = word.partOfSpeech.name,
                 example = word.exampleEn,
                 exampleKor = word.exampleKr,
                 nudge = nudgeWord.nudgeCount
@@ -92,7 +92,7 @@ class WordService(
                 id = it.id!!,
                 word = it.englishWord,
                 definition = it.koreanMeaning,
-                partOfSpeech = it.partOfSpeech.name.lowercase(),
+                partOfSpeech = it.partOfSpeech.name,
                 example = it.exampleEn,
                 exampleKor = it.exampleKr
             )
@@ -105,7 +105,7 @@ class WordService(
             id = word.id!!,
             word = word.englishWord,
             definition = word.koreanMeaning,
-            partOfSpeech = word.partOfSpeech.name.lowercase(),
+            partOfSpeech = word.partOfSpeech.name,
             example = word.exampleEn,
             exampleKor = word.exampleKr
         )
@@ -157,7 +157,7 @@ class WordService(
                 id = word.id!!,
                 word = word.englishWord,
                 definition = word.koreanMeaning,
-                partOfSpeech = word.partOfSpeech.name.lowercase(),
+                partOfSpeech = word.partOfSpeech.name,
                 example = word.exampleEn,
                 exampleKor = word.exampleKr,
                 skillId = skill?.id
