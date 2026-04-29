@@ -7,8 +7,8 @@ import java.time.LocalDate
 interface BattleRepository : JpaRepository<Battle, Long> {
 
     // 이번 주 진행 중인 배틀 조회
-    fun findByUserAAndWeekStart(userA: User, weekStart: LocalDate): Battle?
-    fun findByUserBAndWeekStart(userB: User, weekStart: LocalDate): Battle?
+    fun findFirstByUserAAndWeekStartAndResultIsNull(userA: User, weekStart: LocalDate): Battle?
+    fun findFirstByUserBAndWeekStartAndResultIsNull(userB: User, weekStart: LocalDate): Battle?
 
     // 가장 최근 종료된 미확인 결과 조회
     fun findTopByUserAAndResultNotNullAndResultCheckedAFalseOrderByWeekEndDesc(userA: User): Battle?
@@ -21,5 +21,5 @@ interface BattleRepository : JpaRepository<Battle, Long> {
     // 전체 기록 조회
     fun findAllByUserAOrUserBOrderByWeekStartDesc(userA: User, userB: User): List<Battle>
 
-    fun findAllByWeekStart(weekStart: LocalDate): List<Battle>
+    fun findAllByResultIsNull(): List<Battle>
 }

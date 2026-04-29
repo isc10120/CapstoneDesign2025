@@ -27,7 +27,7 @@ class SkillController(
 
     @PostMapping("/collect-skill")
     fun collectSkill(@RequestBody request: CollectSkillRequest): ApiResponse<Nothing> {
-        skillService.collectSkill(request)
+        skillService.collectSkill(request.skillId, request.wordId, 1L)
         return ApiResponse.success(null)
     }
 }

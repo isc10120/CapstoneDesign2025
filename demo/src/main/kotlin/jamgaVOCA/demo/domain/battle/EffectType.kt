@@ -1,5 +1,5 @@
 package jamgaVOCA.demo.domain.battle
 
 enum class EffectType {
-    POISON, PARALYZE
+    POISON, PARALYZE, DAMAGE_BUFF
 }

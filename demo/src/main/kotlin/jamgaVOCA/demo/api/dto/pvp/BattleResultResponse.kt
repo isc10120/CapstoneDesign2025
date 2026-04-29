@@ -7,8 +7,9 @@ data class BattleResultResponse(
     val weekStart: String,
     val weekEnd: String,
     val result: String,
-    val my: ResultSideInfo,
-    val opponent: ResultSideInfo
+    val myTotalDamage: Int,
+    val opponentTotalDamage: Int,
+    val opponentNickname: String
 ) {
     companion object {
         fun from(battle: Battle, userId: Long): BattleResultResponse {
@@ -20,20 +21,10 @@ data class BattleResultResponse(
                 weekStart = battle.weekStart.toString(),
                 weekEnd = battle.weekEnd.toString(),
                 result = battle.resultOf(userId),
-                my = ResultSideInfo(
-                    totalDamage = battle.damageOf(userId),
-                    nickname = if (isUserA) battle.userA.nickname else battle.userB.nickname
-                ),
-                opponent = ResultSideInfo(
-                    totalDamage = battle.damageOf(opponentUser.id!!),
-                    nickname = opponentUser.nickname
-                )
+                myTotalDamage = battle.damageOf(userId),
+                opponentTotalDamage = battle.damageOf(opponentUser.id!!),
+                opponentNickname = opponentUser.nickname
             )
         }
     }
 }
-
-data class ResultSideInfo(
-    val totalDamage: Int,
-    val nickname: String
-)

@@ -6,13 +6,18 @@ import jamgaVOCA.demo.domain.battle.BattleEffectRepository
 import jamgaVOCA.demo.domain.battle.BattleRepository
 import jamgaVOCA.demo.domain.battle.BattleResult
 import jamgaVOCA.demo.domain.battle.EffectType
+import jamgaVOCA.demo.domain.skill.Skill
+import jamgaVOCA.demo.domain.skill.SkillType
 import jamgaVOCA.demo.domain.user.User
 import jamgaVOCA.demo.domain.user.UserRepository
+import jamgaVOCA.demo.service.dto.SkillApplyResult
+import jamgaVOCA.demo.service.dto.StatusAppliedInfo
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.DayOfWeek
 import java.time.LocalDate
+import kotlin.random.Random
 
 @Service
 @Transactional
@@ -21,6 +26,10 @@ class BattleService(
     private val battleEffectRepository: BattleEffectRepository,
     private val userRepository: UserRepository
 ) {
+    companion object {
+        const val DAMAGE_BUFF_RATE_PER_STACK = 0.5
+        const val POISON_DAMAGE = 20
+    }
 
     // ===== 주간 정산 + 매칭 =====
 
@@ -31,14 +40,10 @@ class BattleService(
     }
 
     private fun settleWeeklyBattles() {
-        val lastWeekStart = LocalDate.now().with(DayOfWeek.MONDAY).minusWeeks(1)
-        val battles = battleRepository.findAllByWeekStart(lastWeekStart)
-            .filter { it.result == null }
-
-        battles.forEach { battle ->
+        battleRepository.findAllByResultIsNull().forEach { battle ->
             battle.result = when {
-                battle.userADamage > battle.userBDamage -> BattleResult.WIN_A
-                battle.userBDamage > battle.userADamage -> BattleResult.WIN_B
+                battle.userAScore > battle.userBScore -> BattleResult.WIN_A
+                battle.userBScore > battle.userAScore -> BattleResult.WIN_B
                 else -> BattleResult.DRAW
             }
         }
@@ -125,67 +130,128 @@ class BattleService(
 
     // ===== 스킬 효과 적용 =====
 
-    fun applySkillEffect(
-        battle: Battle,
-        attackerUserId: Long,
-        damage: Int,
-        effectType: EffectType?,
-        effectTurns: Int?,
-        shieldCount: Int
-    ): Boolean {  // 쉴드 막혔는지 여부 반환
-        val targetUserId = getOpponentId(battle, attackerUserId)
+    fun applySkill(battle: Battle, attackerId: Long, skill: Skill): SkillApplyResult {
+        val opponentId = getOpponentId(battle, attackerId)
 
-        // 쉴드 처리
-        if (battle.isUserA(targetUserId)) {
-            if (battle.userAShield > 0) {
-                battle.userAShield--
-                return true  // 쉴드 막힘
-            }
-            battle.userADamage += damage
+        // PARALYZE 체크 - 스택 수만큼 독립시행
+        val paralyzeStacks = battle.effectsOf(attackerId)
+            .count { it.effectType == EffectType.PARALYZE }
+        val isParalyzed = (1..paralyzeStacks).any { Random.nextFloat() < 0.3f }
+        if (isParalyzed) {
+            tickEffects(battle, attackerId)
+            return SkillApplyResult(paralyzed = true)
+        }
+
+        // DAMAGE_BUFF 체크 - 합연산
+        val buffStacks = battle.effectsOf(attackerId)
+            .count { it.effectType == EffectType.DAMAGE_BUFF }
+        val finalDamage = if (buffStacks > 0) {
+            (skill.damage * (1.0 + buffStacks * DAMAGE_BUFF_RATE_PER_STACK)).toInt()
         } else {
-            if (battle.userBShield > 0) {
-                battle.userBShield--
-                return true
+            skill.damage
+        }
+
+        // 독 데미지 계산 (턴 소모 전에)
+        val poisonDamageTaken = battle.effectsOf(attackerId)
+            .count { it.effectType == EffectType.POISON } * POISON_DAMAGE
+
+        // 독 데미지 상대 점수에 반영
+        addDamageScore(battle, opponentId, poisonDamageTaken)
+
+        // 스킬 타입별 처리
+        val shieldBlocked = addDamageScoreWithOpponentShield(battle, attackerId, finalDamage)
+        val statusApplied: StatusAppliedInfo?
+
+        when (skill.skillType) {
+            SkillType.ATTACK -> {
+                statusApplied = null
             }
-            battle.userBDamage += damage
+            SkillType.POISON -> {
+                statusApplied = if (!shieldBlocked) {
+                    applyEffect(battle, opponentId, EffectType.POISON, skill.lasting ?: 3)
+                    StatusAppliedInfo("POISON", skill.lasting ?: 3)
+                } else null
+            }
+            SkillType.PARALYZE -> {
+                statusApplied = if (!shieldBlocked) {
+                    applyEffect(battle, opponentId, EffectType.PARALYZE, skill.lasting ?: 3)
+                    StatusAppliedInfo("PARALYZE", skill.lasting ?: 3)
+                } else null
+            }
+            SkillType.DEFEND -> {
+                applyShield(battle, attackerId, skill.lasting ?: 1)
+                statusApplied = null
+            }
+            SkillType.DAMAGE_BUFF -> {
+                applyEffect(battle, attackerId, EffectType.DAMAGE_BUFF, skill.lasting ?: 3)
+                statusApplied = StatusAppliedInfo("DAMAGE_BUFF", skill.lasting ?: 3)
+            }
+            SkillType.CLEANSE -> {
+                cleanse(battle, attackerId)
+                statusApplied = null
+            }
         }
 
-        // 상태이상 적용
-        if (effectType != null && effectTurns != null) {
-            battleEffectRepository.save(
-                BattleEffect(
-                    battle = battle,
-                    targetUser = getUser(targetUserId),
-                    effectType = effectType,
-                    remainingTurns = effectTurns
-                )
-            )
-        }
+        // 효과 적용 후 턴 소모
+        tickEffects(battle, attackerId)
 
-        // 쉴드 버프 적용 (본인에게)
-        if (shieldCount > 0) {
-            if (battle.isUserA(attackerUserId)) battle.userAShield += shieldCount
-            else battle.userBShield += shieldCount
-        }
-
-        return false  // 쉴드 안 막힘
+        return SkillApplyResult(
+            damageDealt = if (shieldBlocked) 0 else finalDamage,
+            statusApplied = statusApplied,
+            shieldBlocked = shieldBlocked,
+            poisonDamageTaken = poisonDamageTaken
+        )
     }
 
-    fun tickEffects(battle: Battle, userId: Long) {
+    // ===== private 헬퍼 =====
+
+     private fun tickEffects(battle: Battle, userId: Long) {
         val effects = battle.effectsOf(userId)
         effects.forEach { it.remainingTurns-- }
         battleEffectRepository.deleteAll(effects.filter { it.remainingTurns <= 0 })
     }
 
-    fun cleanse(battle: Battle, userId: Long) {
+    private fun cleanse(battle: Battle, userId: Long) {
         battleEffectRepository.deleteAll(battle.effectsOf(userId))
     }
 
-    // ===== 헬퍼 =====
+    private fun addDamageScoreWithOpponentShield(battle: Battle, userId: Long, damage: Int): Boolean {
+        if (battle.isUserA(userId)) {
+            if (battle.userBShield > 0) { battle.userBShield--; return true }
+            battle.userAScore += damage
+        } else {
+            if (battle.userAShield > 0) { battle.userAShield--; return true }
+            battle.userBScore += damage
+        }
+        return false
+    }
+
+    private fun applyShield(battle: Battle, userId: Long, count: Int) {
+        if (battle.isUserA(userId)) battle.userAShield += count
+        else battle.userBShield += count
+    }
+
+    private fun applyEffect(battle: Battle, targetUserId: Long, effectType: EffectType, turns: Int) {
+        val targetUser = if (battle.isUserA(targetUserId)) battle.userA else battle.userB
+        battleEffectRepository.save(
+            BattleEffect(
+                battle = battle,
+                targetUser = targetUser,
+                effectType = effectType,
+                remainingTurns = turns
+            )
+        )
+    }
+
+    private fun addDamageScore(battle: Battle, userId: Long, damage: Int) {
+        if (damage == 0) return
+        if (battle.isUserA(userId)) battle.userAScore += damage
+        else battle.userBScore += damage
+    }
 
     private fun findBattleByUser(user: User, weekStart: LocalDate): Battle? =
-        battleRepository.findByUserAAndWeekStart(user, weekStart)
-            ?: battleRepository.findByUserBAndWeekStart(user, weekStart)
+        battleRepository.findFirstByUserAAndWeekStartAndResultIsNull(user, weekStart)
+            ?: battleRepository.findFirstByUserBAndWeekStartAndResultIsNull(user, weekStart)
 
     private fun getOpponentId(battle: Battle, userId: Long): Long =
         if (battle.isUserA(userId)) battle.userB.id!!

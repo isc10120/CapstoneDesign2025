@@ -1,7 +1,6 @@
 package jamgaVOCA.demo.service
 
 import jamgaVOCA.demo.domain.skill.SkillRepository
-import jamgaVOCA.demo.api.dto.CollectSkillRequest
 import jamgaVOCA.demo.api.dto.SkillResponse
 import jamgaVOCA.demo.domain.user.UserRepository
 import jamgaVOCA.demo.domain.userwordskill.UserWordSkill
@@ -53,12 +52,11 @@ class SkillService(
     }
 
     @Transactional
-    fun collectSkill(request: CollectSkillRequest) {
-        val userId = 1L
+    fun collectSkill(skillId: Long, wordId: Long, userId: Long) {
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
 
-        val word = wordRepository.findById(request.wordId).orElseThrow { RuntimeException("Word not found") }
-        val skill = skillRepository.findById(request.skillId).orElseThrow { RuntimeException("Skill not found") }
+        val word = wordRepository.findById(wordId).orElseThrow { RuntimeException("Word not found") }
+        val skill = skillRepository.findById(skillId).orElseThrow { RuntimeException("Skill not found") }
 
         // 이미 수집된 조합인지 확인
         if (userWordSkillRepository.existsByUserIdAndWordIdAndSkillId(userId, word.id!!, skill.id!!)) {

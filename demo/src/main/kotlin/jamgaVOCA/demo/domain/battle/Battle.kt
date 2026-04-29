@@ -27,11 +27,11 @@ class Battle(
     @JoinColumn(name = "user_b_id", nullable = false)
     val userB: User,
 
-    @Column(name = "user_a_damage", nullable = false)
-    var userADamage: Int = 0,
+    @Column(name = "user_a_score", nullable = false)
+    var userAScore: Int = 0,
 
-    @Column(name = "user_b_damage", nullable = false)
-    var userBDamage: Int = 0,
+    @Column(name = "user_b_score", nullable = false)
+    var userBScore: Int = 0,
 
     @Column(name = "user_a_shield", nullable = false)
     var userAShield: Int = 0,
@@ -74,7 +74,7 @@ class Battle(
     fun shieldOf(userId: Long) = if (isUserA(userId)) userAShield else userBShield
 
     // 해당 유저의 누적 데미지
-    fun damageOf(userId: Long) = if (isUserA(userId)) userADamage else userBDamage
+    fun damageOf(userId: Long) = if (isUserA(userId)) userAScore else userBScore
 
     // 해당 유저 입장에서의 결과
     fun resultOf(userId: Long): String {
