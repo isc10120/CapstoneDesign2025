@@ -1,88 +1,74 @@
 package com.example.zamgavocafront.fragment
 
 import android.content.Intent
-import android.graphics.Color
+import android.content.res.ColorStateList
 import android.os.Bundle
+import androidx.core.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.zamgavocafront.R
-import com.example.zamgavocafront.WordRepository
-import com.example.zamgavocafront.api.ApiClient
-import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.pve.CardDetailActivity
 import com.example.zamgavocafront.pvp.CollectedCardManager
+import com.example.zamgavocafront.viewmodel.CollectionUiState
+import com.example.zamgavocafront.viewmodel.CollectionViewModel
 import kotlinx.coroutines.launch
 
 class CollectionFragment : Fragment() {
+
+    private val viewModel: CollectionViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_collection, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        refreshCards(view)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        view?.let { refreshCards(it) }
-    }
-
-    private fun refreshCards(view: View) {
         val rv = view.findViewById<RecyclerView>(R.id.rv_collected_cards)
         val tvEmpty = view.findViewById<TextView>(R.id.tv_empty)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val cards = loadCollectedCards()
-            if (cards.isEmpty()) {
-                rv.visibility = View.GONE
-                tvEmpty.visibility = View.VISIBLE
-            } else {
-                rv.visibility = View.VISIBLE
-                tvEmpty.visibility = View.GONE
-                rv.layoutManager = GridLayoutManager(requireContext(), 2)
-                rv.adapter = CardAdapter(cards)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    when (state) {
+                        is CollectionUiState.Loading -> {
+                            rv.visibility = View.GONE
+                            tvEmpty.visibility = View.GONE
+                        }
+                        is CollectionUiState.Empty -> {
+                            rv.visibility = View.GONE
+                            tvEmpty.visibility = View.VISIBLE
+                        }
+                        is CollectionUiState.Success -> {
+                            rv.visibility = View.VISIBLE
+                            tvEmpty.visibility = View.GONE
+                            rv.layoutManager = GridLayoutManager(requireContext(), 2)
+                            rv.adapter = CardAdapter(state.cards)
+                        }
+                        is CollectionUiState.Error -> {
+                            rv.visibility = View.GONE
+                            tvEmpty.visibility = View.VISIBLE
+                            tvEmpty.text = state.message
+                        }
+                    }
+                }
             }
         }
+
     }
 
-    /** 서버에서 수집 스킬 목록을 가져온다. 실패 또는 비어있으면 로컬 저장소로 fallback. */
-    private suspend fun loadCollectedCards(): List<CollectedCardManager.CollectedCard> {
-        return try {
-            val resp = ApiClient.api.getCollectedSkillList()
-            if (resp.success && resp.data != null && resp.data.isNotEmpty()) {
-                resp.data.map { skill ->
-                    val localWord = WordRepository.allWords.find { it.id.toLong() == skill.wordId }
-                    val grade = when (localWord?.difficulty) {
-                        Difficulty.HARD -> "금급"
-                        Difficulty.MEDIUM -> "은급"
-                        else -> "동급"
-                    }
-                    CollectedCardManager.CollectedCard(
-                        wordId = skill.wordId.toInt(),
-                        word = localWord?.word ?: skill.name,
-                        skillName = skill.name,
-                        skillDescription = skill.explain,
-                        damage = skill.damage,
-                        imageBase64 = null,
-                        grade = grade,
-                        imageUrl = skill.imageURL.takeIf { it.isNotBlank() }
-                    )
-                }
-            } else {
-                CollectedCardManager.getCards(requireContext())
-            }
-        } catch (_: Exception) {
-            CollectedCardManager.getCards(requireContext())
-        }
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadCards()
     }
 
     // ── Adapter ──────────────────────────────────────────────────────────────
@@ -108,13 +94,12 @@ class CollectionFragment : Fragment() {
             holder.tvDamage.text = "⚔ 데미지: ${card.damage}"
 
             val gradeColor = when (card.grade) {
-                "금급" -> Color.parseColor("#FFC107")
-                "은급" -> Color.parseColor("#9E9E9E")
-                else -> Color.parseColor("#CD7F32")
+                "금급" -> ContextCompat.getColor(holder.itemView.context, R.color.color_grade_gold)
+                "은급" -> ContextCompat.getColor(holder.itemView.context, R.color.color_grade_silver)
+                else   -> ContextCompat.getColor(holder.itemView.context, R.color.color_grade_bronze)
             }
             holder.tvGrade.text = card.grade
-            holder.tvGrade.backgroundTintList =
-                android.content.res.ColorStateList.valueOf(gradeColor)
+            holder.tvGrade.backgroundTintList = ColorStateList.valueOf(gradeColor)
 
             holder.ivImage.load(card.imageUrl) {
                 placeholder(android.R.drawable.ic_menu_gallery)

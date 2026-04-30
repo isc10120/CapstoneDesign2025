@@ -1,7 +1,7 @@
 package com.example.zamgavocafront.pvp
 
+import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Base64
 import android.view.LayoutInflater
@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -62,7 +63,7 @@ class CollectedCardsActivity : AppCompatActivity() {
             val gradeColor = gradeColor(card.grade)
             holder.tvGrade.text = card.grade
             holder.tvGrade.backgroundTintList =
-                android.content.res.ColorStateList.valueOf(gradeColor)
+                ColorStateList.valueOf(gradeColor)
 
             when {
                 !card.imageUrl.isNullOrBlank() -> holder.ivImage.load(card.imageUrl) {
@@ -82,9 +83,9 @@ class CollectedCardsActivity : AppCompatActivity() {
         override fun getItemCount() = cards.size
 
         private fun gradeColor(grade: String): Int = when (grade) {
-            "금급" -> Color.parseColor("#FFC107")
-            "은급" -> Color.parseColor("#9E9E9E")
-            else -> Color.parseColor("#CD7F32")
+            "금급" -> ContextCompat.getColor(this@CollectedCardsActivity, R.color.color_grade_gold)
+            "은급" -> ContextCompat.getColor(this@CollectedCardsActivity, R.color.color_grade_silver)
+            else   -> ContextCompat.getColor(this@CollectedCardsActivity, R.color.color_grade_bronze)
         }
     }
 }

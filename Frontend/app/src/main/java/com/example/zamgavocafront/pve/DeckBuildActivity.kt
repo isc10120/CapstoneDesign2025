@@ -1,8 +1,8 @@
 package com.example.zamgavocafront.pve
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Base64
 import android.view.LayoutInflater
@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.zamgavocafront.R
@@ -57,12 +58,12 @@ class DeckBuildActivity : AppCompatActivity() {
         btnSave.setOnClickListener { saveDeck() }
 
         clearedCardIds = DeckManager.getClearedCardIds(this)
-        allCards = CollectedCardManager.getCards(this)
+        allCards = CollectedCardManager.getCards(this).distinctBy { it.wordId }
 
         // 테스트 카드 추가 버튼
         findViewById<Button>(R.id.btn_seed_mock).setOnClickListener {
             CollectedCardManager.seedMockCards(this)
-            allCards = CollectedCardManager.getCards(this)
+            allCards = CollectedCardManager.getCards(this).distinctBy { it.wordId }
             rvCards.adapter?.notifyDataSetChanged()
             Toast.makeText(this, "테스트 카드 10장 추가됨", Toast.LENGTH_SHORT).show()
         }
@@ -88,8 +89,8 @@ class DeckBuildActivity : AppCompatActivity() {
     private fun updateCountDisplay() {
         tvSelectedCount.text = "${selectedCardIds.size} / ${maxCards}장"
         tvSelectedCount.setTextColor(
-            if (selectedCardIds.size >= DeckManager.MIN_CARDS) Color.parseColor("#F4C400")
-            else Color.parseColor("#FF5555")
+            if (selectedCardIds.size >= DeckManager.MIN_CARDS) ContextCompat.getColor(this, R.color.color_deck_ready)
+            else ContextCompat.getColor(this, R.color.color_deck_incomplete)
         )
     }
 
@@ -140,7 +141,7 @@ class DeckBuildActivity : AppCompatActivity() {
             val isLocked = card.wordId in clearedCardIds
 
             h.tvGrade.text = card.grade
-            h.tvGrade.backgroundTintList = android.content.res.ColorStateList.valueOf(gradeColor(card.grade))
+            h.tvGrade.backgroundTintList = ColorStateList.valueOf(gradeColor(card.grade))
             h.tvSkillName.text = card.skillName
             h.tvEffectType.text = "${effect.icon} ${effect.displayName}"
             h.tvDamage.text = "DMG ${card.damage}"
@@ -180,9 +181,9 @@ class DeckBuildActivity : AppCompatActivity() {
         }
 
         private fun gradeColor(grade: String): Int = when (grade) {
-            "금급" -> Color.parseColor("#FFC107")
-            "은급" -> Color.parseColor("#9E9E9E")
-            else   -> Color.parseColor("#CD7F32")
+            "금급" -> ContextCompat.getColor(this@DeckBuildActivity, R.color.color_grade_gold)
+            "은급" -> ContextCompat.getColor(this@DeckBuildActivity, R.color.color_grade_silver)
+            else   -> ContextCompat.getColor(this@DeckBuildActivity, R.color.color_grade_bronze)
         }
     }
 

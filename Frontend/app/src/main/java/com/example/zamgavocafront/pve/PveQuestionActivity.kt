@@ -1,34 +1,38 @@
 package com.example.zamgavocafront.pve
 
-import android.graphics.Color
+import android.content.res.ColorStateList
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import coil.load
 import com.example.zamgavocafront.R
-import com.example.zamgavocafront.api.ApiClient
-import com.example.zamgavocafront.api.SkillCache
-import com.example.zamgavocafront.api.dto.*
-import com.example.zamgavocafront.pvp.CollectedCardManager
-import kotlinx.coroutines.*
+import com.example.zamgavocafront.viewmodel.PveQuestionUiState
+import com.example.zamgavocafront.viewmodel.PveQuestionViewModel
+import kotlinx.coroutines.launch
 
 class PveQuestionActivity : AppCompatActivity() {
 
     companion object {
-        const val EXTRA_WORD_ID     = "word_id"
-        const val EXTRA_WORD_TEXT   = "word_text"
-        const val EXTRA_SKILL_NAME  = "skill_name"
-        const val EXTRA_SKILL_GRADE = "skill_grade"
+        const val EXTRA_WORD_ID      = "word_id"
+        const val EXTRA_WORD_TEXT    = "word_text"
+        const val EXTRA_SKILL_NAME   = "skill_name"
+        const val EXTRA_SKILL_GRADE  = "skill_grade"
         const val EXTRA_SKILL_DAMAGE = "skill_damage"
-        const val EXTRA_EFFECT_TYPE = "effect_type"
-        const val RESULT_WORD_ID    = "result_word_id"
-        private const val PASS_SCORE = 60
+        const val EXTRA_EFFECT_TYPE  = "effect_type"
+        const val RESULT_WORD_ID     = "result_word_id"
     }
 
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private val viewModel: PveQuestionViewModel by viewModels()
 
     private lateinit var tvCardSkillName: TextView
     private lateinit var tvCardGrade: TextView
@@ -41,26 +45,31 @@ class PveQuestionActivity : AppCompatActivity() {
     private lateinit var btnSkip: Button
     private lateinit var tvFeedback: TextView
 
-    private var wordId = 0
-    private var wordText = ""
+    // Intent에서 받아온 스킬 카드 표시용 정보
     private var skillName = ""
     private var skillGrade = ""
     private var skillDamage = 0
-    private var effectTypeName = "ATTACK"
-
-    private var koreanSentence = ""
-    private var idealTranslation = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pve_question)
 
-        wordId       = intent.getIntExtra(EXTRA_WORD_ID, 0)
-        wordText     = intent.getStringExtra(EXTRA_WORD_TEXT) ?: ""
-        skillName    = intent.getStringExtra(EXTRA_SKILL_NAME) ?: wordText
-        skillGrade   = intent.getStringExtra(EXTRA_SKILL_GRADE) ?: "동급"
-        skillDamage  = intent.getIntExtra(EXTRA_SKILL_DAMAGE, 50)
-        effectTypeName = intent.getStringExtra(EXTRA_EFFECT_TYPE) ?: "ATTACK"
+        // ViewModel에 전달
+        viewModel.wordId    = intent.getIntExtra(EXTRA_WORD_ID, 0)
+        viewModel.wordText  = intent.getStringExtra(EXTRA_WORD_TEXT) ?: ""
+
+        // 스킬 카드 표시용 (ViewModel 불필요 — 화면에만 표시)
+        skillName  = intent.getStringExtra(EXTRA_SKILL_NAME) ?: viewModel.wordText
+        skillGrade = intent.getStringExtra(EXTRA_SKILL_GRADE) ?: "동급"
+
+        // 카드 등급 → 퀴즈 난이도 변환
+        viewModel.userLevel = when (skillGrade) {
+            "금급" -> "advanced"
+            "은급" -> "intermediate"
+            else   -> "beginner"
+        }
+        skillDamage = intent.getIntExtra(EXTRA_SKILL_DAMAGE, 50)
+        val effectTypeName = intent.getStringExtra(EXTRA_EFFECT_TYPE) ?: "ATTACK"
 
         tvCardSkillName  = findViewById(R.id.tv_card_skill_name)
         tvCardGrade      = findViewById(R.id.tv_card_grade)
@@ -73,171 +82,133 @@ class PveQuestionActivity : AppCompatActivity() {
         btnSkip          = findViewById(R.id.btn_skip)
         tvFeedback       = findViewById(R.id.tv_feedback)
 
-        val effect = runCatching { SkillEffectType.valueOf(effectTypeName) }.getOrDefault(SkillEffectType.ATTACK)
+        val effect = runCatching { SkillEffectType.valueOf(effectTypeName) }
+            .getOrDefault(SkillEffectType.ATTACK)
 
         tvCardSkillName.text = skillName
         tvCardGrade.text = skillGrade
-        tvCardGrade.backgroundTintList = android.content.res.ColorStateList.valueOf(gradeColor(skillGrade))
+        tvCardGrade.backgroundTintList =
+            ColorStateList.valueOf(gradeColor(skillGrade))
         tvCardEffect.text = "${effect.icon} ${effect.displayName}"
         tvCardDamage.text = "데미지: $skillDamage"
 
-        btnSubmit.setOnClickListener { submitAnswer() }
+        btnSubmit.setOnClickListener {
+            val answer = etAnswer.text.toString().trim()
+            if (answer.isEmpty()) {
+                Toast.makeText(this, "답을 입력해주세요", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (viewModel.uiState.value is PveQuestionUiState.LoadingQuestion) {
+                Toast.makeText(this, "문제를 먼저 로딩해주세요", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            viewModel.submitAnswer(answer)
+        }
         btnSkip.setOnClickListener {
             setResult(RESULT_CANCELED)
             finish()
         }
 
-        loadQuestion()
-    }
-
-    private fun loadQuestion() {
-        tvKoreanSentence.text = "문제 로딩 중..."
-        tvWordHint.text = ""
-        btnSubmit.isEnabled = false
-
-        scope.launch {
-            try {
-                val resp = ApiClient.mockApi.createQuestion(
-                    CreateQuestionRequest(targetWord = wordText, userLevel = "intermediate")
-                )
-                if (resp.success) {
-                    koreanSentence = resp.koreanSentence ?: ""
-                    idealTranslation = resp.ideal ?: ""
-                    tvKoreanSentence.text = koreanSentence
-                    tvWordHint.text = resp.wordHint?.let { "힌트: $it" } ?: ""
-                    btnSubmit.isEnabled = true
-                } else {
-                    tvKoreanSentence.text = "문제 생성 실패: ${resp.error}"
-                }
-            } catch (e: Exception) {
-                tvKoreanSentence.text = "오류: ${e.message}"
-                btnSubmit.isEnabled = true
+        // UI 상태 관찰
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state -> renderState(state) }
             }
         }
+
+        viewModel.loadQuestion()
     }
 
-    private fun submitAnswer() {
-        val answer = etAnswer.text.toString().trim()
-        if (answer.isEmpty()) {
-            Toast.makeText(this, "답을 입력해주세요", Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (koreanSentence.isEmpty()) {
-            Toast.makeText(this, "문제를 먼저 로딩해주세요", Toast.LENGTH_SHORT).show()
-            return
-        }
+    private fun renderState(state: PveQuestionUiState) {
+        when (state) {
+            is PveQuestionUiState.Idle -> Unit
 
-        btnSubmit.isEnabled = false
-        tvFeedback.visibility = View.GONE
+            is PveQuestionUiState.LoadingQuestion -> {
+                tvKoreanSentence.text = "문제 로딩 중..."
+                tvWordHint.text = ""
+                btnSubmit.isEnabled = false
+                tvFeedback.visibility = View.GONE
+            }
 
-        scope.launch {
-            try {
-                val evalResp = ApiClient.mockApi.evaluate(
-                    EvaluateRequest(
-                        koreanSentence = koreanSentence,
-                        userAnswer = answer,
-                        idealTranslation = idealTranslation,
-                        targetWord = wordText,
-                        userLevel = "intermediate"
-                    )
-                )
-                val score = evalResp.score ?: 0
-                if (score >= PASS_SCORE) {
-                    onCorrectAnswer(evalResp)
-                } else {
-                    onWrongAnswer(score, evalResp)
-                }
-            } catch (e: Exception) {
-                tvFeedback.text = "채점 오류: ${e.message}"
-                tvFeedback.setBackgroundColor(Color.parseColor("#FFEBEE"))
-                tvFeedback.setTextColor(Color.parseColor("#C62828"))
+            is PveQuestionUiState.QuestionReady -> {
+                tvKoreanSentence.text = state.koreanSentence
+                tvWordHint.text = state.hint
+                btnSubmit.isEnabled = true
+                tvFeedback.visibility = View.GONE
+            }
+
+            is PveQuestionUiState.Evaluating -> {
+                btnSubmit.isEnabled = false
+                tvFeedback.visibility = View.GONE
+            }
+
+            is PveQuestionUiState.Correct -> {
+                // 상태를 먼저 소비해 앱 복귀 시 다이얼로그 중복 표시 방지
+                viewModel.onCorrectConsumed()
+                showSkillActivationDialog(imageUrl = state.imageUrl, imageBase64 = state.imageBase64)
+            }
+
+            is PveQuestionUiState.Wrong -> {
+                val sb = StringBuilder("❌ 오답! (점수: ${state.score})\n")
+                state.feedback?.let { sb.appendLine("\n피드백: $it") }
+                state.correction?.let { sb.appendLine("수정: $it") }
+                tvFeedback.text = sb.toString().trim()
+                tvFeedback.setBackgroundColor(ContextCompat.getColor(this, R.color.color_feedback_wrong_bg))
+                tvFeedback.setTextColor(ContextCompat.getColor(this, R.color.color_feedback_wrong_text))
                 tvFeedback.visibility = View.VISIBLE
                 btnSubmit.isEnabled = true
+                btnSubmit.text = "다시 도전!"
+            }
+
+            is PveQuestionUiState.Error -> {
+                tvKoreanSentence.text = state.message
+                btnSubmit.isEnabled = true
             }
         }
     }
 
-    private suspend fun onCorrectAnswer(evalResp: EvaluateResponse) {
-        // 스킬 카드가 아직 수집 안 됐으면 수집 처리 (PVE에서 처음 정답 시)
-        val existing = CollectedCardManager.getCards(this).find { it.wordId == wordId }
-        if (existing == null) {
-            try {
-                val skillResp = SkillCache.get(wordId)
-                    ?: run {
-                        try {
-                            val resp = ApiClient.api.getSkillInfo(wordId.toLong())
-                            resp.data
-                        } catch (_: Exception) { null }
-                    }
-                    ?: ApiClient.mockApi.getSkillInfo(wordId.toLong()).data
-                if (skillResp != null) {
-                    CollectedCardManager.addCard(
-                        this,
-                        CollectedCardManager.CollectedCard(
-                            wordId = wordId,
-                            word = wordText,
-                            skillName = skillResp.name,
-                            skillDescription = skillResp.explain,
-                            damage = skillResp.damage,
-                            imageBase64 = null,
-                            grade = skillGrade,
-                            imageUrl = skillResp.imageURL.takeIf { it.isNotBlank() }
-                        )
-                    )
-                }
-                showSkillActivationDialog(
-                    imageUrl = skillResp?.imageURL?.takeIf { it.isNotBlank() },
-                    newCollect = skillResp != null
-                )
-            } catch (e: Exception) {
-                showSkillActivationDialog(imageUrl = null, newCollect = false)
-            }
-        } else {
-            showSkillActivationDialog(
-                imageUrl = existing.imageUrl,
-                newCollect = false
-            )
-        }
-    }
-
-    private fun showSkillActivationDialog(imageUrl: String?, newCollect: Boolean) {
+    private fun showSkillActivationDialog(imageUrl: String?, imageBase64: String?) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_skill_card, null)
         val ivImage  = dialogView.findViewById<ImageView>(R.id.iv_skill_image)
         val tvGrade  = dialogView.findViewById<TextView>(R.id.tv_skill_grade)
         val tvName   = dialogView.findViewById<TextView>(R.id.tv_skill_name)
         val tvDamage = dialogView.findViewById<TextView>(R.id.tv_skill_damage)
         val tvDesc   = dialogView.findViewById<TextView>(R.id.tv_skill_desc)
+        val tvTotal  = dialogView.findViewById<TextView>(R.id.tv_total_damage)
+        val tvBadge  = dialogView.findViewById<TextView>(R.id.tv_collected_badge)
 
-        // tv_total_damage / tv_collected_badge 는 Make Project 후 사용 가능
-        val tvTotal     = dialogView.findViewWithTag<TextView>("tv_total_damage")
-        val tvCollected = dialogView.findViewWithTag<TextView>("tv_collected_badge")
-
-        ivImage.load(imageUrl) {
-            placeholder(android.R.drawable.ic_menu_gallery)
-            error(android.R.drawable.ic_menu_gallery)
+        when {
+            !imageUrl.isNullOrBlank() -> ivImage.load(imageUrl) {
+                placeholder(android.R.drawable.ic_menu_gallery)
+                error(android.R.drawable.ic_menu_gallery)
+            }
+            imageBase64 != null -> {
+                runCatching {
+                    val bytes = Base64.decode(imageBase64, Base64.DEFAULT)
+                    ivImage.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
+                }.onFailure {
+                    ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
+                }
+            }
+            else -> ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
         }
 
         tvGrade.text = skillGrade
-        tvGrade.backgroundTintList = android.content.res.ColorStateList.valueOf(gradeColor(skillGrade))
+        tvGrade.backgroundTintList =
+            ColorStateList.valueOf(gradeColor(skillGrade))
         tvName.text = skillName
         tvDamage.text = "+$skillDamage 데미지!"
-        tvDesc.text = if (newCollect) "스킬 카드 발동 & 수집!" else "스킬 발동!"
-        tvTotal?.visibility = android.view.View.GONE
-        tvCollected?.text = if (newCollect) "📦 '$skillName' 카드 수집 완료" else "✅ 스킬 발동!"
+        tvDesc.text = "스킬 발동!"
+        tvTotal?.visibility = View.GONE
+        tvBadge?.text = "✅ 스킬 발동!"
 
-        // 카드 등장 애니메이션
-        dialogView.scaleX = 0.6f
-        dialogView.scaleY = 0.6f
-        dialogView.alpha = 0f
-        dialogView.animate()
-            .scaleX(1f).scaleY(1f).alpha(1f)
-            .setDuration(250)
-            .start()
+        dialogView.scaleX = 0.6f; dialogView.scaleY = 0.6f; dialogView.alpha = 0f
+        dialogView.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(250).start()
 
         AlertDialog.Builder(this)
             .setView(dialogView)
             .setPositiveButton("⚔ 발동!") { _, _ ->
-                val data = android.content.Intent().putExtra(RESULT_WORD_ID, wordId)
+                val data = android.content.Intent().putExtra(RESULT_WORD_ID, viewModel.wordId)
                 setResult(RESULT_OK, data)
                 finish()
             }
@@ -245,27 +216,9 @@ class PveQuestionActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun onWrongAnswer(score: Int, evalResp: EvaluateResponse) {
-        val sb = StringBuilder("❌ 오답! (점수: $score)\n")
-        evalResp.feedback?.let { sb.appendLine("\n피드백: $it") }
-        evalResp.correction?.let { sb.appendLine("수정: $it") }
-
-        tvFeedback.text = sb.toString().trim()
-        tvFeedback.setBackgroundColor(Color.parseColor("#FFEBEE"))
-        tvFeedback.setTextColor(Color.parseColor("#C62828"))
-        tvFeedback.visibility = View.VISIBLE
-        btnSubmit.isEnabled = true
-        btnSubmit.text = "다시 도전!"
-    }
-
     private fun gradeColor(grade: String): Int = when (grade) {
-        "금급" -> Color.parseColor("#FFC107")
-        "은급" -> Color.parseColor("#9E9E9E")
-        else   -> Color.parseColor("#CD7F32")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        scope.cancel()
+        "금급" -> ContextCompat.getColor(this, R.color.color_grade_gold)
+        "은급" -> ContextCompat.getColor(this, R.color.color_grade_silver)
+        else   -> ContextCompat.getColor(this, R.color.color_grade_bronze)
     }
 }

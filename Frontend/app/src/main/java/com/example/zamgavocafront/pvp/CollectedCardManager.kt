@@ -23,7 +23,12 @@ object CollectedCardManager {
     fun addCard(context: Context, card: CollectedCard) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val list = getCards(context).toMutableList()
-        list.add(0, card)
+        val existingIndex = list.indexOfFirst { it.wordId == card.wordId }
+        if (existingIndex >= 0) {
+            list[existingIndex] = card  // 같은 단어 카드는 최신 버전으로 교체
+        } else {
+            list.add(0, card)
+        }
         prefs.edit().putString(KEY_CARDS, Gson().toJson(list)).apply()
     }
 
