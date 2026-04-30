@@ -1,8 +1,9 @@
 package com.example.zamgavocafront.pve
 
 import android.content.Intent
-import android.graphics.Color
+import android.content.res.ColorStateList
 import android.os.Bundle
+import androidx.core.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -368,7 +369,7 @@ class PveDungeonActivity : AppCompatActivity() {
             val available = availableIds.contains(card.wordId)
 
             h.tvGrade.text = card.grade
-            h.tvGrade.backgroundTintList = android.content.res.ColorStateList.valueOf(gradeColor(card.grade))
+            h.tvGrade.backgroundTintList = ColorStateList.valueOf(gradeColor(card.grade))
             h.tvSkillName.text = card.skillName
             h.tvEffectIcon.text = effect.icon
             h.tvDamage.text = "${card.damage}"
@@ -383,9 +384,9 @@ class PveDungeonActivity : AppCompatActivity() {
         }
 
         private fun gradeColor(grade: String): Int = when (grade) {
-            "금급" -> Color.parseColor("#FFC107")
-            "은급" -> Color.parseColor("#9E9E9E")
-            else   -> Color.parseColor("#CD7F32")
+            "금급" -> ContextCompat.getColor(this@PveDungeonActivity, R.color.color_grade_gold)
+            "은급" -> ContextCompat.getColor(this@PveDungeonActivity, R.color.color_grade_silver)
+            else   -> ContextCompat.getColor(this@PveDungeonActivity, R.color.color_grade_bronze)
         }
     }
 }

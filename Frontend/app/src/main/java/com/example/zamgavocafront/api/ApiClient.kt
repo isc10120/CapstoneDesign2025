@@ -1,8 +1,14 @@
 package com.example.zamgavocafront.api
 
 import com.google.gson.Gson
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
 object ApiClient {
     /**
@@ -11,16 +17,34 @@ object ApiClient {
      *
      * 실제 서버 연결 시 false로 변경 + BASE_URL 확인
      */
-    const val USE_MOCK = true
+    const val USE_MOCK = false
 
     private const val BASE_URL = "http://ec2-54-116-110-178.ap-northeast-2.compute.amazonaws.com:8080/"
 
     val gson: Gson = Gson()
 
+    // 로그인 세션 쿠키를 유지해서 이후 요청에 자동으로 붙여줌
+    // ConcurrentHashMap: 코루틴 멀티스레드 환경에서의 race condition 방지
+    private val cookieJar = object : CookieJar {
+        private val store = ConcurrentHashMap<String, List<Cookie>>()
+        override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+            store[url.host] = cookies
+        }
+        override fun loadForRequest(url: HttpUrl): List<Cookie> {
+            return store[url.host] ?: emptyList()
+        }
+    }
+
+    private val okHttpClient = OkHttpClient.Builder()
+        .cookieJar(cookieJar)
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
 
     private val realApi: ZamgaVocaApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(ZamgaVocaApiService::class.java)

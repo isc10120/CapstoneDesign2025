@@ -4,18 +4,21 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.zamgavocafront.R
-import com.example.zamgavocafront.WordRepository
-import com.example.zamgavocafront.api.ApiClient
-import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.model.WordData
+import com.example.zamgavocafront.viewmodel.PvpViewModel
 import kotlinx.coroutines.launch
 
 class PvpActivity : AppCompatActivity() {
+
+    private val viewModel: PvpViewModel by viewModels()
 
     private lateinit var rvWords: RecyclerView
     private lateinit var tvTotalDamage: TextView
@@ -38,13 +41,13 @@ class PvpActivity : AppCompatActivity() {
                 android.widget.Toast.makeText(this, "오늘 공격 횟수를 모두 사용했어요! (10/10)", android.widget.Toast.LENGTH_SHORT).show()
                 return@PvpWordAdapter
             }
-            Intent(this, PvpQuestionActivity::class.java).also { intent ->
-                intent.putExtra(PvpQuestionActivity.EXTRA_WORD_ID, word.id)
-                intent.putExtra(PvpQuestionActivity.EXTRA_WORD_TEXT, word.word)
-                intent.putExtra(PvpQuestionActivity.EXTRA_WORD_MEANING, word.meaning)
-                intent.putExtra(PvpQuestionActivity.EXTRA_DIFFICULTY, word.difficulty.name)
-                startActivity(intent)
-            }
+            startActivity(Intent(this, PvpQuestionActivity::class.java).apply {
+                putExtra(PvpQuestionActivity.EXTRA_WORD_ID, word.id)
+                putExtra(PvpQuestionActivity.EXTRA_WORD_TEXT, word.word)
+                putExtra(PvpQuestionActivity.EXTRA_WORD_MEANING, word.meaning)
+                putExtra(PvpQuestionActivity.EXTRA_DIFFICULTY, word.difficulty.name)
+                putExtra(PvpQuestionActivity.EXTRA_SKILL_ID, word.skillId ?: -1L)
+            })
         }
 
         rvWords.layoutManager = LinearLayoutManager(this)
@@ -53,57 +56,29 @@ class PvpActivity : AppCompatActivity() {
         findViewById<android.widget.Button>(R.id.btn_collected_cards).setOnClickListener {
             startActivity(Intent(this, CollectedCardsActivity::class.java))
         }
+
+        // ViewModel의 단어 목록 관찰
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.pvpWords.collect { words -> updateUi(words) }
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        refreshUi()
+        refreshStats()
+        viewModel.loadPvpWords(filterUsed = false)
     }
 
-    private fun refreshUi() {
+    private fun refreshStats() {
         tvTotalDamage.text = PvpWordManager.getTotalDamage(this).toString()
         tvAttacksLeft.text = "${PvpWordManager.getAttacksLeft(this)} / 10"
-
-        lifecycleScope.launch {
-            val words = loadPvpWords()
-            adapter.updateWords(words)
-            if (words.isEmpty()) {
-                rvWords.visibility = View.GONE
-                tvEmpty.visibility = View.VISIBLE
-            } else {
-                rvWords.visibility = View.VISIBLE
-                tvEmpty.visibility = View.GONE
-            }
-        }
     }
 
-    /** 이번 주 수집 단어를 서버에서 가져온다. 실패 시 로컬 데이터로 fallback. */
-    private suspend fun loadPvpWords(): List<WordData> {
-        return try {
-            val resp = ApiClient.api.getWeekCollectedList()
-            if (resp.success && resp.data != null && resp.data.isNotEmpty()) {
-                resp.data.map { dto ->
-                    // 난이도는 서버가 제공하지 않으므로 로컬 WordRepository에서 보완
-                    val local = WordRepository.allWords.find { it.id.toLong() == dto.id }
-                    WordData(
-                        id = dto.id.toInt(),
-                        word = dto.word,
-                        meaning = dto.definition,
-                        exampleEn = dto.example,
-                        exampleKr = dto.exampleKor,
-                        difficulty = local?.difficulty ?: Difficulty.MEDIUM
-                    )
-                }
-            } else {
-                localFallback()
-            }
-        } catch (_: Exception) {
-            localFallback()
-        }
-    }
-
-    private fun localFallback(): List<WordData> {
-        val availableIds = PvpWordManager.getPvpAvailableWordIds(this)
-        return WordRepository.allWords.filter { it.id in availableIds }
+    private fun updateUi(words: List<WordData>) {
+        adapter.updateWords(words)
+        rvWords.visibility = if (words.isEmpty()) View.GONE else View.VISIBLE
+        tvEmpty.visibility = if (words.isEmpty()) View.VISIBLE else View.GONE
     }
 }

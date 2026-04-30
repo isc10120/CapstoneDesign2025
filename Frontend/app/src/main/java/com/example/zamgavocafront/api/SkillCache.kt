@@ -1,34 +1,32 @@
 package com.example.zamgavocafront.api
 
 import com.example.zamgavocafront.api.dto.SkillResponse
-import com.example.zamgavocafront.model.WordData
+import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 아침 난이도 선택 시 오늘의 단어 스킬을 백그라운드에서 미리 조회해 캐싱.
- * PvpQuestionActivity/PveQuestionActivity에서 캐시 hit 시 추가 API 호출 없이 즉시 표시.
- *
- * - 실제 백엔드 GET /api/v1/skill-info?id={wordId} 를 사용
- * - 실패해도 무시 (각 화면 진입 시 on-demand 재시도)
+ * 스킬 정보 캐시.
+ * week-collected-list에서 받은 skillId로 GET /api/v1/skill-info를 호출해 캐싱.
+ * 스킬은 daily-word-list/new 호출 시 백엔드에서 생성되며,
+ * skillId는 GET /api/v1/week-collected-list 응답에 포함되어 있다.
  */
 object SkillCache {
-    private val cache = mutableMapOf<Int, SkillResponse>()
+    // ConcurrentHashMap: 여러 코루틴이 동시에 캐시를 읽고 쓸 수 있도록 thread-safe 보장
+    private val cache = ConcurrentHashMap<Int, SkillResponse>()
 
     /**
-     * 단어 목록에 대해 스킬을 미리 조회한다.
-     * 이미 캐시된 단어는 건너뜀. 실패해도 무시.
+     * wordId 기준으로 캐시 확인 → 없으면 skillId로 GET /api/v1/skill-info 조회.
+     * skillId가 null이면 null 반환 (스킬 미생성 또는 아직 week-collected 미달).
      */
-    suspend fun preGenerate(words: List<WordData>) {
-        for (word in words) {
-            if (cache.containsKey(word.id)) continue
-            try {
-                val resp = ApiClient.api.getSkillInfo(word.id.toLong())
-                if (resp.success && resp.data != null) {
-                    cache[word.id] = resp.data
-                }
-            } catch (_: Exception) {
-                // 실패 시 각 화면 진입 시점에 on-demand 재시도
-            }
-        }
+    suspend fun fetchOrGenerate(wordId: Int, skillId: Long?, word: String, meaning: String): SkillResponse? {
+        cache[wordId]?.let { return it }
+        if (skillId == null) return null
+        return try {
+            val resp = ApiClient.api.getSkillInfo(skillId)
+            if (resp.success && resp.data != null) {
+                cache[wordId] = resp.data
+                resp.data
+            } else null
+        } catch (_: Exception) { null }
     }
 
     /** wordId에 해당하는 캐시된 스킬 반환. 없으면 null. */

@@ -6,13 +6,18 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import com.example.zamgavocafront.api.ApiClient
-import com.example.zamgavocafront.api.dto.SignInRequest
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.zamgavocafront.viewmodel.LoginUiState
+import com.example.zamgavocafront.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
+
+    private val viewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,61 +27,67 @@ class LoginActivity : AppCompatActivity() {
         val etPassword = findViewById<EditText>(R.id.et_password)
         val btnLogin = findViewById<Button>(R.id.btn_login)
 
-        btnLogin.setOnClickListener {
-            val email = etUsername.text.toString().trim()
-            val password = etPassword.text.toString()
-
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "이메일과 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            btnLogin.isEnabled = false
-            btnLogin.text = "로그인 중..."
-
-            lifecycleScope.launch {
-                try {
-                    val response = ApiClient.authApi.signIn(
-                        SignInRequest(email = email, password = password)
-                    )
-                    if (response.success && response.data != null) {
-                        // 사용자 정보 저장
-                        getSharedPreferences("user_prefs", MODE_PRIVATE).edit()
-                            .putLong("userId", response.data.userId)
-                            .putString("nickName", response.data.nickName)
-                            .putString("email", response.data.email)
-                            .apply()
-                        goToHome()
-                    } else {
-                        val msg = response.error?.message ?: "로그인에 실패했습니다."
-                        Toast.makeText(this@LoginActivity, msg, Toast.LENGTH_LONG).show()
-                        resetButton(btnLogin)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    when (state) {
+                        is LoginUiState.Idle -> {
+                            btnLogin.isEnabled = true
+                            btnLogin.text = "로그인"
+                        }
+                        is LoginUiState.Loading -> {
+                            btnLogin.isEnabled = false
+                            btnLogin.text = "로그인 중..."
+                        }
+                        is LoginUiState.Success -> {
+                            saveUserPrefs(state)
+                            applyNudgeSettings(state)
+                            startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
+                            finish()
+                        }
+                        is LoginUiState.Error -> {
+                            Toast.makeText(this@LoginActivity, state.message, Toast.LENGTH_LONG).show()
+                            viewModel.resetIdle()
+                        }
                     }
-                } catch (e: Exception) {
-                    Toast.makeText(this@LoginActivity, "서버 연결에 실패했습니다: ${e.message}", Toast.LENGTH_LONG).show()
-                    resetButton(btnLogin)
                 }
             }
         }
 
-        // 회원가입 화면으로 이동
+        btnLogin.setOnClickListener {
+            val email = etUsername.text.toString().trim()
+            val password = etPassword.text.toString()
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "이메일과 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            viewModel.signIn(email, password)
+        }
+
         findViewById<TextView>(R.id.tv_signup).setOnClickListener {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
 
-        // 비밀번호 찾기 (미구현)
         findViewById<TextView>(R.id.tv_find_password).setOnClickListener {
             Toast.makeText(this, "비밀번호 찾기 준비 중입니다.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun goToHome() {
-        startActivity(Intent(this, HomeActivity::class.java))
-        finish()
+    private fun saveUserPrefs(data: LoginUiState.Success) {
+        getSharedPreferences("user_prefs", MODE_PRIVATE)
+            .edit()
+            .putLong("userId", data.userId)
+            .putString("nickName", data.nickName)
+            .putString("email", data.email)
+            .apply()
     }
 
-    private fun resetButton(btn: Button) {
-        btn.isEnabled = true
-        btn.text = "로그인"
+    private fun applyNudgeSettings(data: LoginUiState.Success) {
+        if (data.nudgeEnabled) {
+            AlarmScheduler.saveNudgeInterval(this, data.nudgeInterval, data.nudgeInterval)
+            AlarmScheduler.startNudgeSchedule(this)
+        } else {
+            AlarmScheduler.stopNudgeSchedule(this)
+        }
     }
 }

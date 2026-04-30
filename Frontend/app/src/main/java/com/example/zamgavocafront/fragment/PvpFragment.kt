@@ -1,5 +1,6 @@
 package com.example.zamgavocafront.fragment
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -10,16 +11,24 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.zamgavocafront.R
-import com.example.zamgavocafront.WordRepository
+import com.example.zamgavocafront.model.WordData
 import com.example.zamgavocafront.pvp.PvpQuestionActivity
 import com.example.zamgavocafront.pvp.PvpWordAdapter
 import com.example.zamgavocafront.pvp.PvpWordManager
+import com.example.zamgavocafront.viewmodel.PvpViewModel
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class PvpFragment : Fragment() {
+
+    private val viewModel: PvpViewModel by viewModels()
 
     private lateinit var tvTimer: TextView
     private lateinit var tvPlayer1Name: TextView
@@ -59,31 +68,52 @@ class PvpFragment : Fragment() {
                 Toast.makeText(requireContext(), "오늘 공격 횟수를 모두 사용했어요! (10/10)", Toast.LENGTH_SHORT).show()
                 return@PvpWordAdapter
             }
-            Intent(requireContext(), PvpQuestionActivity::class.java).also { intent ->
-                intent.putExtra(PvpQuestionActivity.EXTRA_WORD_ID, word.id)
-                intent.putExtra(PvpQuestionActivity.EXTRA_WORD_TEXT, word.word)
-                intent.putExtra(PvpQuestionActivity.EXTRA_WORD_MEANING, word.meaning)
-                intent.putExtra(PvpQuestionActivity.EXTRA_DIFFICULTY, word.difficulty.name)
-                startActivity(intent)
-                // 드로어가 위로 올라가는 슬라이드업 애니메이션
-                requireActivity().overridePendingTransition(R.anim.slide_up, R.anim.no_anim)
-            }
+            startActivity(Intent(requireContext(), PvpQuestionActivity::class.java).apply {
+                putExtra(PvpQuestionActivity.EXTRA_WORD_ID, word.id)
+                putExtra(PvpQuestionActivity.EXTRA_WORD_TEXT, word.word)
+                putExtra(PvpQuestionActivity.EXTRA_WORD_MEANING, word.meaning)
+                putExtra(PvpQuestionActivity.EXTRA_DIFFICULTY, word.difficulty.name)
+                putExtra(PvpQuestionActivity.EXTRA_SKILL_ID, word.skillId ?: -1L)
+            })
+            requireActivity().overridePendingTransition(R.anim.slide_up, R.anim.no_anim)
         }
 
         rvWords.layoutManager = GridLayoutManager(requireContext(), 2)
         rvWords.adapter = adapter
 
+        // ViewModel의 단어 목록 관찰
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.pvpWords.collect { words -> updatePvpUi(words) }
+            }
+        }
+
         timerHandler.post(timerRunnable)
+
+        // SharedPreferences에서 닉네임 읽어 표시
+        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        tvPlayer1Name.text = prefs.getString("nickName", "나") ?: "나"
+        tvPlayer2Name.text = "상대방"
     }
 
     override fun onResume() {
         super.onResume()
-        refreshUi()
+        viewModel.loadPvpWords(filterUsed = true)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         timerHandler.removeCallbacks(timerRunnable)
+    }
+
+    private fun updatePvpUi(words: List<WordData>) {
+        val ctx = requireContext()
+        tvPlayer1Damage.text = PvpWordManager.getTotalDamage(ctx).toString()
+        tvPlayer2Damage.text = "0"
+        tvAttacksLeft.text = "오늘 잔여 공격 횟수 ${PvpWordManager.getAttacksLeft(ctx)}"
+        adapter.updateWords(words)
+        rvWords.visibility = if (words.isEmpty()) View.GONE else View.VISIBLE
+        tvEmpty.visibility = if (words.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun updateTimer() {
@@ -115,32 +145,4 @@ class PvpFragment : Fragment() {
         cal.set(Calendar.MILLISECOND, 0)
         return cal.timeInMillis
     }
-
-    private fun refreshUi() {
-        val ctx = requireContext()
-        val availableIds = PvpWordManager.getPvpAvailableWordIds(ctx)
-        val words = WordRepository.allWords.filter { it.id in availableIds }
-
-        // Player 1 (내 플레이어): 이번 주 누적 데미지
-        val myDamage = PvpWordManager.getTotalDamage(ctx)
-        tvPlayer1Damage.text = myDamage.toString()
-
-        // Player 2 (상대방): 매칭 미구현으로 고정값
-        tvPlayer2Damage.text = "0"
-
-        // 잔여 공격 횟수
-        val attacksLeft = PvpWordManager.getAttacksLeft(ctx)
-        tvAttacksLeft.text = "오늘 잔여 공격 횟수 $attacksLeft"
-
-        adapter.updateWords(words)
-
-        if (words.isEmpty()) {
-            rvWords.visibility = View.GONE
-            tvEmpty.visibility = View.VISIBLE
-        } else {
-            rvWords.visibility = View.VISIBLE
-            tvEmpty.visibility = View.GONE
-        }
-    }
-
 }

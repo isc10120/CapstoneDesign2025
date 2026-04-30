@@ -15,7 +15,6 @@ import com.example.zamgavocafront.MainActivity
 import com.example.zamgavocafront.WordProgressManager
 import com.example.zamgavocafront.WordRepository
 import com.example.zamgavocafront.api.ApiClient
-import com.example.zamgavocafront.api.SkillCache
 import com.example.zamgavocafront.api.dto.NudgeUpdateRequest
 import com.example.zamgavocafront.pvp.PvpWordManager
 import kotlinx.coroutines.CoroutineScope
@@ -84,7 +83,34 @@ class OverlayService : Service() {
                 val difficulty = intent.getStringExtra(EXTRA_DIFFICULTY)
                     ?.let { runCatching { Difficulty.valueOf(it) }.getOrNull() }
                     ?: Difficulty.MEDIUM
-                showWordListOverlay(WordRepository.allWords, difficulty)
+                serviceScope.launch {
+                    val level = difficulty.toApiLevel()
+                    try {
+                        val resp = ApiClient.api.getNewDailyWordList(level)
+                        if (resp.success && resp.data != null) {
+                            val words = resp.data.map { dto ->
+                                WordData(
+                                    id = dto.id.toInt(),
+                                    word = dto.word,
+                                    meaning = dto.definition,
+                                    exampleEn = dto.example,
+                                    exampleKr = dto.exampleKor,
+                                    difficulty = difficulty,
+                                    skillId = dto.skillId
+                                )
+                            }
+                            withContext(Dispatchers.Main) {
+                                WordRepository.allWords.clear()
+                                WordRepository.allWords.addAll(words)
+                                showWordListOverlay(WordRepository.allWords, difficulty)
+                            }
+                            return@launch
+                        }
+                    } catch (_: Exception) { }
+                    withContext(Dispatchers.Main) {
+                        showWordListOverlay(WordRepository.allWords, difficulty)
+                    }
+                }
             }
             ACTION_SHOW_NUDGE_DRAG -> pickAvailableWord()?.let { showNudgeDrag(it) }
             ACTION_SHOW_NUDGE_TAP -> pickAvailableWord()?.let { showNudgeTap(it) }
@@ -133,7 +159,7 @@ class OverlayService : Service() {
             morningOverlay = null
             // 난이도 선택 시 백엔드에서 해당 레벨 단어 목록을 새로 받아온다
             serviceScope.launch {
-                val level = difficulty.name.lowercase()
+                val level = difficulty.toApiLevel()
                 try {
                     val resp = ApiClient.api.getNewDailyWordList(level)
                     if (resp.success && resp.data != null) {
@@ -144,7 +170,8 @@ class OverlayService : Service() {
                                 meaning = dto.definition,
                                 exampleEn = dto.example,
                                 exampleKr = dto.exampleKor,
-                                difficulty = difficulty
+                                difficulty = difficulty,
+                                skillId = dto.skillId
                             )
                         }
                         withContext(Dispatchers.Main) {
@@ -166,9 +193,7 @@ class OverlayService : Service() {
 
     private fun showWordListOverlay(words: List<WordData>, difficulty: Difficulty) {
         // 난이도 선택 시점에 스킬 카드 백그라운드 미리 생성
-        serviceScope.launch {
-            SkillCache.preGenerate(words)
-        }
+
         wordListOverlay?.dismiss()
         wordListOverlay = WordListOverlayManager(this, windowManager, words) {
             wordListOverlay?.dismiss()
