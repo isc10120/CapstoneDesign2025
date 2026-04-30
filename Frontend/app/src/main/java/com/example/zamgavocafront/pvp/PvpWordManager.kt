@@ -82,7 +82,15 @@ object PvpWordManager {
         }
     }
 
-    /** 이번 주 PVP에서 아직 사용하지 않은 단어 ID Set 반환 */
+    /** 이번 주 PVP에서 이미 정답 처리된 단어 ID Set 반환 */
+    fun getUsedWordIds(context: Context): Set<Int> {
+        checkWeekReset(context)
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return prefs.getStringSet(KEY_USED_WORDS, emptySet())!!
+            .mapNotNull { it.toIntOrNull() }.toSet()
+    }
+
+    /** 이번 주 PVP에서 아직 사용하지 않은 단어 ID Set 반환 (로컬 fallback용) */
     fun getPvpAvailableWordIds(context: Context): Set<Int> {
         checkWeekReset(context)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

@@ -10,26 +10,26 @@ import com.example.zamgavocafront.api.dto.*
  */
 class MockApiService : ZamgaVocaApiService {
 
-    // ── /test 단어 Mock API (구버전) ──────────────────────────────────────
+    // ── /test 단어 Mock API (구버전 — 미사용) ──────────────────────────────
 
-    override suspend fun getDailyVocaList(num: Int): DailyVocaListResponse {
-        val list = listOf(
-            VocaDto(1L, "apple", "사과", "과일의 한 종류", "This is an apple.", "이것은 사과이다.",
-                "apple rain", "사과의 비를 내려 공격", "", 50, 1),
-            VocaDto(2L, "banana", "바나나", "원숭이가 좋아하는 과일", "This is a banana.", "이것은 바나나이다.",
-                "banana rain", "바나나의 비를 내려 공격", "", 70, 2)
-        )
-        return DailyVocaListResponse(list.take(num))
-    }
-
-    override suspend fun collectWord(req: CollectRequest): CollectResponse =
-        CollectResponse(ok = true, collectedId = req.id)
-
-    override suspend fun getCollectedVocaList(): CollectedVocaListResponse =
-        CollectedVocaListResponse(vocaIdList = emptyList(), vocaInfoURL = "/test/voca-info")
-
-    override suspend fun getVocaInfo(id: Long): VocaDto =
-        VocaDto(id, "word$id", "의미$id", "설명", "example", "예문", "스킬명", "스킬설명", "", 50, 1)
+//    override suspend fun getDailyVocaList(num: Int): DailyVocaListResponse {
+//        val list = listOf(
+//            VocaDto(1L, "apple", "사과", "과일의 한 종류", "This is an apple.", "이것은 사과이다.",
+//                "apple rain", "사과의 비를 내려 공격", "", 50, 1),
+//            VocaDto(2L, "banana", "바나나", "원숭이가 좋아하는 과일", "This is a banana.", "이것은 바나나이다.",
+//                "banana rain", "바나나의 비를 내려 공격", "", 70, 2)
+//        )
+//        return DailyVocaListResponse(list.take(num))
+//    }
+//
+//    override suspend fun collectWord(req: CollectRequest): CollectResponse =
+//        CollectResponse(ok = true, collectedId = req.id)
+//
+//    override suspend fun getCollectedVocaList(): CollectedVocaListResponse =
+//        CollectedVocaListResponse(vocaIdList = emptyList(), vocaInfoURL = "/test/voca-info")
+//
+//    override suspend fun getVocaInfo(id: Long): VocaDto =
+//        VocaDto(id, "word$id", "의미$id", "설명", "example", "예문", "스킬명", "스킬설명", "", 50, 1)
 
     // ── 번역 퀴즈: WordRepository 예문 활용 ───────────────────────────
 

@@ -1,7 +1,11 @@
 package com.example.zamgavocafront
 
+import android.content.Context
+import com.example.zamgavocafront.api.ApiClient
+import com.example.zamgavocafront.api.dto.WordResponse
 import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.model.WordData
+import com.example.zamgavocafront.pvp.PvpWordManager
 
 object WordRepository {
 
@@ -87,4 +91,51 @@ object WordRepository {
             difficulty = Difficulty.EASY
         )
     )
+
+    /**
+     * WordResponse DTO → WordData 변환.
+     * 로컬 allWords에 동일 id가 있으면 그 difficulty를 유지하고,
+     * 없으면 MEDIUM을 기본값으로 사용한다.
+     */
+    fun mapWordResponse(dto: WordResponse): WordData {
+        val local = allWords.find { it.id == dto.id.toInt() }
+        return WordData(
+            id = dto.id.toInt(),
+            word = dto.word,
+            meaning = dto.definition,
+            exampleEn = dto.example,
+            exampleKr = dto.exampleKor,
+            difficulty = local?.difficulty ?: Difficulty.MEDIUM,
+            skillId = dto.skillId
+        )
+    }
+
+    /**
+     * 이번 주 수집된 PVP 단어 목록을 서버에서 가져온다.
+     * 실패 시 로컬 PVP 단어로 fallback한다.
+     *
+     * @param context Android Context (PvpWordManager 접근용)
+     * @param filterUsed true이면 이미 정답 처리된 단어를 결과에서 제외한다.
+     */
+    suspend fun fetchPvpWords(context: Context, filterUsed: Boolean = false): List<WordData> {
+        return try {
+            val resp = ApiClient.api.getWeekCollectedList()
+            if (resp.success && resp.data != null) {
+                val usedIds = if (filterUsed) PvpWordManager.getUsedWordIds(context) else emptySet()
+                resp.data
+                    .filter { it.id.toInt() !in usedIds }
+                    .map { mapWordResponse(it) }
+            } else {
+                localPvpFallback(context)
+            }
+        } catch (_: Exception) {
+            localPvpFallback(context)
+        }
+    }
+
+    /** 서버 호출 실패 시 로컬 SharedPreferences 기반으로 PVP 단어를 반환한다. */
+    fun localPvpFallback(context: Context): List<WordData> {
+        val availableIds = PvpWordManager.getPvpAvailableWordIds(context)
+        return allWords.filter { it.id in availableIds }
+    }
 }

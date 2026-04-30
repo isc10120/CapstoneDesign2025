@@ -37,4 +37,22 @@
     <color name="overlay_white_94">#F0FFFFFF</color>
     <color name="overlay_dark_dim">#663D3D3D</color>
     <color name="overlay_primary_navy">#FF0F2A71</color>
+
+    <!-- Grade Badge Colors (PVP/PVE) -->
+    <color name="color_grade_bronze">#CD7F32</color>
+    <color name="color_grade_silver">#9E9E9E</color>
+    <color name="color_grade_gold">#FFC107</color>
+
+    <!-- Quiz Feedback Colors -->
+    <color name="color_feedback_wrong_bg">#FFEBEE</color>
+    <color name="color_feedback_wrong_text">#C62828</color>
+    <color name="color_feedback_correct_bg">#E8F5E9</color>
+    <color name="color_feedback_correct_text">#2E7D32</color>
+
+    <!-- Word Progress Colors -->
+    <color name="color_word_completed">#CCCCCC</color>
+
+    <!-- Deck Builder Colors -->
+    <color name="color_deck_ready">#F4C400</color>
+    <color name="color_deck_incomplete">#FF5555</color>
 </resources>

@@ -5,19 +5,19 @@ import retrofit2.http.*
 
 interface ZamgaVocaApiService {
 
-    // ───── /test 단어 Mock API (구버전) ─────
+    // ───── /test 단어 Mock API (구버전 — 미사용) ─────
 
-    @GET("test/daily-voca-list")
-    suspend fun getDailyVocaList(@Query("num") num: Int = 10): DailyVocaListResponse
-
-    @POST("test/collect")
-    suspend fun collectWord(@Body req: CollectRequest): CollectResponse
-
-    @GET("test/collected-voca-list")
-    suspend fun getCollectedVocaList(): CollectedVocaListResponse
-
-    @GET("test/voca-info")
-    suspend fun getVocaInfo(@Query("id") id: Long): VocaDto
+//    @GET("test/daily-voca-list")
+//    suspend fun getDailyVocaList(@Query("num") num: Int = 10): DailyVocaListResponse
+//
+//    @POST("test/collect")
+//    suspend fun collectWord(@Body req: CollectRequest): CollectResponse
+//
+//    @GET("test/collected-voca-list")
+//    suspend fun getCollectedVocaList(): CollectedVocaListResponse
+//
+//    @GET("test/voca-info")
+//    suspend fun getVocaInfo(@Query("id") id: Long): VocaDto
 
     // ───── 번역 퀴즈 API ─────
 

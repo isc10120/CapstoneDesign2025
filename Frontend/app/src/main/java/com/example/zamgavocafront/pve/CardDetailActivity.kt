@@ -1,13 +1,14 @@
 package com.example.zamgavocafront.pve
 
+import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Base64
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.zamgavocafront.R
 
 class CardDetailActivity : AppCompatActivity() {
@@ -56,11 +57,11 @@ class CardDetailActivity : AppCompatActivity() {
 
         val tvGrade = findViewById<TextView>(R.id.tv_grade)
         tvGrade.text = grade
-        tvGrade.backgroundTintList = android.content.res.ColorStateList.valueOf(
+        tvGrade.backgroundTintList = ColorStateList.valueOf(
             when (grade) {
-                "금급" -> Color.parseColor("#FFC107")
-                "은급" -> Color.parseColor("#9E9E9E")
-                else   -> Color.parseColor("#CD7F32")
+                "금급" -> ContextCompat.getColor(this, R.color.color_grade_gold)
+                "은급" -> ContextCompat.getColor(this, R.color.color_grade_silver)
+                else   -> ContextCompat.getColor(this, R.color.color_grade_bronze)
             }
         )
 

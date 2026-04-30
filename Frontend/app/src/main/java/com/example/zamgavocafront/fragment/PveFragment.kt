@@ -1,7 +1,9 @@
 package com.example.zamgavocafront.fragment
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
+import androidx.core.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -164,9 +166,9 @@ class PveFragment : Fragment() {
             h.tvName.text = "스테이지 ${stage.id}  ${stage.name}"
             h.tvDetail.text = "잡몹 4라운드 + 보스 1라운드"
             h.tvStatus.text = if (pos < cleared) "✅ 클리어" else "미클리어"
-            h.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(
-                if (pos < cleared) android.graphics.Color.parseColor("#4CAF50")
-                else android.graphics.Color.parseColor("#FF9800")
+            h.tvStatus.backgroundTintList = ColorStateList.valueOf(
+                if (pos < cleared) ContextCompat.getColor(h.itemView.context, R.color.difficulty_easy)
+                else ContextCompat.getColor(h.itemView.context, R.color.difficulty_medium)
             )
         }
     }
