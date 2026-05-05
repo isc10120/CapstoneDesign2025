@@ -204,6 +204,57 @@ class MockApiService : ZamgaVocaApiService {
         return ApiResponse(success = true, data = list)
     }
 
+    // ── /api/v1 PVP API (Mock) ───────────────────────────────────────
+
+    override suspend fun getPvpStatus(): ApiResponse<BattleStatusResponse> =
+        ApiResponse(success = false, data = null,
+            error = ApiError("NO_BATTLE", "진행 중인 배틀이 없습니다."))
+
+    override suspend fun usePvpSkill(req: PvpSkillRequest): ApiResponse<PvpSkillResponse> =
+        ApiResponse(success = true, data = PvpSkillResponse(
+            skillName = "Mock Skill", skillType = "ATTACK",
+            damageDealt = 50, statusApplied = null, shieldBlocked = false, collected = true
+        ))
+
+    override suspend fun getPvpHistory(): ApiResponse<List<BattleResultResponse>> =
+        ApiResponse(success = true, data = emptyList())
+
+    override suspend fun getPvpLatestResult(): ApiResponse<BattleResultResponse?> =
+        ApiResponse(success = true, data = null)
+
+    override suspend fun confirmPvpResult(): ApiResponse<Any?> =
+        ApiResponse(success = true, data = null)
+
+    override suspend fun testMatch(): ApiResponse<Any?> =
+        ApiResponse(success = true, data = null)
+
+    // ── /api/v1 Question Generation (Mock) ───────────────────────────
+
+    override suspend fun generateQuestion(
+        questionType: String,
+        req: QuestionRequest
+    ): QuestionResponse {
+        val word = WordRepository.allWords.find { it.id.toLong() == req.wordId }
+        return QuestionResponse(
+            questionType = "TRANSLATION",
+            wordId = req.wordId,
+            word = word?.word ?: "word",
+            question = word?.exampleKr ?: "다음 단어를 영어로 쓰세요.",
+            hint = word?.word
+        )
+    }
+
+    override suspend fun evaluateNewAnswer(req: EvaluateNewRequest): EvaluateNewResponse {
+        val word = WordRepository.allWords.find { it.id.toLong() == req.wordId }
+        val correct = word != null && req.userAnswer.contains(word.word, ignoreCase = true)
+        return EvaluateNewResponse(
+            correct = correct,
+            score = if (correct) 80 else 25,
+            feedback = if (correct) "정답!" else "다시 시도해보세요.",
+            correctAnswer = word?.exampleEn
+        )
+    }
+
     // ── /api/v1 Auth API ──────────────────────────────────────────────
 
     override suspend fun signUp(req: SignUpRequest): ApiResponse<Any?> =
