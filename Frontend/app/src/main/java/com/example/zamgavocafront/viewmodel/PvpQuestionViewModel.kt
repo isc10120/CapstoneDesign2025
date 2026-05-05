@@ -5,9 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.api.SkillCache
-import com.example.zamgavocafront.api.dto.CollectSkillRequest
 import com.example.zamgavocafront.api.dto.CreateQuestionRequest
 import com.example.zamgavocafront.api.dto.EvaluateRequest
+import com.example.zamgavocafront.api.dto.PvpSkillRequest
 import com.example.zamgavocafront.api.dto.SkillResponse
 import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.pvp.CollectedCardManager
@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/** PvpQuestionActivity의 UI 상태 머신 */
 sealed class PvpQuestionUiState {
     object Idle : PvpQuestionUiState()
     object LoadingQuestion : PvpQuestionUiState()
@@ -40,7 +39,6 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
     private val _attacksLeft = MutableStateFlow(0)
     val attacksLeft: StateFlow<Int> = _attacksLeft.asStateFlow()
 
-    // Intent에서 받은 값들 — onCreate 이후 한 번만 설정됨
     var wordId: Int = 0
     var wordText: String = ""
     var wordMeaning: String = ""
@@ -56,12 +54,12 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun loadQuestion() {
-        // Idle/Error 상태에서만 로드 — 화면 회전 시 재호출 방지
         val current = _uiState.value
         if (current !is PvpQuestionUiState.Idle && current !is PvpQuestionUiState.Error) return
         _uiState.value = PvpQuestionUiState.LoadingQuestion
         viewModelScope.launch {
             try {
+                // 문제생성 API 미구현 → Mock 사용
                 val response = ApiClient.mockApi.createQuestion(
                     CreateQuestionRequest(targetWord = wordText, userLevel = userLevel)
                 )
@@ -85,7 +83,6 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
 
     fun submitAnswer(userAnswer: String) {
         if (userAnswer.isBlank() || koreanSentence.isEmpty()) return
-        // 이미 채점 중이면 중복 제출 방지
         if (_uiState.value is PvpQuestionUiState.Evaluating) return
 
         _uiState.value = PvpQuestionUiState.Evaluating
@@ -95,6 +92,7 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
 
         viewModelScope.launch {
             try {
+                // 채점 API 미구현 → Mock 사용
                 val evalResponse = ApiClient.mockApi.evaluate(
                     EvaluateRequest(
                         koreanSentence = koreanSentence,
@@ -128,12 +126,24 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
         val context = getApplication<Application>()
         PvpWordManager.markWordUsed(context, wordId)
 
+        // 스킬 이미지/상세 정보 (다이얼로그 표시용)
         val skill = runCatching {
             SkillCache.fetchOrGenerate(wordId, skillId, wordText, wordMeaning)
         }.getOrNull()
 
+        // pvp/skill 호출 — 서버에서 데미지 적용 + 스킬 수집 처리
+        if (skillId != null) {
+            runCatching {
+                ApiClient.api.usePvpSkill(
+                    PvpSkillRequest(skillId = skillId!!, wordId = wordId.toLong())
+                )
+            }
+        }
+
+        // 로컬 데미지 누적 (다이얼로그 총 데미지 표시용)
+        PvpWordManager.addDamage(context, skill?.damage ?: 50)
+
         if (skill != null) {
-            PvpWordManager.addDamage(context, skill.damage)
             CollectedCardManager.addCard(
                 context,
                 CollectedCardManager.CollectedCard(
@@ -147,22 +157,11 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
                     imageUrl = skill.imageURL.takeIf { it.isNotBlank() }
                 )
             )
-            runCatching {
-                ApiClient.api.collectSkill(
-                    CollectSkillRequest(skillId = skill.skillId, wordId = wordId.toLong())
-                )
-            }
-        } else {
-            PvpWordManager.addDamage(context, 50)
         }
 
         _uiState.value = PvpQuestionUiState.Correct(score = score, skill = skill)
     }
 
-    /**
-     * Correct 상태를 소비(consume)해 Idle로 리셋한다.
-     * StateFlow가 앱 복귀 시 마지막 값을 재방출할 때 다이얼로그가 중복 표시되는 것을 방지.
-     */
     fun onCorrectConsumed() {
         if (_uiState.value is PvpQuestionUiState.Correct) {
             _uiState.value = PvpQuestionUiState.Idle

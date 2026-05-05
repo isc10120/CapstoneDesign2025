@@ -60,6 +60,37 @@ interface ZamgaVocaApiService {
     @GET("api/v1/week-collected-list")
     suspend fun getWeekCollectedList(): ApiResponse<List<WordResponse>>
 
+    // ───── /api/v1 PVP API ─────
+
+    @GET("api/v1/pvp/status")
+    suspend fun getPvpStatus(): ApiResponse<BattleStatusResponse>
+
+    @POST("api/v1/pvp/skill")
+    suspend fun usePvpSkill(@Body req: PvpSkillRequest): ApiResponse<PvpSkillResponse>
+
+    @GET("api/v1/pvp/result/history")
+    suspend fun getPvpHistory(): ApiResponse<List<BattleResultResponse>>
+
+    @GET("api/v1/pvp/result/latest")
+    suspend fun getPvpLatestResult(): ApiResponse<BattleResultResponse?>
+
+    @PATCH("api/v1/pvp/result/confirm")
+    suspend fun confirmPvpResult(): ApiResponse<Any?>
+
+    @POST("api/v1/pvp/test/match")
+    suspend fun testMatch(): ApiResponse<Any?>
+
+    // ───── /api/v1 Question Generation API ─────
+
+    @POST("api/v1/question-generation/{questionType}")
+    suspend fun generateQuestion(
+        @Path("questionType") questionType: String,
+        @Body req: QuestionRequest
+    ): QuestionResponse
+
+    @POST("api/v1/question-generation/evaluate")
+    suspend fun evaluateNewAnswer(@Body req: EvaluateNewRequest): EvaluateNewResponse
+
     // ───── /api/v1 Auth API ─────
 
     @POST("api/v1/sign-up")

@@ -140,6 +140,103 @@ data class CollectSkillRequest(
     val wordId: Long
 )
 
+// ───── /api/v1 PVP DTOs ─────
+
+data class BattleStatusResponse(
+    val battleId: Long,
+    val weekStart: String,
+    val opponent: OpponentInfo,
+    val my: SideStatus,
+    val enemy: SideStatus
+)
+
+data class OpponentInfo(
+    val userId: Long,
+    val nickname: String
+)
+
+data class SideStatus(
+    val totalDamage: Int,
+    val statusEffects: List<StatusEffect>,
+    val shieldCount: Int
+)
+
+data class StatusEffect(
+    val type: String,
+    val remainingTurns: Int
+)
+
+data class PvpSkillRequest(
+    val skillId: Long,
+    val wordId: Long
+)
+
+data class PvpSkillResponse(
+    val skillName: String,
+    val skillType: String,
+    val damageDealt: Int,
+    val statusApplied: StatusApplied?,
+    val shieldBlocked: Boolean,
+    val collected: Boolean
+)
+
+data class StatusApplied(
+    val type: String,
+    val turns: Int
+)
+
+data class BattleResultResponse(
+    val battleId: Long,
+    val weekStart: String,
+    val weekEnd: String,
+    val result: String?,
+    val myTotalDamage: Int,
+    val opponentTotalDamage: Int,
+    val opponentNickName: String
+)
+
+data class StompSkillMessage(
+    val senderId: Long,
+    val skillName: String,
+    val skillType: String,
+    val damageDealt: Int,
+    val statusApplied: StatusApplied?,
+    val shieldBlocked: Boolean
+)
+
+// ───── /api/v1 Question Generation DTOs ─────
+
+data class QuestionRequest(
+    val wordId: Long
+)
+
+data class QuestionResponse(
+    val questionType: String,
+    val wordId: Long,
+    val word: String,
+    val question: String,
+    val hint: String? = null,
+    val blankedWord: String? = null,
+    val shuffledLetters: String? = null,
+    val options: List<String>? = null,
+    val correctIndex: Int? = null,
+    val answer: String? = null
+)
+
+data class EvaluateNewRequest(
+    val wordId: Long,
+    val questionType: String,
+    val userAnswer: String,
+    val prompt: String
+)
+
+data class EvaluateNewResponse(
+    val correct: Boolean,
+    val score: Int,
+    val feedback: String?,
+    val correctAnswer: String?
+)
+
 // ───── /api/v1 Auth DTOs ─────
 
 data class SignUpRequest(
