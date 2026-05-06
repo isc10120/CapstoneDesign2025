@@ -1,5 +1,7 @@
 package jamgaVOCA.demo.api
 
+import jamgaVOCA.demo.api.annotation.AuthUser
+import jamgaVOCA.demo.domain.user.User
 import jamgaVOCA.demo.service.BattleService
 import jamgaVOCA.demo.api.dto.pvp.BattleStatusResponse
 import jamgaVOCA.demo.api.dto.pvp.BattleResultResponse
@@ -33,60 +35,54 @@ class PvpController(
     }
 
     @GetMapping("/status")
-    fun getStatus(): ResponseEntity<BattleStatusResponse> {
-        val userId = getUserId()
-        val battle = battleService.getCurrentBattle(userId)
-        return ResponseEntity.ok(BattleStatusResponse.from(battle, userId))
+    fun getStatus(@AuthUser user: User): ResponseEntity<BattleStatusResponse> {
+        val battle = battleService.getCurrentBattle(user.id!!)
+        return ResponseEntity.ok(BattleStatusResponse.from(battle, user.id!!))
     }
 
     @GetMapping("/result/latest")
-    fun getLatestResult(): ResponseEntity<BattleResultResponse?> {
-        val userId = getUserId()
-        val battle = battleService.getLatestUncheckedResult(userId)
+    fun getLatestResult(@AuthUser user: User): ResponseEntity<BattleResultResponse?> {
+        val battle = battleService.getLatestUncheckedResult(user.id!!)
             ?: return ResponseEntity.ok(null)
-        return ResponseEntity.ok(BattleResultResponse.from(battle, userId))
+        return ResponseEntity.ok(BattleResultResponse.from(battle, user.id!!))
     }
 
     @GetMapping("/result/history")
-    fun getHistory(): ResponseEntity<List<BattleHistoryResponse>> {
-        val userId = getUserId()
-        val battles = battleService.getBattleHistory(userId)
-        return ResponseEntity.ok(battles.map { BattleHistoryResponse.from(it, userId) })
+    fun getHistory(@AuthUser user: User): ResponseEntity<List<BattleHistoryResponse>> {
+        val battles = battleService.getBattleHistory(user.id!!)
+        return ResponseEntity.ok(battles.map { BattleHistoryResponse.from(it, user.id!!) })
     }
 
     @PatchMapping("/result/confirm")
-    fun confirmResult(): ResponseEntity<Unit> {
-        val userId = getUserId()
-        battleService.confirmResult(userId)
+    fun confirmResult(@AuthUser user: User): ResponseEntity<Unit> {
+        battleService.confirmResult(user.id!!)
         return ResponseEntity.ok().build()
     }
 
     @PostMapping("/skill")
-    fun useSkill(@RequestBody request: PvpSkillRequest): ResponseEntity<PvpSkillResponse> {
-        val userId = getUserId()
-
+    fun useSkill(@AuthUser user: User, @RequestBody request: PvpSkillRequest): ResponseEntity<PvpSkillResponse> {
         // 스킬 조회
         val skill = skillRepository.findById(request.skillId)
             .orElseThrow { IllegalArgumentException("존재하지 않는 스킬입니다.") }
 
         // 현재 배틀 조회
-        val battle = battleService.getCurrentBattle(userId)
+        val battle = battleService.getCurrentBattle(user.id!!)
 
         // WeekCollectedWord 검증 - 이번 주 수집된 단어인지 확인
-       if (!weekCollectedWordRepository.existsByUserIdAndWordId(userId, request.wordId))
+       if (!weekCollectedWordRepository.existsByUserIdAndWordId(user.id!!, request.wordId))
             throw IllegalArgumentException("이번 주 수집된 단어가 아닙니다.")
 
         // 스킬 효과 적용
-        val applyResult = battleService.applySkill(battle, userId, skill)
+        val applyResult = battleService.applySkill(battle, user.id!!, skill)
 
         // UserWordSkill 수집 처리
-        val collected = skillService.collectSkill(request.skillId, request.wordId, userId)
+        skillService.collectSkill(request.skillId, request.wordId, user.id!!)
 
         // STOMP 푸시
         messagingTemplate.convertAndSend(
             "/topic/pvp/${battle.id}",
             StompSkillMessage(
-                senderId = userId,
+                senderId = user.id!!,
                 skillName = skill.name,
                 skillType = skill.skillType.name,
                 damageDealt = applyResult.damageDealt,
@@ -99,8 +95,4 @@ class PvpController(
             PvpSkillResponse.from(applyResult, skill.name, skill.skillType.name)
         )
     }
-
-    private fun getUserId(): Long = 1L
-//        httpSession.getAttribute("userId") as? Long
-//            ?: throw RuntimeException("User not logged in")
 }

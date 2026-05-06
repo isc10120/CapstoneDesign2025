@@ -1,5 +1,8 @@
 package jamgaVOCA.demo.api.dto
 
+data class RefreshRequest(val refreshToken: String)
+data class RefreshResponse(val accessToken: String)
+
 // Word DTOs
 data class WordResponse(
     val id: Long,
@@ -47,6 +50,8 @@ data class SignInRequest(
 )
 
 data class SignInResponse(
+    val accessToken: String,
+    val refreshToken: String,
     val userId: Long,
     val email: String,
     val nickName: String,

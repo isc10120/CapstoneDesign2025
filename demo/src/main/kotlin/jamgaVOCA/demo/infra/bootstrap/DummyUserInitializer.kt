@@ -17,9 +17,8 @@ class DummyUserInitializer(
             userRepository.save(
                 User(
                     email = "",
-                    password = "",
+                    passwordHash = "",
                     nickname = "dummy",
-                    level = UserLevel.BEGINNER,
                     isDummy = true
                 )
             )

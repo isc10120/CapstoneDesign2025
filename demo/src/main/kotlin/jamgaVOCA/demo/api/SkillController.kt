@@ -1,9 +1,11 @@
 package jamgaVOCA.demo.api
 
+import jamgaVOCA.demo.api.annotation.AuthUser
 import jamgaVOCA.demo.api.dto.ApiResponse
 import jamgaVOCA.demo.api.dto.CollectSkillRequest
 import jamgaVOCA.demo.api.dto.SkillResponse
 import jamgaVOCA.demo.api.dto.WordResponse
+import jamgaVOCA.demo.domain.user.User
 import jamgaVOCA.demo.service.SkillService
 import org.springframework.web.bind.annotation.*
 
@@ -14,8 +16,8 @@ class SkillController(
 ) {
 
     @GetMapping("/collected-skill-list")
-    fun getCollectedSkillList(): ApiResponse<List<SkillResponse>> {
-        val data = skillService.getCollectedSkillList()
+    fun getCollectedSkillList(@AuthUser user: User): ApiResponse<List<SkillResponse>> {
+        val data = skillService.getCollectedSkillList(user.id!!)
         return ApiResponse.success(data)
     }
 
@@ -26,8 +28,8 @@ class SkillController(
     }
 
     @PostMapping("/collect-skill")
-    fun collectSkill(@RequestBody request: CollectSkillRequest): ApiResponse<Nothing> {
-        skillService.collectSkill(request.skillId, request.wordId, 1L)
+    fun collectSkill(@AuthUser user: User, @RequestBody request: CollectSkillRequest): ApiResponse<Nothing> {
+        skillService.collectSkill(request.skillId, request.wordId, user.id!!)
         return ApiResponse.success(null)
     }
 }

@@ -3,6 +3,9 @@ package jamgaVOCA.demo.domain.user
 import jamgaVOCA.demo.domain.deck.Deck
 import jamgaVOCA.demo.domain.userwordskill.UserWordSkill
 import jakarta.persistence.*
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 import java.time.LocalDateTime
 
 @Entity
@@ -22,12 +25,8 @@ class User(
     @Column(nullable = false, unique = true, length = 100)
     var email: String,
 
-    @Column(nullable = false, length = 255)
-    var password: String,
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    var level: UserLevel,
+    @Column(name = "password", nullable = false, length = 255)
+    private var passwordHash: String,
 
     @Column(name = "exp_point", nullable = false)
     var expPoint: Int = 0,
@@ -38,7 +37,7 @@ class User(
     @Column(name = "is_dummy", nullable = false)
     val isDummy: Boolean = false
 
-) {
+) : UserDetails {
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
     var settings: UserSettings? = null
 
@@ -47,4 +46,20 @@ class User(
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
     val userWordSkills: MutableList<UserWordSkill> = mutableListOf()
+
+    // UserDetails 구현
+    override fun getUsername(): String = email
+
+    override fun getPassword(): String = passwordHash
+
+    override fun getAuthorities(): Collection<GrantedAuthority> =
+        listOf(SimpleGrantedAuthority("ROLE_USER"))
+
+    override fun isAccountNonExpired(): Boolean = true
+
+    override fun isAccountNonLocked(): Boolean = true
+
+    override fun isCredentialsNonExpired(): Boolean = true
+
+    override fun isEnabled(): Boolean = true
 }

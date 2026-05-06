@@ -2,7 +2,6 @@ package jamgaVOCA.demo.service
 
 import jamgaVOCA.demo.domain.skill.SkillRepository
 import jamgaVOCA.demo.api.dto.SkillResponse
-import jamgaVOCA.demo.domain.user.UserRepository
 import jamgaVOCA.demo.domain.userwordskill.UserWordSkill
 import jamgaVOCA.demo.domain.userwordskill.UserWordSkillRepository
 import jamgaVOCA.demo.domain.word.WordRepository
@@ -14,12 +13,10 @@ import org.springframework.transaction.annotation.Transactional
 class SkillService(
     private val skillRepository: SkillRepository,
     private val userWordSkillRepository: UserWordSkillRepository,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
     private val wordRepository: WordRepository,
-    private val httpSession: HttpSession
 ) {
-    fun getCollectedSkillList(): List<SkillResponse> {
-        val userId =1L
+    fun getCollectedSkillList(userId: Long): List<SkillResponse> {
         val collectedItems = userWordSkillRepository.findAllByUserId(userId)
 
         return collectedItems.map { item ->
@@ -53,7 +50,7 @@ class SkillService(
 
     @Transactional
     fun collectSkill(skillId: Long, wordId: Long, userId: Long) {
-        val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
+        val user = userService.getUser(userId)
 
         val word = wordRepository.findById(wordId).orElseThrow { RuntimeException("Word not found") }
         val skill = skillRepository.findById(skillId).orElseThrow { RuntimeException("Skill not found") }

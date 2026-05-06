@@ -1,8 +1,10 @@
 package jamgaVOCA.demo.api
 
+import jamgaVOCA.demo.api.annotation.AuthUser
 import jamgaVOCA.demo.api.dto.ApiResponse
 import jamgaVOCA.demo.api.dto.NudgeRequest
 import jamgaVOCA.demo.api.dto.WordResponse
+import jamgaVOCA.demo.domain.user.User
 import jamgaVOCA.demo.service.WordService
 import org.springframework.web.bind.annotation.*
 
@@ -13,14 +15,14 @@ class WordController(
 ) {
 
     @GetMapping("/daily-word-list")
-    fun getDailyWordList(): ApiResponse<List<WordResponse>> {
-        val data = wordService.getDailyWordList()
+    fun getDailyWordList(@AuthUser user: User): ApiResponse<List<WordResponse>> {
+        val data = wordService.getDailyWordList(user.id!!)
         return ApiResponse.success(data)
     }
 
     @GetMapping("/daily-word-list/new")
-    fun getNewDailyWordList(@RequestParam level: String): ApiResponse<List<WordResponse>> {
-        val data = wordService.getNewDailyWordList(level)
+    fun getNewDailyWordList(@AuthUser user: User, @RequestParam level: String): ApiResponse<List<WordResponse>> {
+        val data = wordService.getNewDailyWordList(user.id!!, level)
         return ApiResponse.success(data)
     }
 
@@ -31,14 +33,14 @@ class WordController(
     }
 
     @PatchMapping("/nudge")
-    fun updateNudge(@RequestBody nudgeRequests: List<NudgeRequest>): ApiResponse<Nothing> {
-        wordService.updateNudge(nudgeRequests)
+    fun updateNudge(@AuthUser user: User, @RequestBody nudgeRequests: List<NudgeRequest>): ApiResponse<Nothing> {
+        wordService.updateNudge(user.id!!, nudgeRequests)
         return ApiResponse.success(null)
     }
 
     @GetMapping("/week-collected-list")
-    fun getWeekCollectedList(): ApiResponse<List<WordResponse>> {
-        val data = wordService.getWeekCollectedList()
+    fun getWeekCollectedList(@AuthUser user: User): ApiResponse<List<WordResponse>> {
+        val data = wordService.getWeekCollectedList(user.id!!)
         return ApiResponse.success(data)
     }
 }

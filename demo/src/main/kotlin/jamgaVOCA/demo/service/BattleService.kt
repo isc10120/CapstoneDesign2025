@@ -9,7 +9,6 @@ import jamgaVOCA.demo.domain.battle.EffectType
 import jamgaVOCA.demo.domain.skill.Skill
 import jamgaVOCA.demo.domain.skill.SkillType
 import jamgaVOCA.demo.domain.user.User
-import jamgaVOCA.demo.domain.user.UserRepository
 import jamgaVOCA.demo.service.dto.SkillApplyResult
 import jamgaVOCA.demo.service.dto.StatusAppliedInfo
 import org.springframework.scheduling.annotation.Scheduled
@@ -24,7 +23,7 @@ import kotlin.random.Random
 class BattleService(
     private val battleRepository: BattleRepository,
     private val battleEffectRepository: BattleEffectRepository,
-    private val userRepository: UserRepository
+    private val userService: UserService
 ) {
     companion object {
         const val DAMAGE_BUFF_RATE_PER_STACK = 0.5
@@ -55,7 +54,7 @@ class BattleService(
         val dummyUser = getDummyUser()
 
         // 더미 유저 제외한 실제 유저만 셔플
-        val users = userRepository.findAll()
+        val users = userService.findAll()
             .filter { !it.isDummy }
             .shuffled()
 
@@ -179,7 +178,7 @@ class BattleService(
                 } else null
             }
             SkillType.DEFEND -> {
-                applyShield(battle, attackerId, skill.lasting ?: 1)
+                applyShield(battle, attackerId, 1)
                 statusApplied = null
             }
             SkillType.DAMAGE_BUFF -> {
@@ -258,10 +257,9 @@ class BattleService(
         else battle.userA.id!!
 
     private fun getDummyUser(): User =
-        userRepository.findByIsDummyTrue()
+        userService.findByIsDummyTrue()
             ?: throw IllegalStateException("더미 유저가 존재하지 않습니다.")
 
     private fun getUser(userId: Long): User =
-        userRepository.findById(userId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 유저입니다.") }
+        userService.getUser(userId)
 }

@@ -5,14 +5,17 @@ import jamgaVOCA.demo.api.dto.SignInRequest
 import jamgaVOCA.demo.api.dto.SignInResponse
 import jamgaVOCA.demo.api.dto.SignUpRequest
 import jamgaVOCA.demo.service.AuthService
-import jakarta.servlet.http.HttpServletRequest
+import jamgaVOCA.demo.api.annotation.AuthUser
+import jamgaVOCA.demo.api.dto.RefreshRequest
+import jamgaVOCA.demo.api.dto.RefreshResponse
+import jamgaVOCA.demo.domain.user.User
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/auth")
 class AuthController(
     private val authService: AuthService
 ) {
@@ -24,9 +27,20 @@ class AuthController(
     }
 
     @PostMapping("/sign-in")
-    fun signIn(@RequestBody request: SignInRequest, servletRequest: HttpServletRequest): ApiResponse<SignInResponse> {
+    fun signIn(@RequestBody request: SignInRequest): ApiResponse<SignInResponse> {
         val data = authService.signIn(request)
-        servletRequest.getSession(true).setAttribute("userId", data.userId)
         return ApiResponse.success(data)
+    }
+
+    @PostMapping("/sign-out")
+    fun signOut(@AuthUser user: User): ApiResponse<Nothing> {
+        authService.signOut(user.id!!)
+        return ApiResponse.success(null)
+    }
+
+    @PostMapping("/refresh")
+    fun refresh(@RequestBody request: RefreshRequest): ApiResponse<RefreshResponse> {
+        val accessToken = authService.refresh(request.refreshToken)
+        return ApiResponse.success(RefreshResponse(accessToken))
     }
 }

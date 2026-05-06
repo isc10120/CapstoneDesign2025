@@ -31,7 +31,10 @@ spring:
           response-format: b64_json
     retry:
       max-attempts: 5
-
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration: 3600        # 1시간 (초)
+  refresh-expiration: 1209600    # 14일 (초)
 cloud:
   aws:
     region:

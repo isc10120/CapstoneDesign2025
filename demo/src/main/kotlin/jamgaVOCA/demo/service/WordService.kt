@@ -5,7 +5,6 @@ import jamgaVOCA.demo.api.dto.WordResponse
 import jamgaVOCA.demo.domain.dailynudgeword.DailyNudgeWord
 import jamgaVOCA.demo.domain.dailynudgeword.DailyNudgeWordRepository
 import jamgaVOCA.demo.domain.skill.SkillRepository
-import jamgaVOCA.demo.domain.user.UserRepository
 import jamgaVOCA.demo.domain.userwordskill.UserWordSkillRepository
 import jamgaVOCA.demo.domain.weekcollectedword.WeekCollectedWord
 import jamgaVOCA.demo.domain.weekcollectedword.WeekCollectedWordRepository
@@ -23,16 +22,13 @@ class WordService(
     private val userWordSkillRepository: UserWordSkillRepository,
     private val dailyNudgeWordRepository: DailyNudgeWordRepository,
     private val weekCollectedWordRepository: WeekCollectedWordRepository,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
     private val skillGeneratorService: SkillGeneratorService,
-    private val skillRepository: SkillRepository,
-    private val httpSession: HttpSession
+    private val skillRepository: SkillRepository
 ) {
     private val log = LoggerFactory.getLogger(WordService::class.java)
 
-    fun getDailyWordList(): List<WordResponse> {
-        val userId = 1L
-
+    fun getDailyWordList(userId: Long): List<WordResponse> {
         val nudgeWords = dailyNudgeWordRepository.findAllByUserId(userId)
 
         return nudgeWords.map { nudgeWord ->
@@ -50,9 +46,8 @@ class WordService(
     }
 
     @Transactional
-    fun getNewDailyWordList(level: String): List<WordResponse> {
-        val userId = 1L
-        val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
+    fun getNewDailyWordList(userId: Long, level: String): List<WordResponse> {
+        val user = userService.getUser(userId)
 
         val wordLevel = WordLevel.entries.find { it.name == level.uppercase() }
             ?: throw IllegalArgumentException("Invalid level: $level")
@@ -112,9 +107,8 @@ class WordService(
     }
 
     @Transactional
-    fun updateNudge(nudgeRequests: List<NudgeRequest>) {
-        val userId = 1L
-        val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
+    fun updateNudge(userId: Long, nudgeRequests: List<NudgeRequest>) {
+        val user = userService.getUser(userId)
 
         for (request in nudgeRequests) {
             val dailyNudgeWord = dailyNudgeWordRepository.findByUserIdAndWordId(userId, request.id)
@@ -145,9 +139,7 @@ class WordService(
         }
     }
 
-    fun getWeekCollectedList(): List<WordResponse> {
-        val userId = 1L
-
+    fun getWeekCollectedList(userId: Long): List<WordResponse> {
         val collectedWords = weekCollectedWordRepository.findAllByUserId(userId)
 
         return collectedWords.map { collected ->
