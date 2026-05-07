@@ -70,6 +70,6 @@ jobs:
             export JWT_SECRET='${{ secrets.JWT_SECRET }}'
             export DOCKER_USERNAME='${{ secrets.DOCKER_USERNAME }}'
 
-            sudo docker-compose up -d
+            sudo -E docker-compose up -d
           EOF
 
