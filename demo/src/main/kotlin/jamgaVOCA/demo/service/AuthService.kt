@@ -19,9 +19,10 @@ class AuthService(
     private val userService: UserService,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val jwtProvider: JwtProvider,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val battleService: BattleService
 ) {
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun signUp(request: SignUpRequest) {
         val user = User(
             nickname = request.nickName,
@@ -31,6 +32,9 @@ class AuthService(
         val settings = UserSettings(user = user)
         user.settings = settings
         userService.save(user)
+
+        // 신규 유저 매칭
+        battleService.matchNewUserWithDummy(user)
     }
 
     @Transactional
