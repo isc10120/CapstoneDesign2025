@@ -10,7 +10,6 @@ import jamgaVOCA.demo.domain.weekcollectedword.WeekCollectedWord
 import jamgaVOCA.demo.domain.weekcollectedword.WeekCollectedWordRepository
 import jamgaVOCA.demo.domain.word.WordLevel
 import jamgaVOCA.demo.domain.word.WordRepository
-import jakarta.servlet.http.HttpSession
 import jamgaVOCA.demo.service.generateSkill.SkillGeneratorService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

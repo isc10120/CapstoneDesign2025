@@ -4,7 +4,6 @@ import jamgaVOCA.demo.api.annotation.AuthUser
 import jamgaVOCA.demo.api.dto.ApiResponse
 import jamgaVOCA.demo.api.dto.CollectSkillRequest
 import jamgaVOCA.demo.api.dto.SkillResponse
-import jamgaVOCA.demo.api.dto.WordResponse
 import jamgaVOCA.demo.domain.user.User
 import jamgaVOCA.demo.service.SkillService
 import org.springframework.web.bind.annotation.*

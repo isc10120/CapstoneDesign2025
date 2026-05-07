@@ -5,10 +5,8 @@ import jamgaVOCA.demo.api.dto.SignInRequest
 import jamgaVOCA.demo.api.dto.SignInResponse
 import jamgaVOCA.demo.api.dto.SignUpRequest
 import jamgaVOCA.demo.service.AuthService
-import jamgaVOCA.demo.api.annotation.AuthUser
 import jamgaVOCA.demo.api.dto.RefreshRequest
 import jamgaVOCA.demo.api.dto.RefreshResponse
-import jamgaVOCA.demo.domain.user.User
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -30,12 +28,6 @@ class AuthController(
     fun signIn(@RequestBody request: SignInRequest): ApiResponse<SignInResponse> {
         val data = authService.signIn(request)
         return ApiResponse.success(data)
-    }
-
-    @PostMapping("/sign-out")
-    fun signOut(@AuthUser user: User): ApiResponse<Nothing> {
-        authService.signOut(user.id!!)
-        return ApiResponse.success(null)
     }
 
     @PostMapping("/refresh")

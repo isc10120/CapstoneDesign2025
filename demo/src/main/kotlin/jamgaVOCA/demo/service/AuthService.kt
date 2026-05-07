@@ -45,7 +45,7 @@ class AuthService(
         val refreshToken = jwtProvider.generateRefreshToken(user.id!!)
 
         // Refresh Token DB 저장 (기존 있으면 교체)
-        val existing = refreshTokenRepository.findByUser(user)
+        val existing = refreshTokenRepository.findById(user.id!!).orElse(null)
         if (existing != null) {
             existing.token = refreshToken
         } else {

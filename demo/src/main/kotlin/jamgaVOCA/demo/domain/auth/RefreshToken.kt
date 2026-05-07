@@ -9,11 +9,12 @@ import java.time.LocalDateTime
 class RefreshToken(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    @Column(name = "user_id")
+    val userId: Long? = null,
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @MapsId
+    @JoinColumn(name = "user_id")
     val user: User,
 
     @Column(nullable = false, length = 500)

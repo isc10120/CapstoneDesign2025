@@ -6,7 +6,6 @@ import jamgaVOCA.demo.service.BattleService
 import jamgaVOCA.demo.api.dto.pvp.BattleStatusResponse
 import jamgaVOCA.demo.api.dto.pvp.BattleResultResponse
 import jamgaVOCA.demo.api.dto.pvp.BattleHistoryResponse
-import jakarta.servlet.http.HttpSession
 import jamgaVOCA.demo.api.dto.ApiResponse
 import jamgaVOCA.demo.api.dto.pvp.PvpSkillRequest
 import jamgaVOCA.demo.api.dto.pvp.PvpSkillResponse
@@ -24,7 +23,6 @@ class PvpController(
     private val skillService: SkillService,
     private val skillRepository: SkillRepository,
     private val weekCollectedWordRepository: WeekCollectedWordRepository,
-    private val httpSession: HttpSession,
     private val messagingTemplate: SimpMessagingTemplate
 ) {
     // 테스트용 - 운영 시 제거
