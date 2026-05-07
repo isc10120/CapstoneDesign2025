@@ -132,6 +132,7 @@ data class SkillResponse(
     val skillType: String,
     val lasting: Int? = null,
     val imageURL: String,
+    val imageBase64: String? = null,
     val wordId: Long
 )
 

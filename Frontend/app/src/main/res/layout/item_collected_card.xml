@@ -1,91 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="6dp"
-    app:cardCornerRadius="14dp"
-    app:cardElevation="4dp"
-    app:cardBackgroundColor="@color/white">
+    android:orientation="vertical"
+    android:layout_margin="4dp">
 
-    <LinearLayout
+    <!-- 카드 프레임 영역 (높이는 adapter에서 동적 설정) -->
+    <FrameLayout
+        android:id="@+id/fl_card_frame"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="0dp">
 
-        <!-- 카드 이미지 영역 -->
-        <FrameLayout
+        <!-- 스킬 이미지: 카드 투명 창 영역만 채움 -->
+        <ImageView
+            android:id="@+id/iv_skill_image"
             android:layout_width="match_parent"
-            android:layout_height="130dp">
+            android:layout_height="match_parent"
+            android:layout_marginBottom="76dp"
+            android:scaleType="centerCrop"
+            android:background="#CCCCCC" />
 
-            <ImageView
-                android:id="@+id/iv_card_image"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:background="#E8E8E8" />
-
-            <!-- 등급 배지 (우상단 오버레이) -->
-            <TextView
-                android:id="@+id/tv_grade"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="top|end"
-                android:layout_margin="7dp"
-                android:text="은급"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                android:paddingHorizontal="7dp"
-                android:paddingVertical="3dp"
-                android:background="@drawable/bg_count_badge" />
-        </FrameLayout>
-
-        <!-- 구분선 -->
-        <View
+        <!-- 카드 프레임 오버레이 -->
+        <ImageView
+            android:id="@+id/iv_card_frame"
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#F0F0F0" />
+            android:layout_height="match_parent"
+            android:src="@drawable/cardframe_silver"
+            android:scaleType="fitXY" />
 
-        <!-- 카드 정보 -->
-        <LinearLayout
+        <!-- 스킬 이름 -->
+        <TextView
+            android:id="@+id/tv_skill_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="10dp">
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="44dp"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:text="스킬명"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:textColor="#222222"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/tv_skill_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="스킬명"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/overlay_text_primary"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:layout_marginBottom="2dp" />
+        <!-- 데미지 표시 -->
+        <TextView
+            android:id="@+id/tv_skill_damage_compact"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="22dp"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:text="-- DMG"
+            android:textSize="8sp"
+            android:textColor="#CC3333"
+            android:maxLines="1" />
 
-            <TextView
-                android:id="@+id/tv_word"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="word"
-                android:textSize="11sp"
-                android:textColor="@color/overlay_text_hint"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:layout_marginBottom="4dp" />
+    </FrameLayout>
 
-            <TextView
-                android:id="@+id/tv_damage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⚔ 0"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="#F44336" />
-        </LinearLayout>
-    </LinearLayout>
+    <!-- 단어 (카드 프레임 아래) -->
+    <TextView
+        android:id="@+id/tv_word"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="3dp"
+        android:paddingBottom="2dp"
+        android:text="word"
+        android:textSize="9sp"
+        android:textStyle="italic"
+        android:textColor="#1A1A2E"
+        android:maxLines="1"
+        android:ellipsize="end" />
 
-</androidx.cardview.widget.CardView>
+</LinearLayout>

@@ -106,6 +106,12 @@ object PvpWordManager {
             .getInt(KEY_ATTACKS_LEFT, MAX_ATTACKS_PER_DAY)
     }
 
+    /** 공격 횟수를 최대치로 리셋 (개발/테스트용) */
+    fun resetAttacks(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_ATTACKS_LEFT, MAX_ATTACKS_PER_DAY).apply()
+    }
+
     /** 공격 1회 소모 */
     fun consumeAttack(context: Context) {
         checkDayReset(context)

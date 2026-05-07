@@ -170,9 +170,10 @@ class PveQuestionActivity : AppCompatActivity() {
     private fun showSkillActivationDialog(imageUrl: String?, imageBase64: String?) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_skill_card, null)
         val ivImage  = dialogView.findViewById<ImageView>(R.id.iv_skill_image)
-        val tvGrade  = dialogView.findViewById<TextView>(R.id.tv_skill_grade)
+        val ivFrame  = dialogView.findViewById<ImageView>(R.id.iv_card_frame)
         val tvName   = dialogView.findViewById<TextView>(R.id.tv_skill_name)
         val tvDamage = dialogView.findViewById<TextView>(R.id.tv_skill_damage)
+        val tvEffect = dialogView.findViewById<TextView>(R.id.tv_skill_effect)
         val tvDesc   = dialogView.findViewById<TextView>(R.id.tv_skill_desc)
         val tvTotal  = dialogView.findViewById<TextView>(R.id.tv_total_damage)
         val tvBadge  = dialogView.findViewById<TextView>(R.id.tv_collected_badge)
@@ -193,11 +194,10 @@ class PveQuestionActivity : AppCompatActivity() {
             else -> ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
         }
 
-        tvGrade.text = skillGrade
-        tvGrade.backgroundTintList =
-            ColorStateList.valueOf(gradeColor(skillGrade))
+        ivFrame.setImageResource(gradeFrameRes(skillGrade))
         tvName.text = skillName
         tvDamage.text = "+$skillDamage 데미지!"
+        tvEffect?.text = "부가효과: X"
         tvDesc.text = "스킬 발동!"
         tvTotal?.visibility = View.GONE
         tvBadge?.text = "✅ 스킬 발동!"
@@ -214,6 +214,12 @@ class PveQuestionActivity : AppCompatActivity() {
             }
             .setCancelable(false)
             .show()
+    }
+
+    private fun gradeFrameRes(grade: String): Int = when (grade) {
+        "금급" -> R.drawable.cardframe_gold
+        "은급" -> R.drawable.cardframe_silver
+        else   -> R.drawable.cardframe_bronze
     }
 
     private fun gradeColor(grade: String): Int = when (grade) {

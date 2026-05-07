@@ -1,5 +1,6 @@
 package com.example.zamgavocafront.api
 
+import com.example.zamgavocafront.api.dto.SkillGenerateRequest
 import com.example.zamgavocafront.api.dto.SkillResponse
 import java.util.concurrent.ConcurrentHashMap
 
@@ -19,14 +20,35 @@ object SkillCache {
      */
     suspend fun fetchOrGenerate(wordId: Int, skillId: Long?, word: String, meaning: String): SkillResponse? {
         cache[wordId]?.let { return it }
-        if (skillId == null) return null
-        return try {
-            val resp = ApiClient.api.getSkillInfo(skillId)
-            if (resp.success && resp.data != null) {
-                cache[wordId] = resp.data
-                resp.data
-            } else null
-        } catch (_: Exception) { null }
+
+        // 1) skillId가 있으면 서버에서 스킬 정보 조회
+        if (skillId != null) {
+            val fromServer = runCatching {
+                val resp = ApiClient.api.getSkillInfo(skillId)
+                if (resp.success && resp.data != null) resp.data else null
+            }.getOrNull()
+            if (fromServer != null) {
+                cache[wordId] = fromServer
+                return fromServer
+            }
+        }
+
+        // 2) skillId 없거나 조회 실패 → 스킬 직접 생성
+        if (meaning.isBlank()) return null
+        return runCatching {
+            val gen = ApiClient.api.generateSkill(SkillGenerateRequest(word = word, meaningKo = meaning))
+            SkillResponse(
+                skillId = gen.id ?: 0L,
+                name = gen.name,
+                explain = gen.description,
+                damage = gen.damage,
+                skillType = "ATTACK",
+                lasting = null,
+                imageURL = "",
+                imageBase64 = gen.imageBase64,
+                wordId = wordId.toLong()
+            ).also { cache[wordId] = it }
+        }.getOrNull()
     }
 
     /** wordId에 해당하는 캐시된 스킬 반환. 없으면 null. */
