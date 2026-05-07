@@ -33,6 +33,11 @@ object CollectedCardManager {
         prefs.edit().putString(KEY_CARDS, Gson().toJson(list)).apply()
     }
 
+    fun clearCards(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().remove(KEY_CARDS).apply()
+    }
+
     fun getCards(context: Context): List<CollectedCard> {
         val json = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY_CARDS, null) ?: return emptyList()

@@ -264,6 +264,8 @@ class MockApiService : ZamgaVocaApiService {
         ApiResponse(
             success = true,
             data = SignInResponse(
+                accessToken = "mock_access_token",
+                refreshToken = "mock_refresh_token",
                 userId = 1L,
                 email = req.email,
                 nickName = "테스트유저",
@@ -272,6 +274,12 @@ class MockApiService : ZamgaVocaApiService {
                 silentNudge = emptyList()
             )
         )
+
+    override suspend fun signOut(): ApiResponse<Any?> =
+        ApiResponse(success = true, data = null)
+
+    override suspend fun refreshToken(req: RefreshTokenRequest): ApiResponse<RefreshTokenResponse> =
+        ApiResponse(success = true, data = RefreshTokenResponse(accessToken = "mock_access_token"))
 
     // ── helpers ──────────────────────────────────────────────────────
 

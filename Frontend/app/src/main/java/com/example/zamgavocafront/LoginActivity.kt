@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.zamgavocafront.api.ApiClient
+import com.example.zamgavocafront.pvp.CollectedCardManager
 import com.example.zamgavocafront.viewmodel.LoginUiState
 import com.example.zamgavocafront.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
@@ -80,6 +82,8 @@ class LoginActivity : AppCompatActivity() {
             .putString("nickName", data.nickName)
             .putString("email", data.email)
             .apply()
+        ApiClient.saveTokensToPrefs(this)
+        CollectedCardManager.clearCards(this)
     }
 
     private fun applyNudgeSettings(data: LoginUiState.Success) {

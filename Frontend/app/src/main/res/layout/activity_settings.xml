@@ -306,9 +306,19 @@
             android:id="@+id/btn_settings_back"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
             android:text="뒤로가기"
             android:textSize="16sp"
             style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btn_logout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="로그아웃"
+            android:textSize="16sp"
+            android:backgroundTint="#D32F2F"
+            style="@style/Widget.Material3.Button" />
 
     </LinearLayout>
 </ScrollView>

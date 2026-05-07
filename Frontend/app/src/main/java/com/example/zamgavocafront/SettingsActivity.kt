@@ -8,9 +8,13 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.service.OverlayService
 import com.google.android.material.switchmaterial.SwitchMaterial
+import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -80,6 +84,31 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_settings_back).setOnClickListener {
             finish()
         }
+        findViewById<Button>(R.id.btn_logout).setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("로그아웃")
+                .setMessage("로그아웃 하시겠습니까?")
+                .setPositiveButton("로그아웃") { _, _ -> performLogout() }
+                .setNegativeButton("취소", null)
+                .show()
+        }
+    }
+
+    private fun performLogout() {
+        lifecycleScope.launch {
+            runCatching { ApiClient.api.signOut() }
+        }
+        ApiClient.clearTokens()
+        getSharedPreferences("user_prefs", MODE_PRIVATE).edit()
+            .remove("accessToken")
+            .remove("refreshToken")
+            .remove("userId")
+            .remove("nickName")
+            .remove("email")
+            .apply()
+        startActivity(Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
     }
 
     private fun setupAlarmControls() {
