@@ -7,13 +7,13 @@ import jamgaVOCA.demo.api.dto.pvp.BattleStatusResponse
 import jamgaVOCA.demo.api.dto.pvp.BattleResultResponse
 import jamgaVOCA.demo.api.dto.pvp.BattleHistoryResponse
 import jakarta.servlet.http.HttpSession
+import jamgaVOCA.demo.api.dto.ApiResponse
 import jamgaVOCA.demo.api.dto.pvp.PvpSkillRequest
 import jamgaVOCA.demo.api.dto.pvp.PvpSkillResponse
 import jamgaVOCA.demo.api.dto.pvp.StompSkillMessage
 import jamgaVOCA.demo.domain.skill.SkillRepository
 import jamgaVOCA.demo.domain.weekcollectedword.WeekCollectedWordRepository
 import jamgaVOCA.demo.service.SkillService
-import org.springframework.http.ResponseEntity
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.web.bind.annotation.*
 
@@ -29,38 +29,38 @@ class PvpController(
 ) {
     // 테스트용 - 운영 시 제거
     @PostMapping("/test/match")
-    fun testMatch(): ResponseEntity<Unit> {
+    fun testMatch(): ApiResponse<Nothing> {
         battleService.settleAndMatch()
-        return ResponseEntity.ok().build()
+        return ApiResponse.success(null)
     }
 
     @GetMapping("/status")
-    fun getStatus(@AuthUser user: User): ResponseEntity<BattleStatusResponse> {
+    fun getStatus(@AuthUser user: User): ApiResponse<BattleStatusResponse> {
         val battle = battleService.getCurrentBattle(user.id!!)
-        return ResponseEntity.ok(BattleStatusResponse.from(battle, user.id!!))
+        return ApiResponse.success(BattleStatusResponse.from(battle, user.id!!))
     }
 
     @GetMapping("/result/latest")
-    fun getLatestResult(@AuthUser user: User): ResponseEntity<BattleResultResponse?> {
+    fun getLatestResult(@AuthUser user: User): ApiResponse<BattleResultResponse?> {
         val battle = battleService.getLatestUncheckedResult(user.id!!)
-            ?: return ResponseEntity.ok(null)
-        return ResponseEntity.ok(BattleResultResponse.from(battle, user.id!!))
+            ?: return ApiResponse.success(null)
+        return ApiResponse.success(BattleResultResponse.from(battle, user.id!!))
     }
 
     @GetMapping("/result/history")
-    fun getHistory(@AuthUser user: User): ResponseEntity<List<BattleHistoryResponse>> {
+    fun getHistory(@AuthUser user: User): ApiResponse<List<BattleHistoryResponse>> {
         val battles = battleService.getBattleHistory(user.id!!)
-        return ResponseEntity.ok(battles.map { BattleHistoryResponse.from(it, user.id!!) })
+        return ApiResponse.success(battles.map { BattleHistoryResponse.from(it, user.id!!) })
     }
 
     @PatchMapping("/result/confirm")
-    fun confirmResult(@AuthUser user: User): ResponseEntity<Unit> {
+    fun confirmResult(@AuthUser user: User): ApiResponse<Nothing> {
         battleService.confirmResult(user.id!!)
-        return ResponseEntity.ok().build()
+        return ApiResponse.success(null)
     }
 
     @PostMapping("/skill")
-    fun useSkill(@AuthUser user: User, @RequestBody request: PvpSkillRequest): ResponseEntity<PvpSkillResponse> {
+    fun useSkill(@AuthUser user: User, @RequestBody request: PvpSkillRequest): ApiResponse<PvpSkillResponse> {
         // 스킬 조회
         val skill = skillRepository.findById(request.skillId)
             .orElseThrow { IllegalArgumentException("존재하지 않는 스킬입니다.") }
@@ -91,7 +91,7 @@ class PvpController(
             )
         )
 
-        return ResponseEntity.ok(
+        return ApiResponse.success(
             PvpSkillResponse.from(applyResult, skill.name, skill.skillType.name)
         )
     }
