@@ -1,7 +1,9 @@
 package com.example.zamgavocafront.pvp
 
 import android.content.res.ColorStateList
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
@@ -14,7 +16,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.zamgavocafront.R
 import coil.load
-import com.example.zamgavocafront.api.dto.SkillResponse
 import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.viewmodel.PvpQuestionUiState
 import com.example.zamgavocafront.viewmodel.PvpQuestionViewModel
@@ -136,7 +137,7 @@ class PvpQuestionActivity : AppCompatActivity() {
             is PvpQuestionUiState.Correct -> {
                 // 상태를 먼저 소비해 앱 복귀 시 다이얼로그 중복 표시 방지
                 viewModel.onCorrectConsumed()
-                if (state.skill != null) showSkillCardDialog(state.skill)
+                if (state.skill != null) showSkillCardDialog(state)
                 else showCorrectFallback(state.score)
             }
 
@@ -169,32 +170,42 @@ class PvpQuestionActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSkillCardDialog(skill: SkillResponse) {
+    private fun showSkillCardDialog(state: PvpQuestionUiState.Correct) {
+        val skill = state.skill ?: return
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_skill_card, null)
 
         val ivImage     = dialogView.findViewById<ImageView>(R.id.iv_skill_image)
-        val tvGrade     = dialogView.findViewById<TextView>(R.id.tv_skill_grade)
+        val ivFrame     = dialogView.findViewById<ImageView>(R.id.iv_card_frame)
         val tvName      = dialogView.findViewById<TextView>(R.id.tv_skill_name)
         val tvDamage    = dialogView.findViewById<TextView>(R.id.tv_skill_damage)
+        val tvEffect    = dialogView.findViewById<TextView>(R.id.tv_skill_effect)
         val tvDesc      = dialogView.findViewById<TextView>(R.id.tv_skill_desc)
         val tvTotal     = dialogView.findViewById<TextView>(R.id.tv_total_damage)
         val tvCollected = dialogView.findViewById<TextView>(R.id.tv_collected_badge)
 
-        if (skill.imageURL.isNotBlank()) {
-            ivImage.load(skill.imageURL) {
+        // 등급에 맞는 카드 프레임 설정
+        ivFrame.setImageResource(viewModel.difficulty.frameDrawableRes())
+
+        when {
+            skill.imageURL.isNotBlank() -> ivImage.load(skill.imageURL) {
                 placeholder(android.R.drawable.ic_menu_gallery)
                 error(android.R.drawable.ic_menu_gallery)
             }
-        } else {
-            ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
+            skill.imageBase64 != null -> runCatching {
+                val bytes = Base64.decode(skill.imageBase64, Base64.DEFAULT)
+                ivImage.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
+            }.onFailure { ivImage.setImageResource(android.R.drawable.ic_menu_gallery) }
+            else -> ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
         }
 
-        tvGrade.text = viewModel.difficulty.grade()
-        tvGrade.backgroundTintList =
-            ColorStateList.valueOf(ContextCompat.getColor(this, viewModel.difficulty.gradeColorRes()))
         tvName.text = skill.name
         tvDesc.text = skill.explain
-        tvDamage.text = "+${skill.damage} 데미지!"
+        val displayDamage = state.pvpDamage ?: skill.damage
+        tvDamage.text = "+$displayDamage 데미지!"
+        tvEffect.text = if (state.effectType != null && state.effectTurns != null)
+            "부가효과: ${state.effectType} ${state.effectTurns}턴"
+        else
+            "부가효과: X"
         tvTotal.text = "누적 데미지: ${PvpWordManager.getTotalDamage(this)}"
         tvCollected.text = "📦 '${skill.name}' 카드 수집 완료"
 

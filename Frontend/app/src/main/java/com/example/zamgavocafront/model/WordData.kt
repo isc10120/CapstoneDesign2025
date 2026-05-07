@@ -42,4 +42,11 @@ enum class Difficulty {
         MEDIUM -> R.color.color_grade_silver
         HARD -> R.color.color_grade_gold
     }
+
+    /** 등급에 대응하는 카드 프레임 드로어블 리소스 ID */
+    fun frameDrawableRes(): Int = when (this) {
+        EASY   -> R.drawable.cardframe_bronze
+        MEDIUM -> R.drawable.cardframe_silver
+        HARD   -> R.drawable.cardframe_gold
+    }
 }

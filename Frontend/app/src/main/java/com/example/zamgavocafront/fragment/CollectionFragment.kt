@@ -1,12 +1,11 @@
 package com.example.zamgavocafront.fragment
 
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.os.Bundle
-import androidx.core.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -51,7 +50,7 @@ class CollectionFragment : Fragment() {
                         is CollectionUiState.Success -> {
                             rv.visibility = View.VISIBLE
                             tvEmpty.visibility = View.GONE
-                            rv.layoutManager = GridLayoutManager(requireContext(), 2)
+                            rv.layoutManager = GridLayoutManager(requireContext(), 3)
                             rv.adapter = CardAdapter(state.cards)
                         }
                         is CollectionUiState.Error -> {
@@ -63,7 +62,6 @@ class CollectionFragment : Fragment() {
                 }
             }
         }
-
     }
 
     override fun onResume() {
@@ -77,44 +75,68 @@ class CollectionFragment : Fragment() {
         RecyclerView.Adapter<CardAdapter.VH>() {
 
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
-            val ivImage: ImageView = v.findViewById(R.id.iv_card_image)
+            val flCard: FrameLayout = v.findViewById(R.id.fl_card_frame)
+            val ivImage: ImageView = v.findViewById(R.id.iv_skill_image)
+            val ivFrame: ImageView = v.findViewById(R.id.iv_card_frame)
             val tvSkillName: TextView = v.findViewById(R.id.tv_skill_name)
-            val tvGrade: TextView = v.findViewById(R.id.tv_grade)
+            val tvDamage: TextView = v.findViewById(R.id.tv_skill_damage_compact)
             val tvWord: TextView = v.findViewById(R.id.tv_word)
-            val tvDamage: TextView = v.findViewById(R.id.tv_damage)
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-            VH(LayoutInflater.from(parent.context).inflate(R.layout.item_collected_card, parent, false))
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+            val v = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_collected_card, parent, false)
+            v.post {
+                val fl = v.findViewById<FrameLayout>(R.id.fl_card_frame)
+                val lp = fl.layoutParams
+                lp.height = (v.width * 280f / 180f).toInt()
+                fl.layoutParams = lp
+            }
+            return VH(v)
+        }
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val card = cards[position]
             holder.tvSkillName.text = card.skillName
+            holder.tvDamage.text = "${card.damage} DMG"
             holder.tvWord.text = card.word
-            holder.tvDamage.text = "⚔ 데미지: ${card.damage}"
 
-            val gradeColor = when (card.grade) {
-                "금급" -> ContextCompat.getColor(holder.itemView.context, R.color.color_grade_gold)
-                "은급" -> ContextCompat.getColor(holder.itemView.context, R.color.color_grade_silver)
-                else   -> ContextCompat.getColor(holder.itemView.context, R.color.color_grade_bronze)
+            val frameRes = when (card.grade) {
+                "금급" -> R.drawable.cardframe_gold
+                "은급" -> R.drawable.cardframe_silver
+                else   -> R.drawable.cardframe_bronze
             }
-            holder.tvGrade.text = card.grade
-            holder.tvGrade.backgroundTintList = ColorStateList.valueOf(gradeColor)
+            holder.ivFrame.setImageResource(frameRes)
 
-            holder.ivImage.load(card.imageUrl) {
-                placeholder(android.R.drawable.ic_menu_gallery)
-                error(android.R.drawable.ic_menu_gallery)
+            when {
+                !card.imageUrl.isNullOrBlank() -> holder.ivImage.load(card.imageUrl) {
+                    placeholder(android.R.drawable.ic_menu_gallery)
+                    error(android.R.drawable.ic_menu_gallery)
+                }
+                card.imageBase64 != null -> {
+                    runCatching {
+                        val bytes = android.util.Base64.decode(card.imageBase64, android.util.Base64.DEFAULT)
+                        holder.ivImage.setImageBitmap(
+                            android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        )
+                    }.onFailure {
+                        holder.ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
+                    }
+                }
+                else -> holder.ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
             }
 
             holder.itemView.setOnClickListener {
                 startActivity(Intent(requireContext(), CardDetailActivity::class.java).apply {
                     putExtra(CardDetailActivity.EXTRA_WORD_ID, card.wordId)
                     putExtra(CardDetailActivity.EXTRA_WORD, card.word)
+                    putExtra(CardDetailActivity.EXTRA_WORD_MEANING, card.wordMeaning)
                     putExtra(CardDetailActivity.EXTRA_SKILL_NAME, card.skillName)
                     putExtra(CardDetailActivity.EXTRA_SKILL_DESC, card.skillDescription)
                     putExtra(CardDetailActivity.EXTRA_DAMAGE, card.damage)
                     putExtra(CardDetailActivity.EXTRA_GRADE, card.grade)
                     putExtra(CardDetailActivity.EXTRA_IMAGE_B64, card.imageBase64)
+                    putExtra(CardDetailActivity.EXTRA_IMAGE_URL, card.imageUrl)
                 })
             }
         }

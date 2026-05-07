@@ -22,7 +22,13 @@ sealed class PvpQuestionUiState {
     object LoadingQuestion : PvpQuestionUiState()
     data class QuestionReady(val koreanSentence: String, val hint: String) : PvpQuestionUiState()
     object Evaluating : PvpQuestionUiState()
-    data class Correct(val score: Int, val skill: SkillResponse?) : PvpQuestionUiState()
+    data class Correct(
+        val score: Int,
+        val skill: SkillResponse?,
+        val pvpDamage: Int? = null,
+        val effectType: String? = null,
+        val effectTurns: Int? = null
+    ) : PvpQuestionUiState()
     data class Wrong(
         val score: Int,
         val feedback: String?,
@@ -132,16 +138,22 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
         }.getOrNull()
 
         // pvp/skill 호출 — 서버에서 데미지 적용 + 스킬 수집 처리
+        var pvpDamage: Int? = null
+        var effectType: String? = null
+        var effectTurns: Int? = null
         if (skillId != null) {
-            runCatching {
+            val pvpResp = runCatching {
                 ApiClient.api.usePvpSkill(
                     PvpSkillRequest(skillId = skillId!!, wordId = wordId.toLong())
                 )
-            }
+            }.getOrNull()?.data
+            pvpDamage = pvpResp?.damageDealt
+            effectType = pvpResp?.statusApplied?.type
+            effectTurns = pvpResp?.statusApplied?.turns
         }
 
         // 로컬 데미지 누적 (다이얼로그 총 데미지 표시용)
-        PvpWordManager.addDamage(context, skill?.damage ?: 50)
+        PvpWordManager.addDamage(context, pvpDamage ?: skill?.damage ?: 50)
 
         if (skill != null) {
             CollectedCardManager.addCard(
@@ -152,14 +164,21 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
                     skillName = skill.name,
                     skillDescription = skill.explain,
                     damage = skill.damage,
-                    imageBase64 = null,
+                    imageBase64 = skill.imageBase64,
                     grade = difficulty.grade(),
-                    imageUrl = skill.imageURL.takeIf { it.isNotBlank() }
+                    imageUrl = skill.imageURL.takeIf { it.isNotBlank() },
+                    wordMeaning = wordMeaning
                 )
             )
         }
 
-        _uiState.value = PvpQuestionUiState.Correct(score = score, skill = skill)
+        _uiState.value = PvpQuestionUiState.Correct(
+            score = score,
+            skill = skill,
+            pvpDamage = pvpDamage,
+            effectType = effectType,
+            effectTurns = effectTurns
+        )
     }
 
     fun onCorrectConsumed() {

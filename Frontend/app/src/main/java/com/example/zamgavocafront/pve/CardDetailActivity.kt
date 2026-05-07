@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import coil.load
 import com.example.zamgavocafront.R
 
 class CardDetailActivity : AppCompatActivity() {
@@ -23,6 +24,7 @@ class CardDetailActivity : AppCompatActivity() {
         const val EXTRA_IMAGE_B64  = "image_b64"
         // 단어 의미 (CollectionFragment에서 넘길 때 사용)
         const val EXTRA_WORD_MEANING = "word_meaning"
+        const val EXTRA_IMAGE_URL    = "image_url"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +38,8 @@ class CardDetailActivity : AppCompatActivity() {
         val damage   = intent.getIntExtra(EXTRA_DAMAGE, 0)
         val grade    = intent.getStringExtra(EXTRA_GRADE) ?: "동급"
         val imageB64 = intent.getStringExtra(EXTRA_IMAGE_B64)
-        val wordMeaning = intent.getStringExtra(EXTRA_WORD_MEANING) ?: "뜻 정보 없음"
+        val imageUrl = intent.getStringExtra(EXTRA_IMAGE_URL)
+        val wordMeaning = intent.getStringExtra(EXTRA_WORD_MEANING)?.takeIf { it.isNotBlank() } ?: "뜻 정보 없음"
 
         // 가상의 CollectedCard로 효과 계산
         val fakeCard = com.example.zamgavocafront.pvp.CollectedCardManager.CollectedCard(
@@ -48,11 +51,15 @@ class CardDetailActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.btn_close).setOnClickListener { finish() }
 
         val ivImage = findViewById<ImageView>(R.id.iv_skill_image)
-        if (imageB64 != null) {
-            try {
+        when {
+            !imageUrl.isNullOrBlank() -> ivImage.load(imageUrl) {
+                placeholder(android.R.drawable.ic_menu_gallery)
+                error(android.R.drawable.ic_menu_gallery)
+            }
+            imageB64 != null -> runCatching {
                 val bytes = Base64.decode(imageB64, Base64.DEFAULT)
                 ivImage.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
-            } catch (_: Exception) { }
+            }
         }
 
         val tvGrade = findViewById<TextView>(R.id.tv_grade)

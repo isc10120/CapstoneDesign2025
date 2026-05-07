@@ -112,6 +112,14 @@ class PvpFragment : Fragment() {
             true
         }
 
+        // 내 데미지 롱클릭 → 공격 횟수 리셋 (개발용)
+        tvPlayer1Damage.setOnLongClickListener {
+            PvpWordManager.resetAttacks(requireContext())
+            updatePvpUi(viewModel.pvpWords.value)
+            Toast.makeText(requireContext(), "공격 횟수 리셋! (${PvpWordManager.getAttacksLeft(requireContext())}회)", Toast.LENGTH_SHORT).show()
+            true
+        }
+
         // 내 닉네임은 로컬 prefs에서
         val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         tvPlayer1Name.text = prefs.getString("nickName", "나") ?: "나"
