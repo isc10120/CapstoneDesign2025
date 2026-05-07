@@ -10,6 +10,7 @@ import android.os.Looper
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.zamgavocafront.api.ApiClient
 
 class SplashActivity : AppCompatActivity() {
 
@@ -88,7 +89,9 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun goToLogin() {
-        startActivity(Intent(this, LoginActivity::class.java))
+        ApiClient.loadTokensFromPrefs(this)
+        val dest = if (ApiClient.accessToken != null) HomeActivity::class.java else LoginActivity::class.java
+        startActivity(Intent(this, dest))
         finish()
     }
 }

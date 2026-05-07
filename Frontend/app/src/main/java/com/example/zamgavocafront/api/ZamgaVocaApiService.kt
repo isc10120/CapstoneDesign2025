@@ -93,9 +93,15 @@ interface ZamgaVocaApiService {
 
     // ───── /api/v1 Auth API ─────
 
-    @POST("api/v1/sign-up")
+    @POST("api/v1/auth/sign-up")
     suspend fun signUp(@Body req: SignUpRequest): ApiResponse<Any?>
 
-    @POST("api/v1/sign-in")
+    @POST("api/v1/auth/sign-in")
     suspend fun signIn(@Body req: SignInRequest): ApiResponse<SignInResponse>
+
+    @POST("api/v1/user/sign-out")
+    suspend fun signOut(): ApiResponse<Any?>
+
+    @POST("api/v1/auth/refresh")
+    suspend fun refreshToken(@Body req: RefreshTokenRequest): ApiResponse<RefreshTokenResponse>
 }

@@ -252,6 +252,8 @@ data class SignInRequest(
 )
 
 data class SignInResponse(
+    val accessToken: String,
+    val refreshToken: String,
     val userId: Long,
     val email: String,
     val nickName: String,
@@ -263,4 +265,12 @@ data class SignInResponse(
 data class SilentNudgeRange(
     val start: String,
     val end: String
+)
+
+data class RefreshTokenRequest(
+    val refreshToken: String
+)
+
+data class RefreshTokenResponse(
+    val accessToken: String
 )

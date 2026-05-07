@@ -36,7 +36,7 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
     private suspend fun fetchCards(): List<CollectedCardManager.CollectedCard> {
         return try {
             val resp = ApiClient.api.getCollectedSkillList()
-            if (resp.success && resp.data != null && resp.data.isNotEmpty()) {
+            if (resp.success && resp.data != null) {
                 resp.data.map { skill ->
                     val localWord = WordRepository.allWords.find { it.id.toLong() == skill.wordId }
                     val grade = when (localWord?.difficulty) {
@@ -56,9 +56,11 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
                     )
                 }
             } else {
+                // 서버 오류일 때만 로컬 캐시 사용
                 CollectedCardManager.getCards(getApplication())
             }
         } catch (_: Exception) {
+            // 네트워크 오류일 때만 로컬 캐시 사용
             CollectedCardManager.getCards(getApplication())
         }
     }

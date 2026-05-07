@@ -35,6 +35,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val response = ApiClient.authApi.signIn(SignInRequest(email = email, password = password))
                 if (response.success && response.data != null) {
+                    ApiClient.setTokens(response.data.accessToken, response.data.refreshToken)
                     _uiState.value = LoginUiState.Success(
                         userId = response.data.userId,
                         nickName = response.data.nickName,
