@@ -10,6 +10,8 @@ import jamgaVOCA.demo.api.dto.ApiResponse
 import jamgaVOCA.demo.api.dto.pvp.PvpSkillRequest
 import jamgaVOCA.demo.api.dto.pvp.PvpSkillResponse
 import jamgaVOCA.demo.api.dto.pvp.StompSkillMessage
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import jamgaVOCA.demo.domain.skill.SkillRepository
 import jamgaVOCA.demo.domain.weekcollectedword.WeekCollectedWordRepository
 import jamgaVOCA.demo.service.SkillService
@@ -61,14 +63,14 @@ class PvpController(
     fun useSkill(@AuthUser user: User, @RequestBody request: PvpSkillRequest): ApiResponse<PvpSkillResponse> {
         // 스킬 조회
         val skill = skillRepository.findById(request.skillId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 스킬입니다.") }
+            .orElseThrow { AppException(ErrorCode.SKILL_NOT_FOUND) }
 
         // 현재 배틀 조회
         val battle = battleService.getCurrentBattle(user.id!!)
 
         // WeekCollectedWord 검증 - 이번 주 수집된 단어인지 확인
        if (!weekCollectedWordRepository.existsByUserIdAndWordId(user.id!!, request.wordId))
-            throw IllegalArgumentException("이번 주 수집된 단어가 아닙니다.")
+            throw AppException(ErrorCode.NOT_COLLECTED_THIS_WEEK)
 
         // 스킬 효과 적용
         val applyResult = battleService.applySkill(battle, user.id!!, skill)

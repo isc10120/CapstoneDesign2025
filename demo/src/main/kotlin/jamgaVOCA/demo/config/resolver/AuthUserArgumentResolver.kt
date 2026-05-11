@@ -1,6 +1,8 @@
 package jamgaVOCA.demo.config.resolver
 
 import jamgaVOCA.demo.api.annotation.AuthUser
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import jamgaVOCA.demo.domain.user.User
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.context.SecurityContextHolder
@@ -25,9 +27,9 @@ class AuthUserArgumentResolver : HandlerMethodArgumentResolver {
         binderFactory: WebDataBinderFactory?
     ): User {
         val authentication = SecurityContextHolder.getContext().authentication
-            ?: throw IllegalStateException("인증되지 않은 사용자입니다.")
+            ?: throw AppException(ErrorCode.UNAUTHENTICATED)
 
         return authentication.principal as? User
-            ?: throw IllegalStateException("인증 정보가 올바르지 않습니다.")
+            ?: throw AppException(ErrorCode.INVALID_AUTH_INFO)
     }
 }

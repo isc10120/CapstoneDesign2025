@@ -1,5 +1,7 @@
 package jamgaVOCA.demo.service
 
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import jamgaVOCA.demo.domain.battle.Battle
 import jamgaVOCA.demo.domain.battle.BattleEffect
 import jamgaVOCA.demo.domain.battle.BattleEffectRepository
@@ -99,7 +101,7 @@ class BattleService(
         val user = getUser(userId)
         val weekStart = LocalDate.now().with(DayOfWeek.MONDAY)
         return findBattleByUser(user, weekStart)
-            ?: throw IllegalStateException("진행 중인 배틀이 없습니다.")
+            ?: throw AppException(ErrorCode.BATTLE_NOT_FOUND)
     }
 
     @Transactional(readOnly = true)
@@ -258,7 +260,7 @@ class BattleService(
 
     private fun getDummyUser(): User =
         userService.findByIsDummyTrue()
-            ?: throw IllegalStateException("더미 유저가 존재하지 않습니다.")
+
 
     private fun getUser(userId: Long): User =
         userService.getUser(userId)

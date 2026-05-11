@@ -1,5 +1,7 @@
 package jamgaVOCA.demo.service
 
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import jamgaVOCA.demo.domain.user.User
 import jamgaVOCA.demo.domain.user.UserRepository
 import org.springframework.stereotype.Service
@@ -12,10 +14,14 @@ class UserService(
 ) {
     fun getUser(userId: Long): User =
         userRepository.findById(userId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 유저입니다.") }
+            .orElseThrow { AppException(ErrorCode.USER_NOT_FOUND) }
 
     fun findByEmail(email: String): User =
-        userRepository.findByEmail(email).orElseThrow { RuntimeException("해당 이메일의 유저가 존재하지 않습니다.") }
+        userRepository.findByEmail(email)
+            .orElseThrow { AppException(ErrorCode.USER_NOT_FOUND) }
+
+    fun existsByEmail(email: String): Boolean =
+        userRepository.existsByEmail(email)
 
     @Transactional
     fun save(user: User): User =
@@ -24,6 +30,7 @@ class UserService(
     fun findAll(): List<User> =
         userRepository.findAll()
 
-    fun findByIsDummyTrue(): User? =
+    fun findByIsDummyTrue(): User =
         userRepository.findByIsDummyTrue()
+            ?: throw AppException(ErrorCode.DUMMY_USER_NOT_FOUND)
 }

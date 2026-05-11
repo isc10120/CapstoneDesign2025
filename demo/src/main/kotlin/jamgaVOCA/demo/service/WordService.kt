@@ -2,6 +2,8 @@ package jamgaVOCA.demo.service
 
 import jamgaVOCA.demo.api.dto.NudgeRequest
 import jamgaVOCA.demo.api.dto.WordResponse
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import jamgaVOCA.demo.domain.dailynudgeword.DailyNudgeWord
 import jamgaVOCA.demo.domain.dailynudgeword.DailyNudgeWordRepository
 import jamgaVOCA.demo.domain.skill.SkillRepository
@@ -49,7 +51,7 @@ class WordService(
         val user = userService.getUser(userId)
 
         val wordLevel = WordLevel.entries.find { it.name == level.uppercase() }
-            ?: throw IllegalArgumentException("Invalid level: $level")
+            ?: throw AppException(ErrorCode.INVALID_WORD_LEVEL)
 
         // TODO: 하단 로직 추후 쿼리로 최적화 필요
         // 1. 유저가 이미 수집한 단어 ID 목록 조회
@@ -94,7 +96,7 @@ class WordService(
     }
 
     fun getWordInfo(wordId: Long): WordResponse {
-        val word = wordRepository.findById(wordId).orElseThrow { RuntimeException("Word not found") }
+        val word = wordRepository.findById(wordId).orElseThrow { AppException(ErrorCode.WORD_NOT_FOUND) }
         return WordResponse(
             id = word.id!!,
             word = word.englishWord,
@@ -111,7 +113,7 @@ class WordService(
 
         for (request in nudgeRequests) {
             val dailyNudgeWord = dailyNudgeWordRepository.findByUserIdAndWordId(userId, request.id)
-                .orElseThrow { RuntimeException("dailyNudgeWord not found with wordID: ${request.id}, userID: $userId") }
+                .orElseThrow { AppException(ErrorCode.DAILY_NUDGE_WORD_NOT_FOUND) }
 
             dailyNudgeWord.nudgeCount = request.nudge.toShort()
 

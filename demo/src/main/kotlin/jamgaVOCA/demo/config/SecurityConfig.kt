@@ -1,5 +1,6 @@
 package jamgaVOCA.demo.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import jamgaVOCA.demo.config.jwt.JwtFilter
 import jamgaVOCA.demo.config.jwt.JwtProvider
 import org.springframework.context.annotation.Bean
@@ -16,7 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 class SecurityConfig(
     private val jwtProvider: JwtProvider,
-    private val userRepository: jamgaVOCA.demo.domain.user.UserRepository
+    private val userRepository: jamgaVOCA.demo.domain.user.UserRepository,
+    private val objectMapper: ObjectMapper,
 ) {
 
     @Bean
@@ -35,7 +37,10 @@ class SecurityConfig(
                     .requestMatchers("/api/v1/pvp/test/**").permitAll()  // 테스트용
                     .anyRequest().authenticated()  // 나머지는 인증 필요
             }
-            .addFilterBefore(JwtFilter(jwtProvider, userRepository), UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterBefore(
+                JwtFilter(jwtProvider, userRepository, objectMapper),
+                UsernamePasswordAuthenticationFilter::class.java
+            )
 
         return http.build()
     }

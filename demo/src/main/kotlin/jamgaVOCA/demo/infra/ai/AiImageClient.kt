@@ -1,5 +1,7 @@
 package jamgaVOCA.demo.infra.ai
 
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import org.springframework.ai.image.ImageModel
 import org.springframework.ai.image.ImagePrompt
 import org.springframework.stereotype.Component
@@ -31,13 +33,13 @@ class AiImageClient(
             }
         }
 
-        throw IllegalStateException("DALL·E 최대 재시도(5회) 초과")
+        throw AppException(ErrorCode.AI_IMAGE_GENERATION_FAILED)
     }
 
     private fun generateImage(prompt: String): String {
         val response = imageModel.call(ImagePrompt(prompt))
         return response.result.output.b64Json
-            ?: throw IllegalStateException("DALL·E 응답에 b64_json이 없습니다.")
+            ?: throw AppException(ErrorCode.AI_IMAGE_RESPONSE_INVALID)
     }
 
     private fun requestModifiedImageDesc(originalDesc: String): String {

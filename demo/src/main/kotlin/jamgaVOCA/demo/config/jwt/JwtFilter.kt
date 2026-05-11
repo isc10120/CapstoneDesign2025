@@ -1,10 +1,14 @@
 package jamgaVOCA.demo.config.jwt
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import jamgaVOCA.demo.api.dto.ApiResponse
+import jamgaVOCA.demo.api.exception.AppException
 import jamgaVOCA.demo.domain.user.UserRepository
 import jamgaVOCA.demo.config.jwt.JwtProvider
+import jamgaVOCA.demo.service.UserService
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -12,7 +16,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 class JwtFilter(
     private val jwtProvider: JwtProvider,
-    private val userRepository: UserRepository
+    private val userService: UserService,
+    private val objectMapper: ObjectMapper,
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -22,20 +27,27 @@ class JwtFilter(
     ) {
         val token = extractToken(request)
 
-        if (token != null && jwtProvider.validateToken(token)) {
-            val userId = jwtProvider.getUserId(token)
+        try {
+            if (token != null && jwtProvider.validateToken(token)) {
+                val userId = jwtProvider.getUserId(token)
 
-            // User 객체 조회 및 검증
-            val user = userRepository.findById(userId)
-                .orElseThrow { IllegalArgumentException("존재하지 않는 유저입니다.") }
+                // User 객체 조회 및 검증
+                val user = userService.getUser(userId)
 
-            // Spring Security 인증 객체 생성 (principal에 User 객체 저장)
-            val authentication = UsernamePasswordAuthenticationToken(
-                user,            // principal (User 객체)
-                null,            // credentials
-                listOf(SimpleGrantedAuthority("ROLE_USER"))
-            )
-            SecurityContextHolder.getContext().authentication = authentication
+                // Spring Security 인증 객체 생성 (principal에 User 객체 저장)
+                val authentication = UsernamePasswordAuthenticationToken(
+                    user,            // principal (User 객체)
+                    null,            // credentials
+                    listOf(SimpleGrantedAuthority("ROLE_USER"))
+                )
+                SecurityContextHolder.getContext().authentication = authentication
+            }
+        }  catch (e: AppException) { // 예외 직접 잡아서 직접 응답
+            response.status = e.errorCode.status.value()
+            response.contentType = "application/json;charset=UTF-8"
+            val body = ApiResponse.error<Nothing>(e.errorCode.code, e.message)
+            response.writer.write(objectMapper.writeValueAsString(body))
+            return
         }
 
         filterChain.doFilter(request, response)

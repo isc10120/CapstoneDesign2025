@@ -4,6 +4,8 @@ import jamgaVOCA.demo.api.dto.SignInRequest
 import jamgaVOCA.demo.api.dto.SignInResponse
 import jamgaVOCA.demo.api.dto.SignUpRequest
 import jamgaVOCA.demo.api.dto.SilentNudgeRange
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import jamgaVOCA.demo.domain.auth.RefreshToken
 import jamgaVOCA.demo.domain.auth.RefreshTokenRepository
 import jamgaVOCA.demo.domain.user.*
@@ -24,6 +26,11 @@ class AuthService(
 ) {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun signUp(request: SignUpRequest) {
+        // 이메일 중복 검사
+        if (userService.existsByEmail(request.email)) {
+            throw AppException(ErrorCode.DUPLICATE_EMAIL)
+        }
+
         val user = User(
             nickname = request.nickName,
             email = request.email,
@@ -42,7 +49,7 @@ class AuthService(
         val user = userService.findByEmail(request.email)
 
         if (!passwordEncoder.matches(request.password, user.password)) {
-            throw RuntimeException("Invalid password")
+            throw AppException(ErrorCode.INVALID_PASSWORD)
         }
 
         val accessToken = jwtProvider.generateAccessToken(user.id!!)
@@ -62,7 +69,7 @@ class AuthService(
             )
         }
 
-        val settings = user.settings ?: throw RuntimeException("User settings not found")
+        val settings = user.settings ?: throw AppException(ErrorCode.USER_SETTINGS_NOT_FOUND)
 
         return SignInResponse(
             accessToken = accessToken,
@@ -89,11 +96,11 @@ class AuthService(
     @Transactional
     fun refresh(refreshToken: String): String {
         val token = refreshTokenRepository.findByToken(refreshToken)
-            ?: throw RuntimeException("유효하지 않은 Refresh Token입니다.")
+            ?: throw AppException(ErrorCode.INVALID_REFRESH_TOKEN)
 
         if (token.expiresAt.isBefore(LocalDateTime.now())) {
             refreshTokenRepository.delete(token)
-            throw RuntimeException("만료된 Refresh Token입니다.")
+            throw AppException(ErrorCode.REFRESH_TOKEN_EXPIRED)
         }
 
         return jwtProvider.generateAccessToken(token.user.id!!)

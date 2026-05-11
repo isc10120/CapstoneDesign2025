@@ -1,7 +1,11 @@
 package jamgaVOCA.demo.config.jwt
 
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.Date
@@ -39,8 +43,10 @@ class JwtProvider(
         return try {
             getClaims(token)
             true
-        } catch (e: Exception) {
-            false
+        } catch (e: ExpiredJwtException) {
+            throw AppException(ErrorCode.ACCESS_TOKEN_EXPIRED)
+        } catch (e: JwtException) {
+            throw AppException(ErrorCode.INVALID_TOKEN)
         }
     }
 
