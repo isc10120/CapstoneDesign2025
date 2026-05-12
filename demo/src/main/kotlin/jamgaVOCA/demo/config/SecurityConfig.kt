@@ -3,6 +3,7 @@ package jamgaVOCA.demo.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import jamgaVOCA.demo.config.jwt.JwtFilter
 import jamgaVOCA.demo.config.jwt.JwtProvider
+import jamgaVOCA.demo.service.UserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -17,7 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 class SecurityConfig(
     private val jwtProvider: JwtProvider,
-    private val userRepository: jamgaVOCA.demo.domain.user.UserRepository,
+    private val userService: UserService,
     private val objectMapper: ObjectMapper,
 ) {
 
@@ -38,7 +39,7 @@ class SecurityConfig(
                     .anyRequest().authenticated()  // 나머지는 인증 필요
             }
             .addFilterBefore(
-                JwtFilter(jwtProvider, userRepository, objectMapper),
+                JwtFilter(jwtProvider, userService, objectMapper),
                 UsernamePasswordAuthenticationFilter::class.java
             )
 
