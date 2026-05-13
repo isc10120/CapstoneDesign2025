@@ -151,11 +151,11 @@ class QuestionGeneratorService(
             }
 
             "word_definition", "synonym" -> {
-                val correct = req.userAnswer.trim().equals(req.prompt?.trim(), ignoreCase = true)
+                val correct = req.userAnswer.trim().equals(req.modelAnswer?.trim(), ignoreCase = true)
                 if (correct) {
-                    EvaluateData(correct = true, score = 100, feedback = "정답입니다!", correctAnswer = req.prompt)
+                    EvaluateData(correct = true, score = 100, feedback = "정답입니다!", correctAnswer = req.modelAnswer)
                 } else {
-                    EvaluateData(correct = false, score = 0, feedback = "오답입니다. 정답은 '${req.prompt}'입니다.", correctAnswer = req.prompt)
+                    EvaluateData(correct = false, score = 0, feedback = "오답입니다. 정답은 '${req.modelAnswer}'입니다.", correctAnswer = req.modelAnswer)
                 }
             }
 
@@ -186,11 +186,11 @@ class QuestionGeneratorService(
             "translation" -> {
                 val prompt = """
                     번역 문제입니다.
-                    한국어 원문: "${req.prompt}"
+                    영어 모범 번역: "${req.modelAnswer}"
                     학습자 번역: "${req.userAnswer}"
 
                     다음 기준으로 0~100점 채점해주세요:
-                    1. 의미 전달: 한국어 의미를 올바르게 전달하는가
+                    1. 의미 전달: 모범 번역과 의미가 일치하는가
                     2. 문법: 영어 문법이 올바른가
                     3. 단어 사용: 적절한 영어 단어를 사용했는가
                     4. 자연스러움: 자연스러운 영어 표현인가

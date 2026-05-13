@@ -20,7 +20,7 @@ data class EvaluateRequest(
     val wordId: Long,
     val questionType: String,
     val userAnswer: String,
-    val prompt: String? = null
+    val modelAnswer: String? = null
 )
 
 data class EvaluateData(
