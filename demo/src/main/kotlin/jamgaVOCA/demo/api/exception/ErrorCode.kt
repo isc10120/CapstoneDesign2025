@@ -35,6 +35,11 @@ enum class ErrorCode(
     INVALID_WORD_LEVEL(HttpStatus.BAD_REQUEST, "INVALID_WORD_LEVEL", "유효하지 않은 단어 난이도입니다."),
     DAILY_NUDGE_WORD_NOT_FOUND(HttpStatus.NOT_FOUND, "DAILY_NUDGE_WORD_NOT_FOUND", "일일 넛지 단어를 찾을 수 없습니다."),
 
+    // 문제
+    WORD_TOO_SHORT_FOR_SPELLING(HttpStatus.BAD_REQUEST, "WORD_TOO_SHORT_FOR_SPELLING", "3글자 이하 단어는 spelling 문제를 지원하지 않습니다."),
+    NOUN_NOT_SUPPORTED_FOR_SYNONYM(HttpStatus.BAD_REQUEST, "NOUN_NOT_SUPPORTED_FOR_SYNONYM", "명사는 유의어 문제를 지원하지 않습니다."),
+    UNSUPPORTED_QUESTION_TYPE(HttpStatus.BAD_REQUEST, "UNSUPPORTED_QUESTION_TYPE", "지원하지 않는 문제 유형입니다."),
+
     // AI
     AI_IMAGE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_IMAGE_GENERATION_FAILED", "AI 이미지 생성에 실패했습니다."),
     AI_IMAGE_RESPONSE_INVALID(HttpStatus.INTERNAL_SERVER_ERROR, "AI_IMAGE_RESPONSE_INVALID", "AI 이미지 응답이 올바르지 않습니다."),

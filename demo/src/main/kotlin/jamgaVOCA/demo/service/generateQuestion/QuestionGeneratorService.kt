@@ -1,6 +1,8 @@
 package jamgaVOCA.demo.service.generateQuestion
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import jamgaVOCA.demo.domain.word.PartOfSpeech
 import jamgaVOCA.demo.domain.word.WordLevel
 import jamgaVOCA.demo.domain.word.WordRepository
@@ -19,12 +21,12 @@ class QuestionGeneratorService(
 
     fun generateQuestion(questionType: String, req: QuestionRequest): QuestionData {
         val word = wordRepository.findById(req.wordId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 단어입니다. wordId=${req.wordId}") }
+            .orElseThrow { AppException(ErrorCode.WORD_NOT_FOUND) }
 
         return when (questionType) {
             "spelling" -> {
                 if (word.englishWord.length <= 3) {
-                    throw IllegalArgumentException("3글자 이하 단어는 spelling 문제를 지원하지 않습니다: ${word.englishWord}")
+                    throw AppException(ErrorCode.WORD_TOO_SHORT_FOR_SPELLING)
                 }
                 val blanked = blankMiddle(word.englishWord)
                 QuestionData(
@@ -75,7 +77,7 @@ class QuestionGeneratorService(
 
             "synonym" -> {
                 if (word.partOfSpeech == PartOfSpeech.NOUN) {
-                    throw IllegalArgumentException("NOUN 품사는 유의어 문제를 지원하지 않습니다.")
+                    throw AppException(ErrorCode.NOUN_NOT_SUPPORTED_FOR_SYNONYM)
                 }
                 val prompt = """
                     영어 단어 "${word.englishWord}" (품사: ${word.partOfSpeech.alias}, 뜻: ${word.koreanMeaning})
@@ -130,13 +132,13 @@ class QuestionGeneratorService(
                 )
             }
 
-            else -> throw IllegalArgumentException("지원하지 않는 문제 유형입니다: $questionType")
+            else -> throw AppException(ErrorCode.UNSUPPORTED_QUESTION_TYPE)
         }
     }
 
     fun evaluate(req: EvaluateRequest): EvaluateData {
         val word = wordRepository.findById(req.wordId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 단어입니다. wordId=${req.wordId}") }
+            .orElseThrow { AppException(ErrorCode.WORD_NOT_FOUND) }
 
         return when (req.questionType) {
             "spelling", "anagram" -> {
@@ -207,7 +209,7 @@ class QuestionGeneratorService(
                 )
             }
 
-            else -> throw IllegalArgumentException("지원하지 않는 문제 유형입니다: ${req.questionType}")
+            else -> throw AppException(ErrorCode.UNSUPPORTED_QUESTION_TYPE)
         }
     }
 

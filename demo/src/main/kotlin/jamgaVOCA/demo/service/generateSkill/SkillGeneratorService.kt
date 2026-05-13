@@ -1,5 +1,7 @@
 package jamgaVOCA.demo.service.generateSkill
 
+import jamgaVOCA.demo.api.exception.AppException
+import jamgaVOCA.demo.api.exception.ErrorCode
 import jamgaVOCA.demo.service.generateSkill.dto.SkillData
 import jamgaVOCA.demo.domain.skill.SkillRepository
 import jamgaVOCA.demo.domain.word.WordRepository
@@ -8,6 +10,7 @@ import jamgaVOCA.demo.domain.skill.SkillType
 import jamgaVOCA.demo.infra.S3UploadService
 import jamgaVOCA.demo.infra.ai.AiChatClient
 import jamgaVOCA.demo.infra.ai.AiImageClient
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
@@ -20,38 +23,54 @@ class SkillGeneratorService(
     private val aiChatClient: AiChatClient,
     private val aiImageClient: AiImageClient
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     @Async("skillGenerationExecutor")
     fun generate(wordId: Long) {
-
-        val word = wordRepository.findById(wordId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 단어입니다. wordId=$wordId") }
-
-        if (skillRepository.existsByWordId(wordId)) return
-
-        // TODO: 단어 난이도를 반영하도록 개선
-        val skillData = requestSkillData(word.englishWord, word.koreanMeaning)
-
-        val imageUrl = try {
-            val base64 = aiImageClient.requestImageBase64WithRetry(skillData.imageDesc)
-            s3UploadService.uploadBase64Image(base64)
-        } catch (e: Exception) {
-            ""
-        }
-
         try {
-            skillRepository.save(
-                Skill(
-                    word = word,
-                    name = skillData.name,
-                    explanation = skillData.description,
-                    damage = skillData.damage,
-                    skillType = SkillType.ATTACK,   // TODO: GPT로 스킬 타입도 생성하도록 개선
-                    lasting = null,
-                    imageUrl = imageUrl
+            val word = wordRepository.findById(wordId)
+                .orElseThrow { AppException(ErrorCode.WORD_NOT_FOUND) }
+
+            if (skillRepository.existsByWordId(wordId)) {
+                log.info("Skill already exists for wordId=$wordId")
+                return
+            }
+
+            // TODO: 단어 난이도를 반영하도록 개선
+            val skillData = requestSkillData(word.englishWord, word.koreanMeaning)
+
+            val imageUrl = try {
+                val base64 = aiImageClient.requestImageBase64WithRetry(skillData.imageDesc)
+                s3UploadService.uploadBase64Image(base64)
+            } catch (e: Exception) {
+                log.error("Failed to generate image for wordId=$wordId: ${e.javaClass.simpleName} - ${e.message}")
+                ""
+            }
+
+            try {
+                skillRepository.save(
+                    Skill(
+                        word = word,
+                        name = skillData.name,
+                        explanation = skillData.description,
+                        damage = skillData.damage,
+                        skillType = SkillType.ATTACK,   // TODO: GPT로 스킬 타입도 생성하도록 개선
+                        lasting = null,
+                        imageUrl = imageUrl
+                    )
                 )
-            )
-        } catch (e: DataIntegrityViolationException) {
-            return
+                log.info("Skill generated successfully for wordId=$wordId")
+            } catch (e: DataIntegrityViolationException) {
+                log.warn("Skill already exists (race condition) for wordId=$wordId")
+                return
+            }
+        } catch (e: Exception) {
+            log.error("Failed to generate skill for wordId=$wordId")
+            if (e is AppException || e is DataIntegrityViolationException) {
+                log.error("${e.javaClass.simpleName} - ${e.message}")
+            } else {
+                log.error("Unexpected error", e)  // 예상치 못한 에러만 전체 스택 출력
+            }
         }
     }
 
