@@ -24,6 +24,7 @@ import com.example.zamgavocafront.R
 import com.example.zamgavocafront.WordProgressManager
 import com.example.zamgavocafront.WordRepository
 import com.example.zamgavocafront.model.WordData
+import com.example.zamgavocafront.pvp.PvpWordManager
 import com.example.zamgavocafront.viewmodel.TodayWordViewModel
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -154,14 +155,17 @@ class TodayWordFragment : Fragment() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val word = words[position]
-            val done = WordProgressManager.getCount(requireContext(), word.id) >= WordProgressManager.MAX_COUNT
+            val ctx = requireContext()
+            val done = WordProgressManager.getCount(ctx, word.id) >= WordProgressManager.MAX_COUNT
+                || PvpWordManager.getUsedWordIds(ctx).contains(word.id)
 
             holder.tvWordEn.text = word.word
             holder.tvWordKr.text = word.meaning
             holder.card.setCardBackgroundColor(
-                if (done) ContextCompat.getColor(requireContext(), R.color.color_word_completed)
-                else ContextCompat.getColor(requireContext(), R.color.main_yellow)
+                if (done) ContextCompat.getColor(ctx, R.color.color_word_completed)
+                else ContextCompat.getColor(ctx, R.color.main_yellow)
             )
+            holder.itemView.alpha = if (done) 0.75f else 1.0f
             holder.itemView.setOnClickListener { onClick(word) }
         }
 

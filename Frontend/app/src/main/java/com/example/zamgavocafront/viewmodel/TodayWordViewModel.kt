@@ -24,9 +24,21 @@ class TodayWordViewModel(application: Application) : AndroidViewModel(applicatio
 
     private var isLoaded = false
 
+    companion object {
+        // 앱 세션 내에서 로드된 전체 단어 목록 유지 (탭 전환 시 재호출 방지)
+        private val sessionCache = mutableListOf<WordData>()
+    }
+
     fun loadDailyWords() {
         if (isLoaded) return
         isLoaded = true
+
+        // 세션 캐시가 있으면 서버 재호출 없이 사용
+        if (sessionCache.isNotEmpty()) {
+            _words.value = sessionCache.toList()
+            return
+        }
+
         viewModelScope.launch {
             val existing = runCatching { ApiClient.api.getDailyWordList() }.getOrNull()?.data
             val wordList: List<WordResponse>? = if (!existing.isNullOrEmpty()) {
@@ -40,9 +52,17 @@ class TodayWordViewModel(application: Application) : AndroidViewModel(applicatio
 
             if (!wordList.isNullOrEmpty()) {
                 val mapped = wordList.map { WordRepository.mapWordResponse(it) }
+
+                // 서버가 완료된 단어를 필터링해 반환해도 기존 목록 유지 (병합)
+                val serverIds = mapped.map { it.id }.toSet()
+                val preserved = WordRepository.allWords.filter { it.id !in serverIds }
+                val fullList = mapped + preserved
+
+                sessionCache.clear()
+                sessionCache.addAll(fullList)
                 WordRepository.allWords.clear()
-                WordRepository.allWords.addAll(mapped)
-                _words.value = mapped
+                WordRepository.allWords.addAll(fullList)
+                _words.value = fullList
                 _errorMessage.value = null
             } else {
                 isLoaded = false

@@ -50,7 +50,7 @@
     <color name="color_feedback_correct_text">#2E7D32</color>
 
     <!-- Word Progress Colors -->
-    <color name="color_word_completed">#CCCCCC</color>
+    <color name="color_word_completed">#D4B84A</color>
 
     <!-- Deck Builder Colors -->
     <color name="color_deck_ready">#F4C400</color>
