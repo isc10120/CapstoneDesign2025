@@ -134,7 +134,7 @@
             android:name=".pve.CardDetailActivity"
             android:exported="false"
             android:label="카드 상세"
-            android:theme="@style/Theme.ZamgavocaFront.NoActionBar" />
+            android:theme="@style/Theme.CardDetail.Overlay" />
 
         <service
             android:name=".service.OverlayService"

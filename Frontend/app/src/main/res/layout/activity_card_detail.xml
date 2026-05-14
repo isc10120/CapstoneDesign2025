@@ -1,218 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1A1A2E">
+    android:background="#B3000000">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_height="match_parent"
+        android:paddingTop="72dp"
+        android:paddingBottom="24dp"
+        android:clipToPadding="false"
+        android:fillViewport="true">
 
-        <!-- 닫기 버튼 -->
-        <ImageButton
-            android:id="@+id/btn_close"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="@color/white"
-            android:layout_marginBottom="8dp" />
-
-        <!-- 카드 이미지 -->
-        <ImageView
-            android:id="@+id/iv_skill_image"
-            android:layout_width="160dp"
-            android:layout_height="160dp"
-            android:layout_gravity="center_horizontal"
-            android:scaleType="centerCrop"
-            android:background="#2A2A4E"
-            android:layout_marginBottom="16dp" />
-
-        <!-- 등급 + 이름 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingHorizontal="24dp">
 
+            <!-- 카드 프레임 + 스킬 이미지 -->
+            <FrameLayout
+                android:layout_width="220dp"
+                android:layout_height="308dp">
+
+                <ImageView
+                    android:id="@+id/iv_skill_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="72dp"
+                    android:scaleType="centerCrop"
+                    android:background="#2A2A4E" />
+
+                <ImageView
+                    android:id="@+id/iv_card_frame"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/cardframe_silver"
+                    android:scaleType="fitXY" />
+
+                <!-- 스킬 이름 (카드 프레임 위 오버레이) -->
+                <TextView
+                    android:id="@+id/tv_skill_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="94dp"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:paddingHorizontal="10dp"
+                    android:text="스킬명"
+                    android:textColor="#222222"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <!-- 데미지 (카드 프레임 위 오버레이) -->
+                <TextView
+                    android:id="@+id/tv_skill_damage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="44dp"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:text="+0 데미지!"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#CC3333"
+                    android:maxLines="1" />
+
+            </FrameLayout>
+
+            <!-- 원본 단어 -->
             <TextView
-                android:id="@+id/tv_grade"
+                android:id="@+id/tv_word"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="동급"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp"
-                android:background="@drawable/bg_count_badge"
-                android:layout_marginEnd="12dp" />
-
-            <TextView
-                android:id="@+id/tv_skill_name"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="스킬명"
-                android:textSize="22sp"
+                android:layout_marginTop="20dp"
+                android:text="word"
+                android:textSize="26sp"
                 android:textStyle="bold"
                 android:textColor="@color/white" />
+
+            <!-- 단어 뜻
+            <TextView
+                android:id="@+id/tv_word_meaning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="뜻"
+                android:textSize="16sp"
+                android:textColor="#CCCCCC" />
+            -->
+
+            <!-- 스킬 설명 -->
+            <TextView
+                android:id="@+id/tv_skill_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="스킬 설명"
+                android:textSize="15sp"
+                android:textColor="#AAAAAA"
+                android:lineSpacingMultiplier="1.4" />
+
         </LinearLayout>
+    </ScrollView>
 
-        <!-- 단어 / 의미 -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:cardCornerRadius="10dp"
-            app:cardBackgroundColor="#2A2A4E">
+    <!-- X 닫기 버튼 — ScrollView 뒤에 선언해야 터치가 위로 올라옴 -->
+    <ImageButton
+        android:id="@+id/btn_close"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:tint="@color/white"
+        android:background="?attr/selectableItemBackgroundBorderless" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="14dp">
-
-                <TextView
-                    android:id="@+id/tv_word"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="word"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="#F4C400"
-                    android:layout_marginBottom="4dp" />
-
-                <TextView
-                    android:id="@+id/tv_word_meaning"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="뜻"
-                    android:textSize="14sp"
-                    android:textColor="#AAAACC" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- 스킬 스탯 -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:cardCornerRadius="10dp"
-            app:cardBackgroundColor="#2A2A4E">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="14dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="기본 데미지"
-                        android:textSize="13sp"
-                        android:textColor="#AAAACC" />
-
-                    <TextView
-                        android:id="@+id/tv_damage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="50"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:textColor="#FF7777" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="스킬 효과"
-                        android:textSize="13sp"
-                        android:textColor="#AAAACC" />
-
-                    <TextView
-                        android:id="@+id/tv_effect_type"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="⚔ 공격"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="#F4C400" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="쿨타임"
-                        android:textSize="13sp"
-                        android:textColor="#AAAACC" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="3턴"
-                        android:textSize="13sp"
-                        android:textColor="@color/white" />
-                </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- 스킬 설명 -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="10dp"
-            app:cardBackgroundColor="#2A2A4E">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="14dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="스킬 설명"
-                    android:textSize="12sp"
-                    android:textColor="#AAAACC"
-                    android:layout_marginBottom="6dp" />
-
-                <TextView
-                    android:id="@+id/tv_skill_description"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="설명..."
-                    android:textSize="14sp"
-                    android:textColor="@color/white"
-                    android:lineSpacingMultiplier="1.4" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-    </LinearLayout>
-</ScrollView>
+</FrameLayout>
