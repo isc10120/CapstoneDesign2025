@@ -16,7 +16,7 @@
             android:id="@+id/iv_skill_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="76dp"
+            android:layout_marginBottom="72dp"
             android:scaleType="centerCrop"
             android:background="#CCCCCC" />
 
@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="44dp"
+            android:layout_marginBottom="58dp"
             android:gravity="center"
             android:paddingHorizontal="10dp"
             android:text="스킬명"
@@ -50,11 +50,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginBottom="22dp"
+            android:layout_marginBottom="25dp"
             android:gravity="center"
             android:paddingHorizontal="10dp"
             android:text="-- DMG"
-            android:textSize="8sp"
+            android:textSize="10sp"
             android:textColor="#CC3333"
             android:maxLines="1" />
 
