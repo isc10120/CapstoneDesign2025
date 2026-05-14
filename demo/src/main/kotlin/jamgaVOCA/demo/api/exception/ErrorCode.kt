@@ -8,7 +8,7 @@ enum class ErrorCode(
     val message: String
 ) {
     // 인증
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증이 필요합니다."),
+    // UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증이 필요합니다."),
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED", "액세스 토큰이 만료되었습니다."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "REFRESH_TOKEN_EXPIRED", "리프레시 토큰이 만료되었습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "유효하지 않은 토큰입니다."),
@@ -41,6 +41,8 @@ enum class ErrorCode(
     UNSUPPORTED_QUESTION_TYPE(HttpStatus.BAD_REQUEST, "UNSUPPORTED_QUESTION_TYPE", "지원하지 않는 문제 유형입니다."),
 
     // AI
+    AI_CHAT_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_CHAT_CALL_FAILED", "AI 채팅 호출에 실패했습니다."),
+    AI_JSON_PARSE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_JSON_PARSE_FAILED", "AI 응답 JSON 파싱에 실패했습니다."),
     AI_IMAGE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_IMAGE_GENERATION_FAILED", "AI 이미지 생성에 실패했습니다."),
     AI_IMAGE_RESPONSE_INVALID(HttpStatus.INTERNAL_SERVER_ERROR, "AI_IMAGE_RESPONSE_INVALID", "AI 이미지 응답이 올바르지 않습니다."),
 
