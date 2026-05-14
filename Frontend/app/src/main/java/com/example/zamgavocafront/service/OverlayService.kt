@@ -153,6 +153,7 @@ class OverlayService : Service() {
     }
 
     private fun showMorningOverlay() {
+        AlarmScheduler.recordMorningShownToday(this)
         morningOverlay?.dismiss()
         morningOverlay = MorningOverlayManager(this, windowManager) { difficulty ->
             morningOverlay?.dismiss()

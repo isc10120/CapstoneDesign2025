@@ -6,7 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.example.zamgavocafront.receiver.AlarmReceiver
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 object AlarmScheduler {
 
@@ -17,6 +20,9 @@ object AlarmScheduler {
     private const val KEY_NUDGE_ENABLED = "nudge_enabled"
     private const val KEY_NUDGE_INTERVAL_MIN = "nudge_interval_min"
     private const val KEY_NUDGE_INTERVAL_MAX = "nudge_interval_max"
+    private const val KEY_MORNING_SHOWN_DATE = "morning_shown_date"
+
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     private const val MORNING_REQUEST_CODE = 1001
     private const val NUDGE_REQUEST_CODE = 1002
@@ -44,8 +50,25 @@ object AlarmScheduler {
             .putBoolean(KEY_MORNING_ENABLED, true)
             .apply()
 
-        val triggerMillis = nextDailyTriggerMillis(hour, minute)
+        // 오늘 이미 아침 오버레이가 떴으면 내일로 강제 설정
+        val triggerMillis = if (wasMorningShownToday(context)) {
+            nextDailyTriggerMillis(hour, minute, forceTomorrow = true)
+        } else {
+            nextDailyTriggerMillis(hour, minute)
+        }
         setExactAlarm(context, MORNING_REQUEST_CODE, "com.example.zamgavocafront.MORNING_ALARM", triggerMillis)
+    }
+
+    fun recordMorningShownToday(context: Context) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+            .putString(KEY_MORNING_SHOWN_DATE, dateFormat.format(Date()))
+            .apply()
+    }
+
+    fun wasMorningShownToday(context: Context): Boolean {
+        val saved = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_MORNING_SHOWN_DATE, null) ?: return false
+        return saved == dateFormat.format(Date())
     }
 
     fun cancelMorningAlarm(context: Context) {
@@ -110,17 +133,13 @@ object AlarmScheduler {
 
     // ── 내부 헬퍼 ─────────────────────────────────────────────────────────
 
-    /**
-     * 오늘 또는 내일 해당 시각의 Unix 밀리초를 반환한다.
-     * 이미 지난 시각이면 자동으로 내일로 설정된다.
-     */
-    private fun nextDailyTriggerMillis(hour: Int, minute: Int): Long {
+    private fun nextDailyTriggerMillis(hour: Int, minute: Int, forceTomorrow: Boolean = false): Long {
         val cal = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
-            if (timeInMillis <= System.currentTimeMillis()) {
+            if (forceTomorrow || timeInMillis <= System.currentTimeMillis()) {
                 add(Calendar.DAY_OF_YEAR, 1)
             }
         }
