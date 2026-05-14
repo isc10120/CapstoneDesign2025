@@ -96,7 +96,7 @@ object ApiClient {
             }
             var response = chain.proceed(request)
 
-            if (response.code == 401 && refreshToken != null) {
+            if (response.code in listOf(401, 404) && refreshToken != null) {
                 response.close()
                 val newToken = tryRefreshSync()
                 val retryRequest = chain.request().newBuilder().apply {

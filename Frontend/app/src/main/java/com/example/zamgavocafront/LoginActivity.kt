@@ -81,6 +81,7 @@ class LoginActivity : AppCompatActivity() {
             .putLong("userId", data.userId)
             .putString("nickName", data.nickName)
             .putString("email", data.email)
+            .putBoolean("is_first_session", true)
             .apply()
         ApiClient.saveTokensToPrefs(this)
         CollectedCardManager.clearCards(this)

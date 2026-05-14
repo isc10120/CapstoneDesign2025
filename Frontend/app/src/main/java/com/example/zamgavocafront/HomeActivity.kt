@@ -1,12 +1,14 @@
 package com.example.zamgavocafront
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.zamgavocafront.fragment.*
+import com.example.zamgavocafront.service.OverlayService
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class HomeActivity : AppCompatActivity() {
@@ -52,6 +54,24 @@ class HomeActivity : AppCompatActivity() {
         // 최초 진입: 오늘의 단어 탭
         if (savedInstanceState == null) {
             bottomNav.selectedItemId = R.id.nav_today
+            checkFirstSession()
+        }
+    }
+
+    private fun checkFirstSession() {
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        if (prefs.getBoolean("is_first_session", false)) {
+            prefs.edit().putBoolean("is_first_session", false).apply()
+            sendOverlayAction(OverlayService.ACTION_SHOW_MORNING)
+        }
+    }
+
+    private fun sendOverlayAction(action: String) {
+        val intent = Intent(this, OverlayService::class.java).apply { this.action = action }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
         }
     }
 
