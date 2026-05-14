@@ -43,6 +43,9 @@ cloud:
       access-key: ${AWS_ACCESS_KEY_ID}
       secret-key: ${AWS_SECRET_ACCESS_KEY}
 
+admin:
+  secret: ${ADMIN_SECRET:local-admin-secret}
+
 logging:
   level:
     org.springframework.ai.openai: DEBUG

@@ -36,6 +36,7 @@ class SecurityConfig(
                 it
                     .requestMatchers("/api/v1/auth/**").permitAll()  // 로그인/회원가입은 허용
                     .requestMatchers("/api/v1/pvp/test/**").permitAll()  // 테스트용
+                    .requestMatchers("/", "/*.html", "/*.css", "/*.js").permitAll()  // 정적 파일
                     .anyRequest().authenticated()  // 나머지는 인증 필요
             }
             .addFilterBefore(
