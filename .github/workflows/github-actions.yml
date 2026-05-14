@@ -68,6 +68,7 @@ jobs:
             export OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}'
             export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
             export JWT_SECRET='${{ secrets.JWT_SECRET }}'
+            export ADMIN_SECRET='${{ secrets.ADMIN_SECRET }}'
             export DOCKER_USERNAME='${{ secrets.DOCKER_USERNAME }}'
 
             sudo -E docker-compose up -d
