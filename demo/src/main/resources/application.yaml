@@ -20,17 +20,16 @@ spring:
       api-key: ${OPENAI_API_KEY}
       chat:
         options:
-          model: gpt-3.5-turbo
+          model: gpt-4o
           temperature: 0.8
           responseFormat:
             type: JSON_OBJECT
       image:
         options:
-          model: dall-e-3
+          model: gpt-image-1
           size: 1024x1024
-          response-format: b64_json
     retry:
-      max-attempts: 5
+      max-attempts: 1
 jwt:
   secret: ${JWT_SECRET}
   access-expiration: 3600        # 1시간 (초)
@@ -48,9 +47,7 @@ admin:
 
 logging:
   level:
-    org.springframework.ai.openai: DEBUG
-    org.springframework.ai.chat: DEBUG
-    org.springframework.ai.image: DEBUG
+    org.springframework.ai.retry: ERROR
 ---
 spring:
   config:

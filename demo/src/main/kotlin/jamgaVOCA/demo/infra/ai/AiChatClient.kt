@@ -8,25 +8,35 @@ import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.stereotype.Component
+import org.slf4j.LoggerFactory
 
 @Component
 class AiChatClient(
     private val chatModel: ChatModel,
     private val objectMapper: ObjectMapper
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
     fun call(userPrompt: String, systemPrompt: String? = null): String {
-        return try {
+        try {
             val messages = buildList {
                 if (systemPrompt != null) add(SystemMessage(systemPrompt))
                 add(UserMessage(userPrompt))
             }
-            val content = chatModel.call(Prompt(messages)).result.output.content ?: ""
-            content
+            val content = chatModel.call(Prompt(messages)).result.output.text ?: ""
+            return content
                 .replace(Regex("```json\\s*"), "")
                 .replace(Regex("```\\s*"), "")
                 .trim()
         } catch (e: Exception) {
-            throw AppException(ErrorCode.AI_CHAT_CALL_FAILED)
+            val msg = e.message?.lowercase() ?: ""
+            when {
+                msg.contains("http 429") || msg.contains("rate limit") || msg.contains("quota") || msg.contains("limit") ->
+                    throw AppException(ErrorCode.AI_RATE_LIMIT_EXCEEDED)
+                msg.contains("http 401") || msg.contains("http 403") ->
+                    throw AppException(ErrorCode.AI_AUTHENTICATION_FAILED)
+                else ->
+                    throw AppException(ErrorCode.AI_CHAT_CALL_FAILED)
+            }
         }
     }
 
@@ -38,6 +48,7 @@ class AiChatClient(
         } catch (e: AppException) {
             throw e
         } catch (e: Exception) {
+            log.warn("Failed to parse AI JSON response: ${e.javaClass.simpleName} - ${e.message}")
             throw AppException(ErrorCode.AI_JSON_PARSE_FAILED)
         }
     }

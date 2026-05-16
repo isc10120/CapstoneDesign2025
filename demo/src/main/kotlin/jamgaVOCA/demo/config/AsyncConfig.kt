@@ -11,7 +11,7 @@ class AsyncConfig {
     @Bean(name = ["skillGenerationExecutor"])
     fun skillGenerationExecutor(): Executor {
         val executor = ThreadPoolTaskExecutor()
-        executor.corePoolSize = 10
+        executor.corePoolSize = 15
         executor.maxPoolSize = 50
         executor.queueCapacity = 100
         executor.setThreadNamePrefix("SkillGen-")

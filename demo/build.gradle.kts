@@ -25,6 +25,11 @@ configurations {
 repositories {
 	mavenCentral()
 	maven { url = uri("https://repo.spring.io/milestone") }
+	maven { url = uri("https://repo.spring.io/snapshot") }
+	maven {
+		name = "Central Portal Snapshots"
+		url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+	}
 }
 
 dependencies {
@@ -41,8 +46,8 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation(platform("org.springframework.ai:spring-ai-bom:1.0.0-M5"))
-	implementation("org.springframework.ai:spring-ai-openai-spring-boot-starter")
+	implementation(platform("org.springframework.ai:spring-ai-bom:1.1.6"))
+	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	implementation("org.springframework.retry:spring-retry")
 	implementation("org.springframework:spring-aspects")
 	compileOnly("org.projectlombok:lombok")

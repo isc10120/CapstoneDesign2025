@@ -20,8 +20,8 @@ class SkillController(
         return ApiResponse.success(data)
     }
 
-    @GetMapping("/skill-info")
-    fun getSkillInfo(@RequestParam id: Long): ApiResponse<SkillResponse> {
+    @GetMapping("/skill-info/{id}")
+    fun getSkillInfo(@PathVariable id: Long): ApiResponse<SkillResponse> {
         val data = skillService.getSkillInfo(id)
         return ApiResponse.success(data)
     }

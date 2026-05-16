@@ -25,7 +25,7 @@ class WordService(
     private val weekCollectedWordRepository: WeekCollectedWordRepository,
     private val userService: UserService,
     private val skillGeneratorService: SkillGeneratorService,
-    private val skillRepository: SkillRepository
+    private val skillService: SkillService
 ) {
     private val log = LoggerFactory.getLogger(WordService::class.java)
 
@@ -145,7 +145,7 @@ class WordService(
 
         return collectedWords.map { collected ->
             val word = collected.word
-            val skill = skillRepository.findByWordId(word.id!!)
+            val skill = skillService.getSkillByWordId(word.id!!)
             WordResponse(
                 id = word.id!!,
                 word = word.englishWord,

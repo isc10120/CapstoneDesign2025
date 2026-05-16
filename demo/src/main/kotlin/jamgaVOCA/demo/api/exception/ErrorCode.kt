@@ -8,13 +8,15 @@ enum class ErrorCode(
     val message: String
 ) {
     // 인증
-    // UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증이 필요합니다."),
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED", "액세스 토큰이 만료되었습니다."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "REFRESH_TOKEN_EXPIRED", "리프레시 토큰이 만료되었습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "유효하지 않은 토큰입니다."),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "유효하지 않은 리프레시 토큰입니다."),
     UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "인증되지 않은 사용자입니다."),
     INVALID_AUTH_INFO(HttpStatus.UNAUTHORIZED, "INVALID_AUTH_INFO", "인증 정보가 올바르지 않습니다."),
+
+    // 권한
+    FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "접근 권한이 없습니다."),
 
     // 유저
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "존재하지 않는 유저입니다."),
@@ -41,6 +43,8 @@ enum class ErrorCode(
     UNSUPPORTED_QUESTION_TYPE(HttpStatus.BAD_REQUEST, "UNSUPPORTED_QUESTION_TYPE", "지원하지 않는 문제 유형입니다."),
 
     // AI
+    AI_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI_RATE_LIMIT_EXCEEDED", "AI 요청 한도를 초과했습니다."),
+    AI_AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AI_AUTHENTICATION_FAILED", "AI 인증에 실패했습니다."),
     AI_CHAT_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_CHAT_CALL_FAILED", "AI 채팅 호출에 실패했습니다."),
     AI_JSON_PARSE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_JSON_PARSE_FAILED", "AI 응답 JSON 파싱에 실패했습니다."),
     AI_IMAGE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_IMAGE_GENERATION_FAILED", "AI 이미지 생성에 실패했습니다."),
@@ -48,5 +52,7 @@ enum class ErrorCode(
 
     // 공통
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "잘못된 요청입니다."),
+    NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND", "요청한 리소스를 찾을 수 없습니다."),
+    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "지원하지 않는 HTTP 메서드입니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "서버 오류가 발생했습니다.")
 }

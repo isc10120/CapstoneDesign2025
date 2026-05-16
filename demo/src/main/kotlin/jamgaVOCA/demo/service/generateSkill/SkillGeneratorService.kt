@@ -24,9 +24,18 @@ class SkillGeneratorService(
     private val aiImageClient: AiImageClient
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val generatingWordIds = mutableSetOf<Long>()
+    private val skillIdsGeneratingImages = mutableSetOf<Long>()
 
     @Async("skillGenerationExecutor")
     fun generate(wordId: Long) {
+        synchronized(generatingWordIds) {
+            if (generatingWordIds.contains(wordId)) {
+                log.info("Skill generation already in progress for wordId=$wordId")
+                return
+            }
+            generatingWordIds.add(wordId)
+        }
         try {
             val word = wordRepository.findById(wordId)
                 .orElseThrow { AppException(ErrorCode.WORD_NOT_FOUND) }
@@ -39,16 +48,8 @@ class SkillGeneratorService(
             // TODO: 단어 난이도를 반영하도록 개선
             val skillData = requestSkillData(word.englishWord, word.koreanMeaning)
 
-            val imageUrl = try {
-                val base64 = aiImageClient.requestImageBase64WithRetry(skillData.imageDesc)
-                s3UploadService.uploadBase64Image(base64)
-            } catch (e: Exception) {
-                log.error("Failed to generate image for wordId=$wordId: ${e.javaClass.simpleName} - ${e.message}")
-                ""
-            }
-
             try {
-                skillRepository.save(
+                val skill = skillRepository.save(
                     Skill(
                         word = word,
                         name = skillData.name,
@@ -56,20 +57,74 @@ class SkillGeneratorService(
                         damage = skillData.damage,
                         skillType = SkillType.ATTACK,   // TODO: GPT로 스킬 타입도 생성하도록 개선
                         lasting = null,
-                        imageUrl = imageUrl
+                        imageUrl = "",
+                        imageDesc = skillData.imageDesc
                     )
                 )
                 log.info("Skill generated successfully for wordId=$wordId")
+
+                // 이미지 생성을 비동기로 처리
+                generateImage(skill.id!!)
+
             } catch (e: DataIntegrityViolationException) {
                 log.warn("Skill already exists (race condition) for wordId=$wordId")
                 return
             }
         } catch (e: Exception) {
-            log.error("Failed to generate skill for wordId=$wordId")
             if (e is AppException || e is DataIntegrityViolationException) {
-                log.error("${e.javaClass.simpleName} - ${e.message}")
+                log.error("Failed to generate skill for wordId=$wordId: ${e.javaClass.simpleName} - ${e.message}")
             } else {
-                log.error("Unexpected error", e)  // 예상치 못한 에러만 전체 스택 출력
+                log.error("Failed to generate skill for wordId=$wordId: Unexpected error", e)  // 예상치 못한 에러만 전체 스택 출력
+            }
+        } finally {
+            synchronized(generatingWordIds) {
+                generatingWordIds.remove(wordId)
+            }
+        }
+    }
+
+    @Async("skillGenerationExecutor")
+    fun generateImage(skillId: Long) {
+        synchronized(skillIdsGeneratingImages) {
+            if (skillIdsGeneratingImages.contains(skillId)) {
+                log.info("Image generation already in progress for skillId=$skillId")
+                return
+            }
+            skillIdsGeneratingImages.add(skillId)
+        }
+        try {
+            val skill = skillRepository.findById(skillId).orElse(null) ?: run {
+                log.error("Skill not found for skillId=$skillId")
+                return
+            }
+
+            if (skill.imageUrl.isNotBlank()) {
+                log.info("Image already exists for skillId=$skillId")
+                return
+            }
+
+            if (skill.imageDesc.isBlank()) {
+                log.info("No image description for skillId=$skillId, regenerating image description")
+                try {
+                    skill.imageDesc = generateImageDesc(skill)  // 이미지 설명이 없는 경우 먼저 생성 시도
+                } catch (e: Exception) {
+                    log.error("Failed to generate image description for skillId=$skillId: ${e.javaClass.simpleName} - ${e.message}")
+                    return
+                }
+            }
+
+            try {
+                val base64 = aiImageClient.requestImageBase64WithRetry(skill.imageDesc)
+                val imageUrl = s3UploadService.uploadBase64Image(base64)
+                skill.imageUrl = imageUrl
+                skillRepository.save(skill)
+                log.info("Image generated successfully for skillId=$skillId")
+            } catch (e: Exception) {
+                log.error("Failed to generate image for skillId=$skillId: ${e.javaClass.simpleName} - ${e.message}")
+            }
+        } finally {
+            synchronized(skillIdsGeneratingImages) {
+                skillIdsGeneratingImages.remove(skillId)
             }
         }
     }
@@ -90,7 +145,7 @@ class SkillGeneratorService(
             반드시 '${meaningKo}'을 문장 안에 자연스럽게 포함해야 한다. 또한, 문장 안에 특수문자를 넣지 말 것.(특히 *)
             description의 말투는 ~다. 로 통일하며, 가급적 한 문장으로 완성하라.
 
-            damage는 10~100 사이 숫자. 더 강력한 공격에 더 높은 값을 부여하라. 기본값은 30.
+            damage는 10~100 사이 숫자. 더 어려운 단어에 더 높은 값을 부여하라. 기본값은 30.
 
             image_desc는 스킬 이펙트의 모습을 묘사하여 영어로 작성하라. 2D 픽셀 RPG 게임에 적합한 도트 이펙트여야 한다.
             image_desc의 경우, DALL-E API 오류 (코드: content_policy_violation)을 피할 수 있도록 Dall-e의 safety system 규정을 준수하고, 자극적인 말은 피해서 작성하라.
@@ -99,5 +154,17 @@ class SkillGeneratorService(
         """.trimIndent()
 
         return aiChatClient.callJson(userPrompt, clazz = SkillData::class.java)
+    }
+
+    private fun generateImageDesc(skill: Skill): String {
+        val userPrompt = """
+            당신은 2D 픽셀 RPG 게임의 스킬 디자이너입니다.
+            ${skill.name}'라는 스킬이 있습니다. 설명은 '${skill.explanation}'입니다. 이 스킬의 이펙트 모습을 영어로 묘사해주세요.
+            다음 JSON 형식으로 image_desc를 생성해주세요. 2D 픽셀 RPG 게임에 적합한 도트 이펙트여야 합니다.
+            { "image_desc": "영어 이미지 묘사" }
+            DALL-E API 오류 (코드: content_policy_violation)을 피할 수 있도록 Dall-e의 safety system 규정을 준수하고, 자극적인 말은 피해서 작성하세요.
+        """.trimIndent()
+
+        return aiChatClient.callJson(userPrompt, clazz = Map::class.java)["image_desc"] as String
     }
 }

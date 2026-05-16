@@ -30,6 +30,9 @@ class Skill(
     @Column(name = "image_url", nullable = false, length = 500)
     var imageUrl: String = "",
 
+    @Column(name = "image_desc", nullable = false, length = 500)
+    var imageDesc: String = "",
+
     @Column(nullable = false)
     var damage: Int = 0,
 
