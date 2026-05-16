@@ -57,8 +57,8 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_URL }} << 'EOF'
 
             sudo docker-compose down
-            sudo docker stop $(docker ps -q)
-            sudo docker rm $(docker ps -a -q)
+            sudo docker stop $(sudo docker ps -q)
+            sudo docker rm $(sudo docker ps -a -q)
             sudo docker system prune -af
 
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/backend:latest
