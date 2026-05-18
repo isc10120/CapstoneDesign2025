@@ -9,6 +9,7 @@ import jamgaVOCA.demo.api.exception.AppException
 import jamgaVOCA.demo.domain.user.UserRepository
 import jamgaVOCA.demo.config.jwt.JwtProvider
 import jamgaVOCA.demo.service.UserService
+import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -19,6 +20,7 @@ class JwtFilter(
     private val userService: UserService,
     private val objectMapper: ObjectMapper,
 ) : OncePerRequestFilter() {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -31,18 +33,18 @@ class JwtFilter(
             if (token != null && jwtProvider.validateToken(token)) {
                 val userId = jwtProvider.getUserId(token)
 
-                // User 객체 조회 및 검증
                 val user = userService.getUser(userId)
 
-                // Spring Security 인증 객체 생성 (principal에 User 객체 저장)
                 val authentication = UsernamePasswordAuthenticationToken(
-                    user,            // principal (User 객체)
-                    null,            // credentials
+                    user,
+                    null,
                     listOf(SimpleGrantedAuthority("ROLE_USER"))
                 )
                 SecurityContextHolder.getContext().authentication = authentication
+                log.debug("[JWT] 인증 성공 - userId=$userId, uri=${request.requestURI}")
             }
-        }  catch (e: AppException) { // 예외 직접 잡아서 직접 응답
+        } catch (e: AppException) {
+            log.warn("[JWT] 인증 실패 - code=${e.errorCode.code}, uri=${request.requestURI}, message=${e.message}")
             response.status = e.errorCode.status.value()
             response.contentType = "application/json;charset=UTF-8"
             val body = ApiResponse.error<Nothing>(e.errorCode.code, e.message)

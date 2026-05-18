@@ -68,6 +68,8 @@ class WordService(
             .shuffled()
             .take(10)
 
+        log.info("[WORD] 새 일일 단어 목록 생성 - userId=$userId, level=$wordLevel, 전체=${allWordsOfLevel.size}, 미수집=${allWordsOfLevel.size - collectedWordIds.size}, 선택=${selectedWords.size}")
+
         dailyNudgeWordRepository.deleteAllByUserId(userId)
         dailyNudgeWordRepository.flush()
         selectedWords.forEach {
@@ -82,6 +84,7 @@ class WordService(
         selectedWords.forEach {
             skillGeneratorService.generate(it.id!!)
         }
+        log.debug("[WORD] 스킬 생성 요청 완료 - wordIds=${selectedWords.map { it.id }}")
 
         return selectedWords.map {
             WordResponse(
@@ -119,8 +122,7 @@ class WordService(
 
             if (dailyNudgeWord.nudgeCount >= 3) {
                 if (weekCollectedWordRepository.existsByUserIdAndWordId(userId, request.id)) {
-                    log.warn("Word already collected for the week: ${request.id}")
-                    // 이미 이번 주 수집 목록에 있으면 DailyNudgeWord에서만 삭제
+                    log.warn("[WORD] 주간 수집 중복 - userId=$userId, wordId=${request.id}")
                     dailyNudgeWordRepository.delete(dailyNudgeWord)
                     continue
                 }
@@ -131,11 +133,12 @@ class WordService(
                         word = dailyNudgeWord.word
                     )
                 )
-                
+                log.info("[WORD] 주간 단어 수집 완료 - userId=$userId, wordId=${request.id}, word=${dailyNudgeWord.word.englishWord}")
                 dailyNudgeWordRepository.delete(dailyNudgeWord)
 
             } else {
-                dailyNudgeWordRepository.save(dailyNudgeWord)  //세이브는 업데이트
+                dailyNudgeWordRepository.save(dailyNudgeWord)
+                log.debug("[WORD] 넛지 횟수 업데이트 - userId=$userId, wordId=${request.id}, nudgeCount=${dailyNudgeWord.nudgeCount}")
             }
         }
     }

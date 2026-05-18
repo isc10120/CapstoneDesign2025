@@ -17,8 +17,10 @@ class RequestLoggingFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
+        val start = System.currentTimeMillis()
         log.info("[REQUEST] ${request.method} ${request.requestURI} from ${request.remoteAddr}")
         filterChain.doFilter(request, response)
-        log.info("[RESPONSE] ${response.status}")
+        val elapsed = System.currentTimeMillis() - start
+        log.info("[RESPONSE] ${response.status} ${request.method} ${request.requestURI} (${elapsed}ms)")
     }
 }

@@ -11,6 +11,7 @@ import jamgaVOCA.demo.service.generateQuestion.dto.EvaluateData
 import jamgaVOCA.demo.service.generateQuestion.dto.EvaluateRequest
 import jamgaVOCA.demo.service.generateQuestion.dto.QuestionData
 import jamgaVOCA.demo.service.generateQuestion.dto.QuestionRequest
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
@@ -18,8 +19,10 @@ class QuestionGeneratorService(
     private val wordRepository: WordRepository,
     private val aiChatClient: AiChatClient
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     fun generateQuestion(questionType: String, req: QuestionRequest): QuestionData {
+        log.info("[QUESTION] 문제 생성 요청 - type=$questionType, wordId=${req.wordId}")
         val word = wordRepository.findById(req.wordId)
             .orElseThrow { AppException(ErrorCode.WORD_NOT_FOUND) }
 
@@ -137,12 +140,14 @@ class QuestionGeneratorService(
     }
 
     fun evaluate(req: EvaluateRequest): EvaluateData {
+        log.info("[QUESTION] 채점 요청 - type=${req.questionType}, wordId=${req.wordId}")
         val word = wordRepository.findById(req.wordId)
             .orElseThrow { AppException(ErrorCode.WORD_NOT_FOUND) }
 
         return when (req.questionType) {
             "spelling", "anagram" -> {
                 val correct = req.userAnswer.trim().equals(word.englishWord, ignoreCase = true)
+                log.info("[QUESTION] 채점 완료 - type=${req.questionType}, wordId=${req.wordId}, correct=$correct")
                 if (correct) {
                     EvaluateData(correct = true, score = 100, feedback = "정답입니다!", correctAnswer = word.englishWord)
                 } else {
@@ -152,6 +157,7 @@ class QuestionGeneratorService(
 
             "word_definition", "synonym" -> {
                 val correct = req.userAnswer.trim().equals(req.modelAnswer?.trim(), ignoreCase = true)
+                log.info("[QUESTION] 채점 완료 - type=${req.questionType}, wordId=${req.wordId}, correct=$correct")
                 if (correct) {
                     EvaluateData(correct = true, score = 100, feedback = "정답입니다!", correctAnswer = req.modelAnswer)
                 } else {
@@ -175,6 +181,7 @@ class QuestionGeneratorService(
                     {"correct": true또는false, "score": 실제채점점수, "feedback": "한국어피드백", "correct_answer": "모범답안"}
                 """.trimIndent()
                 val resp = aiChatClient.callJson(prompt, clazz = GptEvaluationResponse::class.java)
+                log.info("[QUESTION] AI 채점 완료 - type=sentence_writing, wordId=${req.wordId}, correct=${resp.correct}, score=${resp.score}")
                 EvaluateData(
                     correct = resp.correct,
                     score = resp.score,
@@ -201,6 +208,7 @@ class QuestionGeneratorService(
                     {"correct": true또는false, "score": 실제채점점수, "feedback": "한국어피드백", "correct_answer": "모범번역"}
                 """.trimIndent()
                 val resp = aiChatClient.callJson(prompt, clazz = GptEvaluationResponse::class.java)
+                log.info("[QUESTION] AI 채점 완료 - type=translation, wordId=${req.wordId}, correct=${resp.correct}, score=${resp.score}")
                 EvaluateData(
                     correct = resp.correct,
                     score = resp.score,

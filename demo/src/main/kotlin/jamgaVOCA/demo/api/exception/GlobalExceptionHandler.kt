@@ -10,6 +10,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
+import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
@@ -17,13 +18,16 @@ import org.springframework.web.servlet.NoHandlerFoundException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     // 커스텀 앱 예외
     @ExceptionHandler(AppException::class)
-    fun handleAppException(e: AppException): ResponseEntity<ApiResponse<Nothing>> =
-        ResponseEntity
+    fun handleAppException(e: AppException): ResponseEntity<ApiResponse<Nothing>> {
+        log.warn("[EXCEPTION] AppException - code=${e.errorCode.code}, message=${e.message}")
+        return ResponseEntity
             .status(e.errorCode.status)
             .body(ApiResponse.error(e.errorCode.code, e.message))
+    }
 
 //    // JWT 만료
 //    @ExceptionHandler(ExpiredJwtException::class)
@@ -100,8 +104,10 @@ class GlobalExceptionHandler {
 
     // 나머지 모든 예외
     @ExceptionHandler(Exception::class)
-    fun handleGeneral(e: Exception): ResponseEntity<ApiResponse<Nothing>> =
-        ResponseEntity
+    fun handleGeneral(e: Exception): ResponseEntity<ApiResponse<Nothing>> {
+        log.error("[EXCEPTION] 처리되지 않은 예외 - ${e.javaClass.simpleName}: ${e.message}", e)
+        return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR.code, ErrorCode.INTERNAL_SERVER_ERROR.message))
+    }
 }
