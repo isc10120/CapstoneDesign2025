@@ -76,11 +76,12 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- 문제 카드 -->
+            <!-- 문제 유형 안내 -->
             <TextView
+                android:id="@+id/tv_question_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="다음 한국어 문장을 영어로 번역하세요:"
+                android:text="문제 로딩 중..."
                 android:textSize="13sp"
                 android:textColor="#7A5800"
                 android:layout_marginBottom="8dp" />
@@ -118,11 +119,58 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- 답안 입력 -->
-            <com.google.android.material.textfield.TextInputLayout
+            <!-- 객관식 선택지 (word_definition, synonym 유형) -->
+            <LinearLayout
+                android:id="@+id/ll_options"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="영어로 번역하세요"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp">
+
+                <Button
+                    android:id="@+id/btn_option_0"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:backgroundTint="@color/white"
+                    android:textColor="@color/main_navy"
+                    android:text="" />
+
+                <Button
+                    android:id="@+id/btn_option_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:backgroundTint="@color/white"
+                    android:textColor="@color/main_navy"
+                    android:text="" />
+
+                <Button
+                    android:id="@+id/btn_option_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:backgroundTint="@color/white"
+                    android:textColor="@color/main_navy"
+                    android:text="" />
+
+                <Button
+                    android:id="@+id/btn_option_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/white"
+                    android:textColor="@color/main_navy"
+                    android:text="" />
+
+            </LinearLayout>
+
+            <!-- 주관식 답안 입력 (spelling, anagram, translation, sentence_writing 유형) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="답을 입력하세요"
                 android:layout_marginBottom="8dp"
                 app:boxBackgroundColor="@color/white"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">

@@ -5,9 +5,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.api.SkillCache
-import com.example.zamgavocafront.api.dto.CreateQuestionRequest
-import com.example.zamgavocafront.api.dto.EvaluateRequest
+import com.example.zamgavocafront.api.dto.CollectSkillRequest
+import com.example.zamgavocafront.api.dto.EvaluateNewRequest
 import com.example.zamgavocafront.api.dto.PvpSkillRequest
+import com.example.zamgavocafront.api.dto.QuestionRequest
+import com.example.zamgavocafront.api.dto.QuestionResponse
 import com.example.zamgavocafront.api.dto.SkillResponse
 import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.pvp.CollectedCardManager
@@ -20,7 +22,12 @@ import kotlinx.coroutines.launch
 sealed class PvpQuestionUiState {
     object Idle : PvpQuestionUiState()
     object LoadingQuestion : PvpQuestionUiState()
-    data class QuestionReady(val koreanSentence: String, val hint: String) : PvpQuestionUiState()
+    data class QuestionReady(
+        val question: String,
+        val hint: String?,
+        val questionType: String,
+        val options: List<String>? = null
+    ) : PvpQuestionUiState()
     object Evaluating : PvpQuestionUiState()
     data class Correct(
         val score: Int,
@@ -50,10 +57,8 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
     var wordMeaning: String = ""
     var skillId: Long? = null
     var difficulty: Difficulty = Difficulty.MEDIUM
-    var userLevel: String = "intermediate"
 
-    private var koreanSentence = ""
-    private var idealTranslation = ""
+    private var currentQuestion: QuestionResponse? = null
 
     fun refreshAttacks() {
         _attacksLeft.value = PvpWordManager.getAttacksLeft(getApplication())
@@ -65,31 +70,40 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
         _uiState.value = PvpQuestionUiState.LoadingQuestion
         viewModelScope.launch {
             try {
-                // 문제생성 API 미구현 → Mock 사용
-                val response = ApiClient.mockApi.createQuestion(
-                    CreateQuestionRequest(targetWord = wordText, userLevel = userLevel)
+                val questionType = QUESTION_TYPES.random()
+                val response = ApiClient.api.generateQuestion(questionType, QuestionRequest(wordId.toLong())).data
+                    ?: throw Exception("서버 응답 데이터가 없습니다")
+                currentQuestion = response
+                _uiState.value = PvpQuestionUiState.QuestionReady(
+                    question = buildQuestionText(response),
+                    hint = buildHintText(response),
+                    questionType = response.questionType,
+                    options = response.options
                 )
-                if (response.success) {
-                    koreanSentence = response.koreanSentence ?: ""
-                    idealTranslation = response.ideal ?: ""
-                    _uiState.value = PvpQuestionUiState.QuestionReady(
-                        koreanSentence = koreanSentence,
-                        hint = response.wordHint?.let { "힌트: $it" } ?: ""
-                    )
-                } else {
-                    _uiState.value = PvpQuestionUiState.Error("문제 생성 실패: ${response.error}")
-                }
             } catch (e: Exception) {
                 _uiState.value = PvpQuestionUiState.Error(
-                    "네트워크 오류: ${e.message}\n\n(백엔드 서버가 실행 중인지 확인하세요)"
+                    "문제 생성 실패: ${e.message}\n\n(백엔드 서버가 실행 중인지 확인하세요)"
                 )
             }
         }
     }
 
+    private fun buildQuestionText(q: QuestionResponse): String = buildString {
+        append(q.question)
+        if (!q.blankedWord.isNullOrBlank()) append("\n\n${q.blankedWord}")
+        else if (!q.shuffledLetters.isNullOrBlank()) append("\n\n${q.shuffledLetters}")
+    }
+
+    private fun buildHintText(q: QuestionResponse): String? {
+        val isObjective = q.questionType.uppercase() in setOf("SYNONYM", "WORD_DEFINITION")
+        if (isObjective) return "단어: ${q.word}"
+        return q.hint?.takeIf { it.isNotBlank() }?.let { "힌트: $it" }
+    }
+
     fun submitAnswer(userAnswer: String) {
-        if (userAnswer.isBlank() || koreanSentence.isEmpty()) return
+        if (userAnswer.isBlank()) return
         if (_uiState.value is PvpQuestionUiState.Evaluating) return
+        val question = currentQuestion ?: return
 
         _uiState.value = PvpQuestionUiState.Evaluating
         val context = getApplication<Application>()
@@ -98,24 +112,21 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
 
         viewModelScope.launch {
             try {
-                // 채점 API 미구현 → Mock 사용
-                val evalResponse = ApiClient.mockApi.evaluate(
-                    EvaluateRequest(
-                        koreanSentence = koreanSentence,
+                val evalResponse = ApiClient.api.evaluateNewAnswer(
+                    EvaluateNewRequest(
+                        wordId = wordId.toLong(),
+                        questionType = question.questionType,
                         userAnswer = userAnswer,
-                        idealTranslation = idealTranslation,
-                        targetWord = wordText,
-                        userLevel = userLevel
+                        modelAnswer = question.answer
                     )
-                )
-                val score = evalResponse.score ?: 0
-                if (score >= PASS_SCORE) {
-                    handleCorrect(score)
+                ).data ?: throw Exception("채점 응답 데이터가 없습니다")
+                if (evalResponse.correct) {
+                    handleCorrect(evalResponse.score)
                 } else {
                     _uiState.value = PvpQuestionUiState.Wrong(
-                        score = score,
+                        score = evalResponse.score,
                         feedback = evalResponse.feedback,
-                        correction = evalResponse.correction
+                        correction = evalResponse.correctAnswer
                     )
                 }
             } catch (e: Exception) {
@@ -132,30 +143,28 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
         val context = getApplication<Application>()
         PvpWordManager.markWordUsed(context, wordId)
 
-        // 스킬 이미지/상세 정보 (다이얼로그 표시용)
         val skill = runCatching {
             SkillCache.fetchOrGenerate(wordId, skillId, wordText, wordMeaning)
         }.getOrNull()
 
-        // pvp/skill 호출 — 서버에서 데미지 적용 + 스킬 수집 처리
         var pvpDamage: Int? = null
         var effectType: String? = null
         var effectTurns: Int? = null
         if (skillId != null) {
             val pvpResp = runCatching {
-                ApiClient.api.usePvpSkill(
-                    PvpSkillRequest(skillId = skillId!!, wordId = wordId.toLong())
-                )
+                ApiClient.api.usePvpSkill(PvpSkillRequest(skillId = skillId!!, wordId = wordId.toLong()))
             }.getOrNull()?.data
             pvpDamage = pvpResp?.damageDealt
             effectType = pvpResp?.statusApplied?.type
             effectTurns = pvpResp?.statusApplied?.turns
         }
 
-        // 로컬 데미지 누적 (다이얼로그 총 데미지 표시용)
         PvpWordManager.addDamage(context, pvpDamage ?: skill?.damage ?: 50)
 
         if (skill != null) {
+            runCatching {
+                ApiClient.api.collectSkill(CollectSkillRequest(skillId = skill.skillId, wordId = wordId.toLong()))
+            }
             CollectedCardManager.addCard(
                 context,
                 CollectedCardManager.CollectedCard(
@@ -189,5 +198,8 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
 
     companion object {
         private const val PASS_SCORE = 60
+        private val QUESTION_TYPES = listOf(
+            "spelling", "anagram", "word_definition", "synonym"
+        )
     }
 }

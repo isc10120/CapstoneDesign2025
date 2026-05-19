@@ -29,6 +29,12 @@ object ApiClient {
     var refreshToken: String? = null
         private set
 
+    private var appContext: android.content.Context? = null
+
+    fun init(context: android.content.Context) {
+        appContext = context.applicationContext
+    }
+
     fun setTokens(access: String, refresh: String) {
         accessToken = access
         refreshToken = refresh
@@ -75,7 +81,11 @@ object ApiClient {
             val responseBody = response.body?.string() ?: return null
             val parsed = gson.fromJson(responseBody, JsonObject::class.java)
             val newToken = parsed?.getAsJsonObject("data")?.get("accessToken")?.asString
-            if (newToken != null) accessToken = newToken
+            if (newToken != null) {
+                accessToken = newToken
+                appContext?.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
+                    ?.edit()?.putString("accessToken", newToken)?.apply()
+            }
             newToken
         } catch (e: Exception) {
             null
@@ -96,7 +106,7 @@ object ApiClient {
             }
             var response = chain.proceed(request)
 
-            if (response.code in listOf(401, 404) && refreshToken != null) {
+            if (response.code == 401 && refreshToken != null) {
                 response.close()
                 val newToken = tryRefreshSync()
                 val retryRequest = chain.request().newBuilder().apply {

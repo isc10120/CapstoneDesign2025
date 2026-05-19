@@ -85,9 +85,10 @@
 
         <!-- 문제 안내 -->
         <TextView
+            android:id="@+id/tv_question_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="✏ 다음 한국어 문장을 영어로 번역하세요:"
+            android:text="✏ 문제 로딩 중..."
             android:textSize="13sp"
             android:textColor="#AAAACC"
             android:layout_marginBottom="10dp" />
@@ -127,11 +128,57 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- 답안 입력 -->
-        <com.google.android.material.textfield.TextInputLayout
+        <!-- 객관식 선택지 -->
+        <LinearLayout
+            android:id="@+id/ll_options"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="영어로 번역하세요"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp">
+
+            <Button
+                android:id="@+id/btn_option_0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:backgroundTint="#2A2A4E"
+                android:textColor="@color/white"
+                android:text="" />
+
+            <Button
+                android:id="@+id/btn_option_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:backgroundTint="#2A2A4E"
+                android:textColor="@color/white"
+                android:text="" />
+
+            <Button
+                android:id="@+id/btn_option_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:backgroundTint="#2A2A4E"
+                android:textColor="@color/white"
+                android:text="" />
+
+            <Button
+                android:id="@+id/btn_option_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#2A2A4E"
+                android:textColor="@color/white"
+                android:text="" />
+        </LinearLayout>
+
+        <!-- 답안 입력 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_answer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="답을 입력하세요"
             android:layout_marginBottom="8dp"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 

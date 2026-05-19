@@ -86,10 +86,10 @@ interface ZamgaVocaApiService {
     suspend fun generateQuestion(
         @Path("questionType") questionType: String,
         @Body req: QuestionRequest
-    ): QuestionResponse
+    ): ApiResponse<QuestionResponse>
 
     @POST("api/v1/question-generation/evaluate")
-    suspend fun evaluateNewAnswer(@Body req: EvaluateNewRequest): EvaluateNewResponse
+    suspend fun evaluateNewAnswer(@Body req: EvaluateNewRequest): ApiResponse<EvaluateNewResponse>
 
     // ───── /api/v1 Auth API ─────
 
