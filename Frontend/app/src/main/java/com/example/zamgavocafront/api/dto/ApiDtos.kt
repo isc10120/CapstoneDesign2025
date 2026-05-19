@@ -228,7 +228,7 @@ data class EvaluateNewRequest(
     val wordId: Long,
     val questionType: String,
     val userAnswer: String,
-    val prompt: String
+    val modelAnswer: String? = null
 )
 
 data class EvaluateNewResponse(

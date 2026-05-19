@@ -233,26 +233,26 @@ class MockApiService : ZamgaVocaApiService {
     override suspend fun generateQuestion(
         questionType: String,
         req: QuestionRequest
-    ): QuestionResponse {
+    ): ApiResponse<QuestionResponse> {
         val word = WordRepository.allWords.find { it.id.toLong() == req.wordId }
-        return QuestionResponse(
-            questionType = "TRANSLATION",
+        return ApiResponse(success = true, data = QuestionResponse(
+            questionType = "translation",
             wordId = req.wordId,
             word = word?.word ?: "word",
             question = word?.exampleKr ?: "다음 단어를 영어로 쓰세요.",
             hint = word?.word
-        )
+        ))
     }
 
-    override suspend fun evaluateNewAnswer(req: EvaluateNewRequest): EvaluateNewResponse {
+    override suspend fun evaluateNewAnswer(req: EvaluateNewRequest): ApiResponse<EvaluateNewResponse> {
         val word = WordRepository.allWords.find { it.id.toLong() == req.wordId }
         val correct = word != null && req.userAnswer.contains(word.word, ignoreCase = true)
-        return EvaluateNewResponse(
+        return ApiResponse(success = true, data = EvaluateNewResponse(
             correct = correct,
             score = if (correct) 80 else 25,
             feedback = if (correct) "정답!" else "다시 시도해보세요.",
             correctAnswer = word?.exampleEn
-        )
+        ))
     }
 
     // ── /api/v1 Auth API ──────────────────────────────────────────────

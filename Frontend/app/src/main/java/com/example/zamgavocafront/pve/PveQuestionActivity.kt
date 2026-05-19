@@ -18,6 +18,7 @@ import coil.load
 import com.example.zamgavocafront.R
 import com.example.zamgavocafront.viewmodel.PveQuestionUiState
 import com.example.zamgavocafront.viewmodel.PveQuestionViewModel
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 
 class PveQuestionActivity : AppCompatActivity() {
@@ -38,12 +39,26 @@ class PveQuestionActivity : AppCompatActivity() {
     private lateinit var tvCardGrade: TextView
     private lateinit var tvCardEffect: TextView
     private lateinit var tvCardDamage: TextView
+    private lateinit var tvQuestionLabel: TextView
     private lateinit var tvKoreanSentence: TextView
     private lateinit var tvWordHint: TextView
+    private lateinit var tilAnswer: TextInputLayout
+    private lateinit var llOptions: LinearLayout
     private lateinit var etAnswer: EditText
     private lateinit var btnSubmit: Button
     private lateinit var btnSkip: Button
     private lateinit var tvFeedback: TextView
+
+    private val optionButtons: List<Button> by lazy {
+        listOf(
+            findViewById(R.id.btn_option_0),
+            findViewById(R.id.btn_option_1),
+            findViewById(R.id.btn_option_2),
+            findViewById(R.id.btn_option_3)
+        )
+    }
+
+    private var isMultipleChoice = false
 
     // Intent에서 받아온 스킬 카드 표시용 정보
     private var skillName = ""
@@ -61,13 +76,6 @@ class PveQuestionActivity : AppCompatActivity() {
         // 스킬 카드 표시용 (ViewModel 불필요 — 화면에만 표시)
         skillName  = intent.getStringExtra(EXTRA_SKILL_NAME) ?: viewModel.wordText
         skillGrade = intent.getStringExtra(EXTRA_SKILL_GRADE) ?: "동급"
-
-        // 카드 등급 → 퀴즈 난이도 변환
-        viewModel.userLevel = when (skillGrade) {
-            "금급" -> "advanced"
-            "은급" -> "intermediate"
-            else   -> "beginner"
-        }
         skillDamage = intent.getIntExtra(EXTRA_SKILL_DAMAGE, 50)
         val effectTypeName = intent.getStringExtra(EXTRA_EFFECT_TYPE) ?: "ATTACK"
 
@@ -75,8 +83,11 @@ class PveQuestionActivity : AppCompatActivity() {
         tvCardGrade      = findViewById(R.id.tv_card_grade)
         tvCardEffect     = findViewById(R.id.tv_card_effect)
         tvCardDamage     = findViewById(R.id.tv_card_damage)
+        tvQuestionLabel  = findViewById(R.id.tv_question_label)
         tvKoreanSentence = findViewById(R.id.tv_korean_sentence)
         tvWordHint       = findViewById(R.id.tv_word_hint)
+        tilAnswer        = findViewById(R.id.til_answer)
+        llOptions        = findViewById(R.id.ll_options)
         etAnswer         = findViewById(R.id.et_answer)
         btnSubmit        = findViewById(R.id.btn_submit)
         btnSkip          = findViewById(R.id.btn_skip)
@@ -124,26 +135,44 @@ class PveQuestionActivity : AppCompatActivity() {
             is PveQuestionUiState.Idle -> Unit
 
             is PveQuestionUiState.LoadingQuestion -> {
-                tvKoreanSentence.text = "문제 로딩 중..."
-                tvWordHint.text = ""
+                tvQuestionLabel.text = "✏ 문제 생성 중..."
+                tvKoreanSentence.text = "잠시만 기다려 주세요."
+                tvWordHint.visibility = View.GONE
                 btnSubmit.isEnabled = false
+                llOptions.visibility = View.GONE
+                tilAnswer.visibility = View.VISIBLE
                 tvFeedback.visibility = View.GONE
             }
 
             is PveQuestionUiState.QuestionReady -> {
-                tvKoreanSentence.text = state.koreanSentence
+                isMultipleChoice = state.questionType.uppercase() in
+                        setOf("WORD_DEFINITION", "SYNONYM")
+
+                tvQuestionLabel.text = questionTypeLabel(state.questionType)
+                tvKoreanSentence.text = state.question
                 tvWordHint.text = state.hint
+                tvWordHint.visibility = if (state.hint.isNotEmpty()) View.VISIBLE else View.GONE
+
+                tilAnswer.visibility = if (isMultipleChoice) View.GONE else View.VISIBLE
+                btnSubmit.visibility = if (isMultipleChoice) View.GONE else View.VISIBLE
+                llOptions.visibility = if (isMultipleChoice) View.VISIBLE else View.GONE
+
+                if (isMultipleChoice && !state.options.isNullOrEmpty()) {
+                    setupOptions(state.options)
+                }
+
                 btnSubmit.isEnabled = true
+                btnSubmit.text = "스킬 발동!"
                 tvFeedback.visibility = View.GONE
             }
 
             is PveQuestionUiState.Evaluating -> {
                 btnSubmit.isEnabled = false
+                optionButtons.forEach { it.isEnabled = false }
                 tvFeedback.visibility = View.GONE
             }
 
             is PveQuestionUiState.Correct -> {
-                // 상태를 먼저 소비해 앱 복귀 시 다이얼로그 중복 표시 방지
                 viewModel.onCorrectConsumed()
                 showSkillActivationDialog(imageUrl = state.imageUrl, imageBase64 = state.imageBase64)
             }
@@ -156,8 +185,12 @@ class PveQuestionActivity : AppCompatActivity() {
                 tvFeedback.setBackgroundColor(ContextCompat.getColor(this, R.color.color_feedback_wrong_bg))
                 tvFeedback.setTextColor(ContextCompat.getColor(this, R.color.color_feedback_wrong_text))
                 tvFeedback.visibility = View.VISIBLE
-                btnSubmit.isEnabled = true
-                btnSubmit.text = "다시 도전!"
+                if (isMultipleChoice) {
+                    optionButtons.forEach { it.isEnabled = true }
+                } else {
+                    btnSubmit.isEnabled = true
+                    btnSubmit.text = "다시 도전!"
+                }
             }
 
             is PveQuestionUiState.Error -> {
@@ -165,6 +198,29 @@ class PveQuestionActivity : AppCompatActivity() {
                 btnSubmit.isEnabled = true
             }
         }
+    }
+
+    private fun setupOptions(options: List<String>) {
+        optionButtons.forEachIndexed { index, btn ->
+            if (index < options.size) {
+                btn.text = options[index]
+                btn.isEnabled = true
+                btn.visibility = View.VISIBLE
+                btn.setOnClickListener { viewModel.submitAnswer("$index") }
+            } else {
+                btn.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun questionTypeLabel(questionType: String): String = when (questionType.uppercase()) {
+        "SPELLING"         -> "✏ 빈칸에 알맞은 글자를 채워 단어를 완성하세요:"
+        "ANAGRAM"          -> "✏ 섞인 글자를 올바른 순서로 배열하세요:"
+        "WORD_DEFINITION"  -> "✏ 올바른 뜻을 고르세요:"
+        "SYNONYM"          -> "✏ 올바른 유의어를 고르세요:"
+        "SENTENCE_WRITING" -> "✏ 다음 상황에 맞게 영어 문장을 작성하세요:"
+        "TRANSLATION"      -> "✏ 다음 한국어 문장을 영어로 번역하세요:"
+        else               -> "✏ 답을 입력하세요:"
     }
 
     private fun showSkillActivationDialog(imageUrl: String?, imageBase64: String?) {

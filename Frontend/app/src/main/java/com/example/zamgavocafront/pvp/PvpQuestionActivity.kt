@@ -14,61 +14,73 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.zamgavocafront.R
 import coil.load
+import com.example.zamgavocafront.R
 import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.viewmodel.PvpQuestionUiState
 import com.example.zamgavocafront.viewmodel.PvpQuestionViewModel
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 
 class PvpQuestionActivity : AppCompatActivity() {
 
     companion object {
-        const val EXTRA_WORD_ID = "word_id"
-        const val EXTRA_WORD_TEXT = "word_text"
+        const val EXTRA_WORD_ID      = "word_id"
+        const val EXTRA_WORD_TEXT    = "word_text"
         const val EXTRA_WORD_MEANING = "word_meaning"
-        const val EXTRA_DIFFICULTY = "difficulty"
-        const val EXTRA_SKILL_ID = "skill_id"
+        const val EXTRA_DIFFICULTY   = "difficulty"
+        const val EXTRA_SKILL_ID     = "skill_id"
     }
 
     private val viewModel: PvpQuestionViewModel by viewModels()
 
     private lateinit var tvWordHeader: TextView
     private lateinit var tvGradeBadge: TextView
+    private lateinit var tvQuestionLabel: TextView
     private lateinit var tvKoreanSentence: TextView
     private lateinit var tvWordHint: TextView
     private lateinit var tvAttacksInfo: TextView
+    private lateinit var tilAnswer: TextInputLayout
     private lateinit var etAnswer: EditText
+    private lateinit var llOptions: LinearLayout
     private lateinit var btnSubmit: Button
     private lateinit var tvFeedback: TextView
+
+    private val optionButtons: List<Button> by lazy {
+        listOf(
+            findViewById(R.id.btn_option_0),
+            findViewById(R.id.btn_option_1),
+            findViewById(R.id.btn_option_2),
+            findViewById(R.id.btn_option_3)
+        )
+    }
+
+    private var isMultipleChoice = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pvp_question)
 
-        // ViewModel에 Intent 값 전달
-        viewModel.wordId = intent.getIntExtra(EXTRA_WORD_ID, 0)
-        viewModel.wordText = intent.getStringExtra(EXTRA_WORD_TEXT) ?: ""
+        viewModel.wordId     = intent.getIntExtra(EXTRA_WORD_ID, 0)
+        viewModel.wordText   = intent.getStringExtra(EXTRA_WORD_TEXT) ?: ""
         viewModel.wordMeaning = intent.getStringExtra(EXTRA_WORD_MEANING) ?: ""
-        viewModel.skillId = intent.getLongExtra(EXTRA_SKILL_ID, -1L).takeIf { it >= 0 }
+        viewModel.skillId    = intent.getLongExtra(EXTRA_SKILL_ID, -1L).takeIf { it >= 0 }
         viewModel.difficulty = intent.getStringExtra(EXTRA_DIFFICULTY)
             ?.let { runCatching { Difficulty.valueOf(it) }.getOrNull() } ?: Difficulty.MEDIUM
-        viewModel.userLevel = when (viewModel.difficulty) {
-            Difficulty.EASY -> "beginner"
-            Difficulty.MEDIUM -> "intermediate"
-            Difficulty.HARD -> "advanced"
-        }
 
-        tvWordHeader = findViewById(R.id.tv_word_header)
-        tvGradeBadge = findViewById(R.id.tv_grade_badge)
+        tvWordHeader    = findViewById(R.id.tv_word_header)
+        tvGradeBadge    = findViewById(R.id.tv_grade_badge)
+        tvQuestionLabel = findViewById(R.id.tv_question_label)
         tvKoreanSentence = findViewById(R.id.tv_korean_sentence)
-        tvWordHint = findViewById(R.id.tv_word_hint)
-        tvAttacksInfo = findViewById(R.id.tv_attacks_info)
-        etAnswer = findViewById(R.id.et_answer)
-        btnSubmit = findViewById(R.id.btn_submit)
-        tvFeedback = findViewById(R.id.tv_feedback)
+        tvWordHint      = findViewById(R.id.tv_word_hint)
+        tvAttacksInfo   = findViewById(R.id.tv_attacks_info)
+        tilAnswer       = findViewById(R.id.til_answer)
+        etAnswer        = findViewById(R.id.et_answer)
+        llOptions       = findViewById(R.id.ll_options)
+        btnSubmit       = findViewById(R.id.btn_submit)
+        tvFeedback      = findViewById(R.id.tv_feedback)
 
-        tvWordHeader.text = "단어: ${viewModel.wordText}"
+        tvWordHeader.visibility = View.GONE
         tvGradeBadge.text = viewModel.difficulty.grade()
         tvGradeBadge.backgroundTintList =
             ColorStateList.valueOf(ContextCompat.getColor(this, viewModel.difficulty.gradeColorRes()))
@@ -79,18 +91,13 @@ class PvpQuestionActivity : AppCompatActivity() {
                 Toast.makeText(this, "답을 입력해주세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            if (viewModel.uiState.value is PvpQuestionUiState.LoadingQuestion) {
-                Toast.makeText(this, "문제를 먼저 로딩해주세요", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
             viewModel.submitAnswer(answer)
         }
         findViewById<ImageButton>(R.id.btn_close).setOnClickListener { finish() }
 
-        // UI 상태 관찰
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state -> renderState(state) }
+                viewModel.uiState.collect { renderState(it) }
             }
         }
         lifecycleScope.launch {
@@ -115,27 +122,44 @@ class PvpQuestionActivity : AppCompatActivity() {
             is PvpQuestionUiState.Idle -> Unit
 
             is PvpQuestionUiState.LoadingQuestion -> {
-                tvKoreanSentence.text = "문제 로딩 중..."
-                tvWordHint.text = ""
+                tvQuestionLabel.text = "문제 생성 중..."
+                tvKoreanSentence.text = "잠시만 기다려 주세요."
+                tvWordHint.visibility = View.GONE
                 btnSubmit.isEnabled = false
+                llOptions.visibility = View.GONE
+                tilAnswer.visibility = View.VISIBLE
                 tvFeedback.visibility = View.GONE
             }
 
             is PvpQuestionUiState.QuestionReady -> {
-                tvKoreanSentence.text = state.koreanSentence
-                tvWordHint.text = state.hint
+                isMultipleChoice = state.questionType.uppercase() in
+                        setOf("WORD_DEFINITION", "SYNONYM")
+
+                tvQuestionLabel.text = questionTypeLabel(state.questionType)
+                tvKoreanSentence.text = state.question
+                tvWordHint.text = state.hint ?: ""
+                tvWordHint.visibility = if (state.hint != null) View.VISIBLE else View.GONE
+
+                tilAnswer.visibility = if (isMultipleChoice) View.GONE else View.VISIBLE
+                btnSubmit.visibility = if (isMultipleChoice) View.GONE else View.VISIBLE
+                llOptions.visibility = if (isMultipleChoice) View.VISIBLE else View.GONE
+
+                if (isMultipleChoice && !state.options.isNullOrEmpty()) {
+                    setupOptions(state.options, enabled = viewModel.attacksLeft.value > 0)
+                }
+
                 btnSubmit.isEnabled = viewModel.attacksLeft.value > 0
-                btnSubmit.text = if (viewModel.attacksLeft.value > 0) "제출" else "공격 횟수 소진"
+                btnSubmit.text = if (viewModel.attacksLeft.value > 0) "제출 (공격!)" else "공격 횟수 소진"
                 tvFeedback.visibility = View.GONE
             }
 
             is PvpQuestionUiState.Evaluating -> {
                 btnSubmit.isEnabled = false
+                optionButtons.forEach { it.isEnabled = false }
                 tvFeedback.visibility = View.GONE
             }
 
             is PvpQuestionUiState.Correct -> {
-                // 상태를 먼저 소비해 앱 복귀 시 다이얼로그 중복 표시 방지
                 viewModel.onCorrectConsumed()
                 if (state.skill != null) showSkillCardDialog(state)
                 else showCorrectFallback(state.score)
@@ -144,15 +168,20 @@ class PvpQuestionActivity : AppCompatActivity() {
             is PvpQuestionUiState.Wrong -> {
                 val sb = StringBuilder("❌ 오답! (점수: ${state.score} / 100)\n")
                 state.feedback?.let { sb.append("\n피드백: $it") }
-                state.correction?.let { sb.append("\n수정: $it") }
+                state.correction?.let { sb.append("\n정답: $it") }
                 tvFeedback.text = sb.toString()
                 tvFeedback.setBackgroundColor(ContextCompat.getColor(this, R.color.color_feedback_wrong_bg))
                 tvFeedback.setTextColor(ContextCompat.getColor(this, R.color.color_feedback_wrong_text))
                 tvFeedback.visibility = View.VISIBLE
+
                 val left = viewModel.attacksLeft.value
                 if (left > 0) {
-                    btnSubmit.isEnabled = true
-                    btnSubmit.text = "다시 도전! (${left}회 남음)"
+                    if (isMultipleChoice) {
+                        optionButtons.forEach { it.isEnabled = true }
+                    } else {
+                        btnSubmit.isEnabled = true
+                        btnSubmit.text = "다시 도전! (${left}회 남음)"
+                    }
                 }
             }
 
@@ -170,6 +199,29 @@ class PvpQuestionActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupOptions(options: List<String>, enabled: Boolean) {
+        optionButtons.forEachIndexed { index, btn ->
+            if (index < options.size) {
+                btn.text = options[index]
+                btn.isEnabled = enabled
+                btn.visibility = View.VISIBLE
+                btn.setOnClickListener { viewModel.submitAnswer(options[index]) }
+            } else {
+                btn.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun questionTypeLabel(questionType: String): String = when (questionType.uppercase()) {
+        "SPELLING"         -> "빈칸에 알맞은 글자를 채워 단어를 완성하세요:"
+        "ANAGRAM"          -> "섞인 글자를 올바른 순서로 배열하세요:"
+        "WORD_DEFINITION"  -> "올바른 뜻을 고르세요:"
+        "SYNONYM"          -> "올바른 유의어를 고르세요:"
+        "SENTENCE_WRITING" -> "다음 상황에 맞게 영어 문장을 작성하세요:"
+        "TRANSLATION"      -> "다음 한국어 문장을 영어로 번역하세요:"
+        else               -> "답을 입력하세요:"
+    }
+
     private fun showSkillCardDialog(state: PvpQuestionUiState.Correct) {
         val skill = state.skill ?: return
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_skill_card, null)
@@ -183,7 +235,6 @@ class PvpQuestionActivity : AppCompatActivity() {
         val tvTotal     = dialogView.findViewById<TextView>(R.id.tv_total_damage)
         val tvCollected = dialogView.findViewById<TextView>(R.id.tv_collected_badge)
 
-        // 등급에 맞는 카드 프레임 설정
         ivFrame.setImageResource(viewModel.difficulty.frameDrawableRes())
 
         when {
@@ -204,8 +255,7 @@ class PvpQuestionActivity : AppCompatActivity() {
         tvDamage.text = "+$displayDamage 데미지!"
         tvEffect.text = if (state.effectType != null && state.effectTurns != null)
             "부가효과: ${state.effectType} ${state.effectTurns}턴"
-        else
-            "부가효과: X"
+        else "부가효과: X"
         tvTotal.text = "누적 데미지: ${PvpWordManager.getTotalDamage(this)}"
         tvCollected.text = "📦 '${skill.name}' 카드 수집 완료"
 
@@ -225,6 +275,7 @@ class PvpQuestionActivity : AppCompatActivity() {
         tvFeedback.setTextColor(ContextCompat.getColor(this, R.color.color_feedback_correct_text))
         tvFeedback.visibility = View.VISIBLE
         btnSubmit.isEnabled = true
+        btnSubmit.visibility = View.VISIBLE
         btnSubmit.text = "닫기"
         btnSubmit.setOnClickListener { finish() }
     }
