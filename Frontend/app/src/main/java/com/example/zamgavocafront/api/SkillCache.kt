@@ -15,8 +15,8 @@ object SkillCache {
     private val cache = ConcurrentHashMap<Int, SkillResponse>()
 
     /**
-     * wordId 기준으로 캐시 확인 → 없으면 skillId로 GET /api/v1/skill-info 조회.
-     * skillId가 null이면 null 반환 (스킬 미생성 또는 아직 week-collected 미달).
+     * wordId 기준으로 캐시 확인 → skillId로 GET /api/v1/skill-info 조회.
+     * skillId가 null이면 week-collected-list를 재조회해 백엔드 비동기 생성 완료 여부를 확인한다.
      */
     suspend fun fetchOrGenerate(wordId: Int, skillId: Long?, word: String, meaning: String): SkillResponse? {
         cache[wordId]?.let { return it }
@@ -33,7 +33,24 @@ object SkillCache {
             }
         }
 
-        // 2) skillId 없거나 조회 실패 → 스킬 직접 생성
+        // 2) skillId가 없거나 조회 실패: week-collected-list 재조회로 백엔드 비동기 생성 완료 확인
+        val freshSkillId = runCatching {
+            val listResp = ApiClient.api.getWeekCollectedList()
+            listResp.data?.find { it.id == wordId.toLong() }?.skillId
+        }.getOrNull()
+
+        if (freshSkillId != null) {
+            val fromServer = runCatching {
+                val resp = ApiClient.api.getSkillInfo(freshSkillId)
+                if (resp.success && resp.data != null) resp.data else null
+            }.getOrNull()
+            if (fromServer != null) {
+                cache[wordId] = fromServer
+                return fromServer
+            }
+        }
+
+        // 3) 여전히 스킬 없으면 직접 생성 (fallback)
         if (meaning.isBlank()) return null
         return runCatching {
             val gen = ApiClient.api.generateSkill(SkillGenerateRequest(word = word, meaningKo = meaning))

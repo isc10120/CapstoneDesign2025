@@ -50,6 +50,7 @@ class TodayWordFragment : Fragment() {
         tvTooltip = view.findViewById(R.id.tv_today_tooltip)
         tvTooltip.text = tips[Random.nextInt(tips.size)]
 
+
         adapter = WordAdapter(emptyList()) { word -> showWordDetailDialog(word) }
 
         view.findViewById<RecyclerView>(R.id.rv_words).apply {

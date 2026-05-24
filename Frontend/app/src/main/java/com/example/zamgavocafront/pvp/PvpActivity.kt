@@ -68,7 +68,7 @@ class PvpActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refreshStats()
-        viewModel.loadPvpWords(filterUsed = false)
+        viewModel.loadPvpWords()
     }
 
     private fun refreshStats() {

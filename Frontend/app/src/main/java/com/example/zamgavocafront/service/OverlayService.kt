@@ -6,9 +6,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
+import android.provider.Settings
 import android.view.WindowManager
 import com.example.zamgavocafront.AlarmScheduler
 import com.example.zamgavocafront.MainActivity
@@ -26,6 +25,7 @@ import kotlinx.coroutines.withContext
 import com.example.zamgavocafront.model.Difficulty
 import com.example.zamgavocafront.model.WordData
 import com.example.zamgavocafront.overlay.MorningOverlayManager
+import com.example.zamgavocafront.viewmodel.TodayWordViewModel
 import com.example.zamgavocafront.overlay.NudgeBounceOverlayManager
 import com.example.zamgavocafront.overlay.NudgeDragOverlayManager
 import com.example.zamgavocafront.overlay.NudgeTapOverlayManager
@@ -57,22 +57,14 @@ class OverlayService : Service() {
     private var nudgeTapOverlay: NudgeTapOverlayManager? = null
     private var nudgeBounceOverlay: NudgeBounceOverlayManager? = null
 
-    private val nudgeHandler = Handler(Looper.getMainLooper())
-    private val nudgeRunnable = object : Runnable {
-        override fun run() {
-            showRandomNudge()
-            scheduleNextNudgeInternal()
-        }
-    }
-
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         createNotificationChannel()
         startForeground(NOTIF_ID, buildNotification())
-        // 서비스 시작 시 넛지 스케줄 복원 (START_STICKY 재시작 포함)
+        // START_STICKY 재시작 시 AlarmManager 알람 복원
         if (AlarmScheduler.isNudgeEnabled(this)) {
-            scheduleNextNudgeInternal()
+            AlarmScheduler.scheduleNextNudgeAlarm(this)
         }
     }
 
@@ -102,6 +94,7 @@ class OverlayService : Service() {
                             withContext(Dispatchers.Main) {
                                 WordRepository.allWords.clear()
                                 WordRepository.allWords.addAll(words)
+                                TodayWordViewModel.updateSessionFromOutside(words, this@OverlayService)
                                 showWordListOverlay(WordRepository.allWords, difficulty)
                             }
                             return@launch
@@ -116,34 +109,16 @@ class OverlayService : Service() {
             ACTION_SHOW_NUDGE_TAP -> pickAvailableWord()?.let { showNudgeTap(it) }
             ACTION_SHOW_NUDGE_BOUNCE -> pickAvailableWord()?.let { showNudgeBounce(it) }
             ACTION_SHOW_NUDGE_RANDOM -> {
-                // AlarmManager 경유 시: 즉시 표시 후 Handler 타이머 리셋
                 showRandomNudge()
-                scheduleNextNudgeInternal()
             }
-            ACTION_START_NUDGE_SCHEDULE -> {
-                // 넛지 활성화 시 Handler 기반 스케줄 시작
-                scheduleNextNudgeInternal()
-            }
-            ACTION_STOP_NUDGE_SCHEDULE -> {
-                nudgeHandler.removeCallbacks(nudgeRunnable)
-            }
+            ACTION_START_NUDGE_SCHEDULE -> { /* 서비스 실행 유지용. AlarmManager가 알람 발동 시 이미 실행 중인 서비스에 전달 가능 */ }
+            ACTION_STOP_NUDGE_SCHEDULE -> { /* AlarmScheduler.stopNudgeSchedule()가 AlarmManager 취소 처리 */ }
             ACTION_STOP -> {
-                nudgeHandler.removeCallbacks(nudgeRunnable)
                 dismissAll()
                 stopSelf()
             }
         }
         return START_STICKY
-    }
-
-    /** 설정된 간격(min~max 분) 후에 넛지를 표시하도록 예약한다. */
-    private fun scheduleNextNudgeInternal() {
-        nudgeHandler.removeCallbacks(nudgeRunnable)
-        if (!AlarmScheduler.isNudgeEnabled(this)) return
-        val (min, max) = AlarmScheduler.getNudgeIntervalMinutes(this)
-        val range = if (min >= max) min..min else min..max
-        val delayMs = range.random() * 60 * 1000L
-        nudgeHandler.postDelayed(nudgeRunnable, delayMs)
     }
 
     /** 완료(카운트 3) 되지 않은 단어 중 랜덤 1개를 반환한다. */
@@ -153,6 +128,7 @@ class OverlayService : Service() {
     }
 
     private fun showMorningOverlay() {
+        if (!Settings.canDrawOverlays(this)) return
         AlarmScheduler.recordMorningShownToday(this)
         morningOverlay?.dismiss()
         morningOverlay = MorningOverlayManager(this, windowManager) { difficulty ->
@@ -178,6 +154,7 @@ class OverlayService : Service() {
                         withContext(Dispatchers.Main) {
                             WordRepository.allWords.clear()
                             WordRepository.allWords.addAll(words)
+                            TodayWordViewModel.updateSessionFromOutside(words, this@OverlayService)
                             showWordListOverlay(WordRepository.allWords, difficulty)
                         }
                         return@launch
@@ -204,11 +181,46 @@ class OverlayService : Service() {
     }
 
     private fun showRandomNudge() {
-        val word = pickAvailableWord() ?: return
-        when ((0..2).random()) {
-            0 -> showNudgeDrag(word)
-            1 -> showNudgeTap(word)
-            else -> showNudgeBounce(word)
+        if (!Settings.canDrawOverlays(this)) return
+        val word = pickAvailableWord()
+        if (word != null) {
+            when ((0..2).random()) {
+                0 -> showNudgeDrag(word)
+                1 -> showNudgeTap(word)
+                else -> showNudgeBounce(word)
+            }
+            return
+        }
+        // allWords가 비어있거나 모든 단어가 완료된 경우 API에서 재로드 후 시도
+        serviceScope.launch {
+            try {
+                val resp = ApiClient.api.getDailyWordList()
+                if (resp.success && !resp.data.isNullOrEmpty()) {
+                    val words = resp.data.map { dto ->
+                        WordData(
+                            id = dto.id.toInt(),
+                            word = dto.word,
+                            meaning = dto.definition,
+                            exampleEn = dto.example,
+                            exampleKr = dto.exampleKor,
+                            difficulty = com.example.zamgavocafront.model.Difficulty.MEDIUM,
+                            skillId = dto.skillId
+                        )
+                    }
+                    withContext(Dispatchers.Main) {
+                        WordRepository.allWords.clear()
+                        WordRepository.allWords.addAll(words)
+                        TodayWordViewModel.updateSessionFromOutside(words, this@OverlayService)
+                        pickAvailableWord()?.let { reloaded ->
+                            when ((0..2).random()) {
+                                0 -> showNudgeDrag(reloaded)
+                                1 -> showNudgeTap(reloaded)
+                                else -> showNudgeBounce(reloaded)
+                            }
+                        }
+                    }
+                }
+            } catch (_: Exception) { }
         }
     }
 
@@ -219,6 +231,7 @@ class OverlayService : Service() {
             val newCount = WordProgressManager.incrementCount(this, word.id)
             if (newCount >= WordProgressManager.MAX_COUNT) {
                 PvpWordManager.addUnlockedWord(this, word.id)
+                cacheUnlockedWord(word)
             }
             syncNudge(word.id, newCount)
         }
@@ -232,6 +245,7 @@ class OverlayService : Service() {
             val newCount = WordProgressManager.incrementCount(this, word.id)
             if (newCount >= WordProgressManager.MAX_COUNT) {
                 PvpWordManager.addUnlockedWord(this, word.id)
+                cacheUnlockedWord(word)
             }
             syncNudge(word.id, newCount)
         }
@@ -245,10 +259,22 @@ class OverlayService : Service() {
             val newCount = WordProgressManager.incrementCount(this, word.id)
             if (newCount >= WordProgressManager.MAX_COUNT) {
                 PvpWordManager.addUnlockedWord(this, word.id)
+                cacheUnlockedWord(word)
             }
             syncNudge(word.id, newCount)
         }
         nudgeBounceOverlay?.show()
+    }
+
+    private fun cacheUnlockedWord(word: WordData) {
+        if (WordRepository.pvpWordCache.none { it.id == word.id }) {
+            WordRepository.pvpWordCache.add(word)
+        }
+        // Persist so the word survives process restart before server sync completes
+        getSharedPreferences("pvp_completed_words", MODE_PRIVATE)
+            .edit()
+            .putString("word_${word.id}", ApiClient.gson.toJson(word))
+            .apply()
     }
 
     // ── 넛지 백엔드 동기화 ──────────────────────────────────────────────────
@@ -259,8 +285,8 @@ class OverlayService : Service() {
         serviceScope.launch {
             val pending = getPendingNudges()
             try {
-                ApiClient.api.updateNudge(pending)
-                clearPendingNudges()
+                val resp = ApiClient.api.updateNudge(pending)
+                if (resp.success) clearPendingNudges()
             } catch (_: Exception) {
                 // 전송 실패 → pending에 남겨두고 다음 nudge 시점에 재시도
             }
@@ -272,16 +298,19 @@ class OverlayService : Service() {
             .edit().putInt("nudge_$wordId", count).apply()
     }
 
-    private fun getPendingNudges(): List<NudgeUpdateRequest> =
-        getSharedPreferences("nudge_pending", MODE_PRIVATE).all
+    private fun getPendingNudges(): List<NudgeUpdateRequest> {
+        // Only send nudges for words in the current session to avoid stale entries
+        // causing DAILY_NUDGE_WORD_NOT_FOUND errors that fail the whole batch
+        val currentIds = WordRepository.allWords.map { it.id.toLong() }.toSet()
+        return getSharedPreferences("nudge_pending", MODE_PRIVATE).all
             .mapNotNull { (key, value) ->
-                if (key.startsWith("nudge_") && value is Int)
-                    NudgeUpdateRequest(
-                        id = key.removePrefix("nudge_").toLongOrNull() ?: return@mapNotNull null,
-                        nudge = value
-                    )
-                else null
+                if (key.startsWith("nudge_") && value is Int) {
+                    val id = key.removePrefix("nudge_").toLongOrNull() ?: return@mapNotNull null
+                    if (currentIds.isNotEmpty() && id !in currentIds) return@mapNotNull null
+                    NudgeUpdateRequest(id = id, nudge = value)
+                } else null
             }
+    }
 
     private fun clearPendingNudges() {
         getSharedPreferences("nudge_pending", MODE_PRIVATE).edit().clear().apply()
@@ -297,7 +326,6 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        nudgeHandler.removeCallbacks(nudgeRunnable)
         dismissAll()
         serviceScope.cancel()
     }

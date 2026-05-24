@@ -89,6 +89,7 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun goToLogin() {
+        ApiClient.init(this)
         ApiClient.loadTokensFromPrefs(this)
         val dest = if (ApiClient.accessToken != null) HomeActivity::class.java else LoginActivity::class.java
         startActivity(Intent(this, dest))

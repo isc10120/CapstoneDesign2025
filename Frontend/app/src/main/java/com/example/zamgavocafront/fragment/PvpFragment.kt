@@ -169,7 +169,7 @@ class PvpFragment : Fragment() {
         super.onResume()
         viewModel.loadBattleStatus()
         viewModel.checkLatestResult()
-        viewModel.loadPvpWords(filterUsed = true)
+        viewModel.loadPvpWords()
         tvAttacksLeft.text = "오늘 잔여 공격 횟수 ${PvpWordManager.getAttacksLeft(requireContext())}"
     }
 

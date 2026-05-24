@@ -270,7 +270,7 @@ class PvpQuestionActivity : AppCompatActivity() {
     }
 
     private fun showCorrectFallback(score: Int) {
-        tvFeedback.text = "✅ 정답! (점수: $score / 100)\n스킬 생성 중 오류가 발생했지만 데미지는 적용되었어요."
+        tvFeedback.text = "✅ 정답! (점수: $score / 100)\n스킬 카드를 불러오지 못했지만 데미지는 적용되었어요."
         tvFeedback.setBackgroundColor(ContextCompat.getColor(this, R.color.color_feedback_correct_bg))
         tvFeedback.setTextColor(ContextCompat.getColor(this, R.color.color_feedback_correct_text))
         tvFeedback.visibility = View.VISIBLE
