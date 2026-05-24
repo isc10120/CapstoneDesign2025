@@ -34,35 +34,37 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private suspend fun fetchCards(): List<CollectedCardManager.CollectedCard> {
-        // 로컬 수집 카드가 있으면 그대로 사용 (PVP 수집 결과가 즉시 반영됨)
-        val local = CollectedCardManager.getCards(getApplication())
-        if (local.isNotEmpty()) return local
-
-        // 로컬이 비어있을 때만 서버 데이터로 초기화
-        return try {
+        // 서버에서 최신 카드를 가져와 로컬에 병합 (서버 우선)
+        // 서버 실패 시 로컬 캐시로 폴백
+        try {
             val resp = ApiClient.api.getCollectedSkillList()
             if (resp.success && resp.data != null) {
-                resp.data.map { skill ->
+                resp.data.forEach { skill ->
                     val localWord = WordRepository.allWords.find { it.id.toLong() == skill.wordId }
                     val grade = when (localWord?.difficulty) {
                         Difficulty.HARD -> "금급"
                         Difficulty.MEDIUM -> "은급"
                         else -> "동급"
                     }
-                    CollectedCardManager.CollectedCard(
-                        wordId = skill.wordId.toInt(),
-                        word = localWord?.word ?: skill.name,
-                        skillName = skill.name,
-                        skillDescription = skill.explain,
-                        damage = skill.damage,
-                        imageBase64 = null,
-                        grade = grade,
-                        imageUrl = skill.imageURL.takeIf { it.isNotBlank() }
+                    CollectedCardManager.addCard(
+                        getApplication(),
+                        CollectedCardManager.CollectedCard(
+                            wordId = skill.wordId.toInt(),
+                            word = localWord?.word ?: skill.name,
+                            skillName = skill.name,
+                            skillDescription = skill.explain,
+                            damage = skill.damage,
+                            imageBase64 = null,
+                            grade = grade,
+                            imageUrl = skill.imageURL.takeIf { it.isNotBlank() },
+                            wordMeaning = localWord?.meaning ?: ""
+                        )
                     )
                 }
-            } else emptyList()
+            }
         } catch (_: Exception) {
-            emptyList()
+            // 서버 실패 → 로컬 카드로 폴백
         }
+        return CollectedCardManager.getCards(getApplication())
     }
 }

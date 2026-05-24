@@ -48,6 +48,9 @@ object PvpWordManager {
                 .putInt(KEY_TOTAL_DAMAGE, 0)
                 .apply()
             WordProgressManager.resetAll(context)
+            // 주 초기화 시 미전송 넛지도 함께 초기화해 지난 주 데이터가 새 주에 재전송되는 것을 방지
+            context.getSharedPreferences("nudge_pending", Context.MODE_PRIVATE)
+                .edit().clear().apply()
         }
     }
 

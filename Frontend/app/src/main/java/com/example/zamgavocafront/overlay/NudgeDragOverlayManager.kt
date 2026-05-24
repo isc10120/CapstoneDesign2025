@@ -21,7 +21,7 @@ class NudgeDragOverlayManager(
     private lateinit var params: WindowManager.LayoutParams
 
     private val handler = Handler(Looper.getMainLooper())
-    private val REQUIRED_MS = 3000L
+    private val REQUIRED_MS = 1500L
 
     // 드래그 상태
     private var isDraggingActive = false
