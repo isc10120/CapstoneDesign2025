@@ -63,7 +63,7 @@ class SettingsActivity : AppCompatActivity() {
         switchNudge.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 AlarmScheduler.startNudgeSchedule(this)
-                sendAction(OverlayService.ACTION_START_NUDGE_SCHEDULE)
+                sendAction(OverlayService.ACTION_START_NUDGE_SCHEDULE) // 서비스 미실행 상태여도 즉시 시작
             } else {
                 AlarmScheduler.stopNudgeSchedule(this)
                 sendAction(OverlayService.ACTION_STOP_NUDGE_SCHEDULE)
@@ -106,9 +106,17 @@ class SettingsActivity : AppCompatActivity() {
             .remove("nickName")
             .remove("email")
             .apply()
+        clearUserGameState()
         startActivity(Intent(this, LoginActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         })
+    }
+
+    private fun clearUserGameState() {
+        com.example.zamgavocafront.pvp.CollectedCardManager.clearCards(this)
+        com.example.zamgavocafront.pvp.PvpWordManager.clearAll(this)
+        com.example.zamgavocafront.WordProgressManager.resetAll(this)
+        com.example.zamgavocafront.viewmodel.TodayWordViewModel.clearSession()
     }
 
     private fun setupAlarmControls() {

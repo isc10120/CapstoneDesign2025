@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.api.SkillCache
-import com.example.zamgavocafront.api.dto.CollectSkillRequest
 import com.example.zamgavocafront.api.dto.EvaluateNewRequest
 import com.example.zamgavocafront.api.dto.PvpSkillRequest
 import com.example.zamgavocafront.api.dto.QuestionRequest
@@ -147,12 +146,15 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
             SkillCache.fetchOrGenerate(wordId, skillId, wordText, wordMeaning)
         }.getOrNull()
 
+        // intent에서 skillId가 null로 전달됐어도 fetch된 스킬의 ID를 사용
+        val resolvedSkillId = skillId ?: skill?.skillId?.takeIf { it > 0 }
+
         var pvpDamage: Int? = null
         var effectType: String? = null
         var effectTurns: Int? = null
-        if (skillId != null) {
+        if (resolvedSkillId != null) {
             val pvpResp = runCatching {
-                ApiClient.api.usePvpSkill(PvpSkillRequest(skillId = skillId!!, wordId = wordId.toLong()))
+                ApiClient.api.usePvpSkill(PvpSkillRequest(skillId = resolvedSkillId, wordId = wordId.toLong()))
             }.getOrNull()?.data
             pvpDamage = pvpResp?.damageDealt
             effectType = pvpResp?.statusApplied?.type
@@ -162,9 +164,6 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
         PvpWordManager.addDamage(context, pvpDamage ?: skill?.damage ?: 50)
 
         if (skill != null) {
-            runCatching {
-                ApiClient.api.collectSkill(CollectSkillRequest(skillId = skill.skillId, wordId = wordId.toLong()))
-            }
             CollectedCardManager.addCard(
                 context,
                 CollectedCardManager.CollectedCard(

@@ -9,6 +9,9 @@ import com.example.zamgavocafront.pvp.PvpWordManager
 
 object WordRepository {
 
+    /** 이번 세션에서 nudge=3 완료된 단어 데이터 캐시 (서버 API 실패 시 localPvpFallback에 사용) */
+    val pvpWordCache = mutableListOf<WordData>()
+
     val allWords = mutableListOf(
         WordData(
             id = 1,
@@ -117,13 +120,13 @@ object WordRepository {
      * @param context Android Context (PvpWordManager 접근용)
      * @param filterUsed true이면 이미 정답 처리된 단어를 결과에서 제외한다.
      */
-    suspend fun fetchPvpWords(context: Context, filterUsed: Boolean = false): List<WordData> {
+    suspend fun fetchPvpWords(context: Context, filterUsed: Boolean = true): List<WordData> {
         return try {
             val resp = ApiClient.api.getWeekCollectedList()
-            if (resp.success && resp.data != null) {
-                val usedIds = if (filterUsed) PvpWordManager.getUsedWordIds(context) else emptySet()
+            if (resp.success && !resp.data.isNullOrEmpty()) {
+                val localUsedIds = if (filterUsed) PvpWordManager.getUsedWordIds(context) else emptySet()
                 resp.data
-                    .filter { it.id.toInt() !in usedIds }
+                    .filter { it.id.toInt() !in localUsedIds }
                     .map { mapWordResponse(it) }
             } else {
                 localPvpFallback(context)
@@ -133,9 +136,29 @@ object WordRepository {
         }
     }
 
-    /** 서버 호출 실패 시 로컬 SharedPreferences 기반으로 PVP 단어를 반환한다. */
+    /** 서버 호출 실패 시 로컬 캐시 기반으로 PVP 단어를 반환한다. */
     fun localPvpFallback(context: Context): List<WordData> {
         val availableIds = PvpWordManager.getPvpAvailableWordIds(context)
+        // 1순위: 이번 세션의 인메모리 캐시
+        val fromCache = pvpWordCache.filter { it.id in availableIds }
+        if (fromCache.isNotEmpty()) return fromCache
+        // 2순위: 앱 재시작 후에도 살아남는 영속 저장소
+        val fromStore = loadPersistedCompletedWords(context).filter { it.id in availableIds }
+        if (fromStore.isNotEmpty()) return fromStore
+        // 3순위: 오늘의 단어 목록 (fallback 유지)
         return allWords.filter { it.id in availableIds }
+    }
+
+    private fun loadPersistedCompletedWords(context: Context): List<WordData> {
+        val prefs = context.getSharedPreferences("pvp_completed_words", Context.MODE_PRIVATE)
+        return prefs.all.values.mapNotNull { value ->
+            if (value is String) runCatching {
+                ApiClient.gson.fromJson(value, WordData::class.java)
+            }.getOrNull() else null
+        }
+    }
+
+    fun clearPvpCache() {
+        pvpWordCache.clear()
     }
 }

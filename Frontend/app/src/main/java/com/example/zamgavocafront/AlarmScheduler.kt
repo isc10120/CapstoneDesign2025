@@ -30,7 +30,7 @@ object AlarmScheduler {
     // ─── 넛지 등장 간격 설정 ────────────────────────────────────────────────
     // 이 두 상수를 수정해서 넛지 위젯이 뜨는 주기를 조절하세요.
     const val NUDGE_INTERVAL_MIN_MINUTES = 1   // 최소 간격 (분)
-    const val NUDGE_INTERVAL_MAX_MINUTES = 3   // 최대 간격 (분)
+    const val NUDGE_INTERVAL_MAX_MINUTES = 5   // 최대 간격 (분)
     // ────────────────────────────────────────────────────────────────────────
 
     // ── 아침 알람 ─────────────────────────────────────────────────────────
@@ -125,9 +125,10 @@ object AlarmScheduler {
     /** 다음 넛지 알람을 랜덤 간격 후로 예약한다. AlarmReceiver에서도 호출된다. */
     fun scheduleNextNudgeAlarm(context: Context) {
         val (min, max) = getNudgeIntervalMinutes(context)
-        val range = if (min >= max) min..min else min..max
-        val delayMs = range.random() * 60 * 1000L
-        val triggerMillis = System.currentTimeMillis() + delayMs
+        val minSec = min * 60
+        val maxSec = if (max > min) max * 60 else minSec
+        val delaySec = (minSec..maxSec).random()
+        val triggerMillis = System.currentTimeMillis() + delaySec * 1000L
         setExactAlarm(context, NUDGE_REQUEST_CODE, "com.example.zamgavocafront.NUDGE_ALARM", triggerMillis)
     }
 
@@ -150,10 +151,18 @@ object AlarmScheduler {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pi = buildPendingIntent(context, requestCode, action)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+        // API 31+: SCHEDULE_EXACT_ALARM / USE_EXACT_ALARM 권한 여부를 실제로 확인
+        // (USE_EXACT_ALARM은 알람/달력 앱에만 자동 부여 — 일반 앱은 canScheduleExactAlarms()로 판단)
+        val canExact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
+        try {
+            if (canExact) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pi)
+            } else {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pi)
+            }
+        } catch (_: SecurityException) {
+            // 권한 없이 exact alarm 시도 시 → 일반 알람으로 폴백 (체인 유지)
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pi)
-        } else {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pi)
         }
     }
 

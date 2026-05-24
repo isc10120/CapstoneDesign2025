@@ -35,9 +35,9 @@ class PvpViewModel(application: Application) : AndroidViewModel(application) {
     private var stompJob: Job? = null
     private var connectedBattleId: Long = -1L
 
-    fun loadPvpWords(filterUsed: Boolean = false) {
+    fun loadPvpWords() {
         viewModelScope.launch {
-            _pvpWords.value = WordRepository.fetchPvpWords(getApplication(), filterUsed)
+            _pvpWords.value = WordRepository.fetchPvpWords(getApplication())
         }
     }
 

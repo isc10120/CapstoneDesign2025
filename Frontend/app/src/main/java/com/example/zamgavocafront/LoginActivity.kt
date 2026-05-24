@@ -12,9 +12,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.zamgavocafront.api.ApiClient
+import com.example.zamgavocafront.api.SkillCache
 import com.example.zamgavocafront.pvp.CollectedCardManager
+import com.example.zamgavocafront.pvp.PvpWordManager
 import com.example.zamgavocafront.viewmodel.LoginUiState
 import com.example.zamgavocafront.viewmodel.LoginViewModel
+import com.example.zamgavocafront.viewmodel.TodayWordViewModel
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
@@ -85,6 +88,10 @@ class LoginActivity : AppCompatActivity() {
             .apply()
         ApiClient.saveTokensToPrefs(this)
         CollectedCardManager.clearCards(this)
+        PvpWordManager.clearAll(this)
+        WordProgressManager.resetAll(this)
+        TodayWordViewModel.clearSession()
+        SkillCache.clear()
     }
 
     private fun applyNudgeSettings(data: LoginUiState.Success) {
