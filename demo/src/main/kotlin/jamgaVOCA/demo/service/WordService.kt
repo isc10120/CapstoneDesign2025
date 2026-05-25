@@ -57,12 +57,17 @@ class WordService(
         // 1. 유저가 이미 수집한 단어 ID 목록 조회
         val collectedWordIds = userWordSkillRepository.findAllByUserId(userId)
             .map { it.word.id!! }
-            .toSet()
+            .toMutableSet()
 
-        // 2. 해당 난이도의 전체 단어 조회
+        // 2. 주간수집단어도 이미 수집한 단어로 추가
+        val weekCollectedWordIds = weekCollectedWordRepository.findAllByUserId(userId)
+            .map { it.word.id!! }
+        collectedWordIds.addAll(weekCollectedWordIds)
+
+        // 3. 해당 난이도의 전체 단어 조회
         val allWordsOfLevel = wordRepository.findAllByWordLevel(wordLevel)
 
-        // 3. 수집되지 않은 단어만 필터링 후 10개 랜덤 추출
+        // 4. 수집되지 않은 단어만 필터링 후 10개 랜덤 추출
         val selectedWords = allWordsOfLevel
             .filter { it.id !in collectedWordIds }
             .shuffled()
