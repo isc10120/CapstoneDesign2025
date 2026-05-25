@@ -165,4 +165,11 @@ class WordService(
             )
         }
     }
+
+    @Transactional
+    fun resetWeeklyCollectedWords() {
+        log.info("[WORD] 주간 수집 단어 전체 초기화 시작")
+        weekCollectedWordRepository.deleteAll()
+        log.info("[WORD] 주간 수집 단어 전체 초기화 완료")
+    }
 }

@@ -26,7 +26,8 @@ import kotlin.random.Random
 class BattleService(
     private val battleRepository: BattleRepository,
     private val battleEffectRepository: BattleEffectRepository,
-    private val userService: UserService
+    private val userService: UserService,
+    private val wordService: WordService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -35,13 +36,14 @@ class BattleService(
         const val POISON_DAMAGE = 20
     }
 
-    // ===== 주간 정산 + 매칭 =====
+    // ===== 주간 정산 + 매칭 + 주간 단어 초기화 =====
 
     @Scheduled(cron = "0 0 0 * * MON")  // 매주 월요일 00:00
-    fun settleAndMatch() {
+    fun weeklyReset() {
         log.info("[BATTLE] 주간 정산 및 매칭 시작")
         settleWeeklyBattles()
         createWeeklyMatches()
+        wordService.resetWeeklyCollectedWords()
         log.info("[BATTLE] 주간 정산 및 매칭 완료")
     }
 

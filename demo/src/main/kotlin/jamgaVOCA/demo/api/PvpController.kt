@@ -30,7 +30,7 @@ class PvpController(
     // 테스트용 - 운영 시 제거
     @PostMapping("/test/match")
     fun testMatch(): ApiResponse<Nothing> {
-        battleService.settleAndMatch()
+        battleService.weeklyReset()
         return ApiResponse.success(null)
     }
 
