@@ -13,6 +13,7 @@ import jamgaVOCA.demo.domain.skill.SkillType
 import jamgaVOCA.demo.domain.user.User
 import jamgaVOCA.demo.service.dto.SkillApplyResult
 import jamgaVOCA.demo.service.dto.StatusAppliedInfo
+import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,6 +28,8 @@ class BattleService(
     private val battleEffectRepository: BattleEffectRepository,
     private val userService: UserService
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object {
         const val DAMAGE_BUFF_RATE_PER_STACK = 0.5
         const val POISON_DAMAGE = 20
@@ -36,17 +39,22 @@ class BattleService(
 
     @Scheduled(cron = "0 0 0 * * MON")  // 매주 월요일 00:00
     fun settleAndMatch() {
+        log.info("[BATTLE] 주간 정산 및 매칭 시작")
         settleWeeklyBattles()
         createWeeklyMatches()
+        log.info("[BATTLE] 주간 정산 및 매칭 완료")
     }
 
     private fun settleWeeklyBattles() {
-        battleRepository.findAllByResultIsNull().forEach { battle ->
+        val unsettled = battleRepository.findAllByResultIsNull()
+        log.info("[BATTLE] 정산 대상 배틀 수: ${unsettled.size}")
+        unsettled.forEach { battle ->
             battle.result = when {
                 battle.userAScore > battle.userBScore -> BattleResult.WIN_A
                 battle.userBScore > battle.userAScore -> BattleResult.WIN_B
                 else -> BattleResult.DRAW
             }
+            log.debug("[BATTLE] 배틀 정산 - battleId=${battle.id}, userA=${battle.userA.id}(${battle.userAScore}), userB=${battle.userB.id}(${battle.userBScore}), result=${battle.result}")
         }
     }
 
@@ -60,6 +68,8 @@ class BattleService(
             .filter { !it.isDummy }
             .shuffled()
 
+        log.info("[BATTLE] 주간 매칭 생성 - 대상 유저 수: ${users.size}, 기간: $weekStart ~ $weekEnd")
+        var matchCount = 0
         users.chunked(2).forEach { pair ->
             val userA = pair[0]
             val userB = if (pair.size == 2) pair[1] else dummyUser
@@ -72,7 +82,10 @@ class BattleService(
                     weekEnd = weekEnd
                 )
             )
+            log.debug("[BATTLE] 매칭 생성 - userA=${userA.id}, userB=${userB.id}(dummy=${userB.isDummy})")
+            matchCount++
         }
+        log.info("[BATTLE] 총 ${matchCount}건 매칭 완료")
     }
 
     // ===== 신규 유저 더미 매칭 =====
@@ -81,8 +94,10 @@ class BattleService(
         val weekStart = LocalDate.now().with(DayOfWeek.MONDAY)
         val weekEnd = weekStart.plusDays(6)
 
-        // 이미 이번 주 배틀이 있으면 스킵
-        if (findBattleByUser(user, weekStart) != null) return
+        if (findBattleByUser(user, weekStart) != null) {
+            log.debug("[BATTLE] 신규 유저 더미 매칭 스킵 - 이미 배틀 존재: userId=${user.id}")
+            return
+        }
 
         battleRepository.save(
             Battle(
@@ -92,6 +107,7 @@ class BattleService(
                 weekEnd = weekEnd
             )
         )
+        log.info("[BATTLE] 신규 유저 더미 매칭 완료 - userId=${user.id}, 기간: $weekStart ~ $weekEnd")
     }
 
     // ===== 배틀 조회 =====
@@ -133,12 +149,14 @@ class BattleService(
 
     fun applySkill(battle: Battle, attackerId: Long, skill: Skill): SkillApplyResult {
         val opponentId = getOpponentId(battle, attackerId)
+        log.debug("[BATTLE] 스킬 사용 - battleId=${battle.id}, attacker=$attackerId, skill=${skill.name}(${skill.skillType}), baseDamage=${skill.damage}")
 
         // PARALYZE 체크 - 스택 수만큼 독립시행
         val paralyzeStacks = battle.effectsOf(attackerId)
             .count { it.effectType == EffectType.PARALYZE }
         val isParalyzed = (1..paralyzeStacks).any { Random.nextFloat() < 0.3f }
         if (isParalyzed) {
+            log.info("[BATTLE] 마비로 행동 불가 - battleId=${battle.id}, userId=$attackerId, stacks=$paralyzeStacks")
             tickEffects(battle, attackerId)
             return SkillApplyResult(paralyzed = true)
         }
@@ -151,10 +169,16 @@ class BattleService(
         } else {
             skill.damage
         }
+        if (buffStacks > 0) {
+            log.debug("[BATTLE] 데미지 버프 적용 - userId=$attackerId, buffStacks=$buffStacks, baseDamage=${skill.damage} -> finalDamage=$finalDamage")
+        }
 
         // 독 데미지 계산 (턴 소모 전에)
-        val poisonDamageTaken = battle.effectsOf(attackerId)
-            .count { it.effectType == EffectType.POISON } * POISON_DAMAGE
+        val poisonStacks = battle.effectsOf(attackerId).count { it.effectType == EffectType.POISON }
+        val poisonDamageTaken = poisonStacks * POISON_DAMAGE
+        if (poisonDamageTaken > 0) {
+            log.debug("[BATTLE] 독 데미지 - userId=$attackerId, stacks=$poisonStacks, damage=$poisonDamageTaken")
+        }
 
         // 독 데미지 상대 점수에 반영
         addDamageScore(battle, opponentId, poisonDamageTaken)
@@ -196,12 +220,14 @@ class BattleService(
         // 효과 적용 후 턴 소모
         tickEffects(battle, attackerId)
 
-        return SkillApplyResult(
+        val result = SkillApplyResult(
             damageDealt = if (shieldBlocked) 0 else finalDamage,
             statusApplied = statusApplied,
             shieldBlocked = shieldBlocked,
             poisonDamageTaken = poisonDamageTaken
         )
+        log.info("[BATTLE] 스킬 결과 - battleId=${battle.id}, attacker=$attackerId, skill=${skill.name}, damageDealt=${result.damageDealt}, shieldBlocked=$shieldBlocked, status=${statusApplied?.type}, poison=$poisonDamageTaken, score=(A=${battle.userAScore}, B=${battle.userBScore})")
+        return result
     }
 
     // ===== private 헬퍼 =====

@@ -10,6 +10,7 @@ import jamgaVOCA.demo.domain.userwordskill.UserWordSkillRepository
 import jamgaVOCA.demo.domain.word.WordRepository
 import jamgaVOCA.demo.service.generateSkill.SkillGeneratorService
 import jakarta.servlet.http.HttpSession
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,13 +22,16 @@ class SkillService(
     private val wordRepository: WordRepository,
     private val skillGeneratorService: SkillGeneratorService
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun getCollectedSkillList(userId: Long): List<SkillResponse> {
         val collectedItems = userWordSkillRepository.findAllByUserId(userId)
+        log.debug("[SKILL] 수집 스킬 목록 조회 - userId=$userId, count=${collectedItems.size}")
 
         return collectedItems.map { item ->
             val skill = item.skill
-            // 이미지가 없으면 재생성 시도
             if (skill.imageUrl.isBlank()) {
+                log.info("[SKILL] 이미지 없는 스킬 감지, 재생성 요청 - skillId=${skill.id}, name=${skill.name}")
                 skillGeneratorService.generateImage(skill.id!!)
             }
             SkillResponse(
@@ -46,14 +50,14 @@ class SkillService(
     fun getSkillByWordId(wordId: Long): Skill? {
         val skill = skillRepository.findByWordId(wordId)
 
-        // 스킬이 없으면 생성 시도
         if (skill == null) {
+            log.info("[SKILL] 스킬 없음, 비동기 생성 요청 - wordId=$wordId")
             skillGeneratorService.generate(wordId)
-            return null  // 비동기 생성 중이므로 null 반환
+            return null
         }
 
-        // 이미지가 없으면 재생성 시도
         if (skill.imageUrl.isBlank()) {
+            log.info("[SKILL] 이미지 없는 스킬 감지, 재생성 요청 - skillId=${skill.id}, wordId=$wordId")
             skillGeneratorService.generateImage(skill.id!!)
         }
 
@@ -63,8 +67,8 @@ class SkillService(
     fun getSkillInfo(skillId: Long): SkillResponse {
         val skill = skillRepository.findById(skillId).orElseThrow { AppException(ErrorCode.SKILL_NOT_FOUND) }
 
-        // 이미지가 없으면 재생성 시도
         if (skill.imageUrl.isBlank()) {
+            log.info("[SKILL] 이미지 없는 스킬 감지, 재생성 요청 - skillId=$skillId")
             skillGeneratorService.generateImage(skillId)
         }
 
@@ -87,8 +91,8 @@ class SkillService(
         val word = wordRepository.findById(wordId).orElseThrow { AppException(ErrorCode.WORD_NOT_FOUND) }
         val skill = skillRepository.findById(skillId).orElseThrow { AppException(ErrorCode.SKILL_NOT_FOUND) }
 
-        // 이미 수집된 조합인지 확인
         if (userWordSkillRepository.existsByUserIdAndWordIdAndSkillId(userId, word.id!!, skill.id!!)) {
+            log.debug("[SKILL] 이미 수집된 스킬, 스킵 - userId=$userId, skillId=$skillId, wordId=$wordId")
             return
         }
 
@@ -98,5 +102,6 @@ class SkillService(
             skill = skill
         )
         userWordSkillRepository.save(userWordSkill)
+        log.info("[SKILL] 스킬 수집 완료 - userId=$userId, skillId=$skillId, skillName=${skill.name}, wordId=$wordId")
     }
 }
