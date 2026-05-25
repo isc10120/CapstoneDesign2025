@@ -54,7 +54,15 @@ class BattleService(
                 battle.userBScore > battle.userAScore -> BattleResult.WIN_B
                 else -> BattleResult.DRAW
             }
-            log.debug("[BATTLE] 배틀 정산 - battleId=${battle.id}, userA=${battle.userA.id}(${battle.userAScore}), userB=${battle.userB.id}(${battle.userBScore}), result=${battle.result}")
+            log.debug(
+                "[BATTLE] 배틀 정산 - battleId={}, userA={}({}), userB={}({}), result={}",
+                battle.id,
+                battle.userA.id,
+                battle.userAScore,
+                battle.userB.id,
+                battle.userBScore,
+                battle.result
+            )
         }
     }
 
@@ -149,7 +157,14 @@ class BattleService(
 
     fun applySkill(battle: Battle, attackerId: Long, skill: Skill): SkillApplyResult {
         val opponentId = getOpponentId(battle, attackerId)
-        log.debug("[BATTLE] 스킬 사용 - battleId=${battle.id}, attacker=$attackerId, skill=${skill.name}(${skill.skillType}), baseDamage=${skill.damage}")
+        log.debug(
+            "[BATTLE] 스킬 사용 - battleId={}, attacker={}, skill={}({}), baseDamage={}",
+            battle.id,
+            attackerId,
+            skill.name,
+            skill.skillType,
+            skill.damage
+        )
 
         // PARALYZE 체크 - 스택 수만큼 독립시행
         val paralyzeStacks = battle.effectsOf(attackerId)

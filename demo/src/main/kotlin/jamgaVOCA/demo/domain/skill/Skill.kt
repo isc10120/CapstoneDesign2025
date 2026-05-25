@@ -27,10 +27,10 @@ class Skill(
     @Column(nullable = false, length = 500)
     var explanation: String,
 
-    @Column(name = "image_url", nullable = false, length = 500)
+    @Column(name = "image_url", nullable = false, columnDefinition = "TEXT")
     var imageUrl: String = "",
 
-    @Column(name = "image_desc", nullable = false, length = 500)
+    @Column(name = "image_desc", nullable = false, columnDefinition = "TEXT")
     var imageDesc: String = "",
 
     @Column(nullable = false)
