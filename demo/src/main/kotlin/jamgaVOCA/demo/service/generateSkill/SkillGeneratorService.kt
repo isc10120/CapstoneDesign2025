@@ -159,7 +159,7 @@ class SkillGeneratorService(
     private fun generateImageDesc(skill: Skill): String {
         val userPrompt = """
             당신은 2D 픽셀 RPG 게임의 스킬 디자이너입니다.
-            ${skill.name}'라는 스킬이 있습니다. 설명은 '${skill.explanation}'입니다. 이 스킬의 이펙트 모습을 영어로 묘사해주세요.
+            ${skill.name}'라는 스킬이 있습니다. 설명은 '${skill.explanation}'입니다. 이 스킬의 이펙트 모습을 500자 이내의 영어로 묘사해주세요.
             다음 JSON 형식으로 image_desc를 생성해주세요. 2D 픽셀 RPG 게임에 적합한 도트 이펙트여야 합니다.
             { "image_desc": "영어 이미지 묘사" }
             DALL-E API 오류 (코드: content_policy_violation)을 피할 수 있도록 Dall-e의 safety system 규정을 준수하고, 자극적인 말은 피해서 작성하세요.
