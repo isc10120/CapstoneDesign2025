@@ -65,7 +65,7 @@ class SkillService(
     }
 
     fun getSkillInfo(skillId: Long): SkillResponse {
-        val skill = skillRepository.findById(skillId).orElseThrow { AppException(ErrorCode.SKILL_NOT_FOUND) }
+        val skill = getSkillEntity(skillId)
 
         if (skill.imageUrl.isBlank()) {
             log.info("[SKILL] 이미지 없는 스킬 감지, 재생성 요청 - skillId=$skillId")
@@ -83,6 +83,9 @@ class SkillService(
             wordId = skill.word.id!!
         )
     }
+
+    fun getSkillEntity(skillId: Long): Skill =
+        skillRepository.findById(skillId).orElseThrow { AppException(ErrorCode.SKILL_NOT_FOUND) }
 
     @Transactional
     fun collectSkill(skillId: Long, wordId: Long, userId: Long) {

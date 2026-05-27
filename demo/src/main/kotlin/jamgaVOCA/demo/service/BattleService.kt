@@ -11,6 +11,7 @@ import jamgaVOCA.demo.domain.battle.EffectType
 import jamgaVOCA.demo.domain.skill.Skill
 import jamgaVOCA.demo.domain.skill.SkillType
 import jamgaVOCA.demo.domain.user.User
+import jamgaVOCA.demo.domain.weekcollectedword.WeekCollectedWordRepository
 import jamgaVOCA.demo.service.dto.SkillApplyResult
 import jamgaVOCA.demo.service.dto.StatusAppliedInfo
 import org.slf4j.LoggerFactory
@@ -27,7 +28,9 @@ class BattleService(
     private val battleRepository: BattleRepository,
     private val battleEffectRepository: BattleEffectRepository,
     private val userService: UserService,
-    private val wordService: WordService
+    private val wordService: WordService,
+    private val skillService: SkillService,
+    private val weekCollectedWordRepository: WeekCollectedWordRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -161,6 +164,45 @@ class BattleService(
 
         uncheckedA.forEach { it.resultCheckedA = true }
         uncheckedB.forEach { it.resultCheckedB = true }
+    }
+
+    // ===== 스킬 사용 프로세스 =====
+
+    data class UseSkillResult(
+        val applyResult: SkillApplyResult,
+        val skillName: String,
+        val skillType: String,
+        val battleId: Long
+    )
+
+    fun useSkill(userId: Long, skillId: Long, wordId: Long): UseSkillResult {
+        // 일일 스킬 제한 체크 및 업데이트
+        userService.updateDailySkillCount(userId)
+
+        // 스킬 조회
+        val skill = skillService.getSkillEntity(skillId)
+
+        // 현재 배틀 조회
+        val battle = getCurrentBattle(userId)
+
+        // WeekCollectedWord 검증 및 삭제 - 이번 주 수집된 단어인지 확인
+        val weekCollectedWord = weekCollectedWordRepository.findByUserIdAndWordId(userId, wordId)
+            .orElseThrow { AppException(ErrorCode.NOT_COLLECTED_THIS_WEEK) }
+
+        weekCollectedWordRepository.delete(weekCollectedWord)
+
+        // 스킬 효과 적용
+        val applyResult = applySkill(battle, userId, skill)
+
+        // UserWordSkill 수집 처리
+        skillService.collectSkill(skillId, wordId, userId)
+
+        return UseSkillResult(
+            applyResult = applyResult,
+            skillName = skill.name,
+            skillType = skill.skillType.name,
+            battleId = battle.id!!
+        )
     }
 
     // ===== 스킬 효과 적용 =====
