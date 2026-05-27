@@ -109,7 +109,8 @@ object WordRepository {
             exampleEn = dto.example,
             exampleKr = dto.exampleKor,
             difficulty = local?.difficulty ?: Difficulty.MEDIUM,
-            skillId = dto.skillId
+            skillId = dto.skillId,
+            partOfSpeech = dto.partOfSpeech
         )
     }
 

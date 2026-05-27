@@ -10,7 +10,8 @@ data class WordData(
     val exampleEn: String = "",
     val exampleKr: String = "",
     val difficulty: Difficulty = Difficulty.MEDIUM,
-    val skillId: Long? = null
+    val skillId: Long? = null,
+    val partOfSpeech: String = ""
 )
 
 enum class Difficulty {

@@ -18,7 +18,8 @@ object CollectedCardManager {
         val grade: String,   // "금급" / "은급" / "동급"
         val collectedAt: Long = System.currentTimeMillis(),
         val imageUrl: String? = null,  // S3 URL (백엔드에서 제공)
-        val wordMeaning: String = ""   // 단어 한국어 의미
+        val wordMeaning: String = "",
+        val partOfSpeech: String = ""
     )
 
     fun addCard(context: Context, card: CollectedCard) {
@@ -26,7 +27,12 @@ object CollectedCardManager {
         val list = getCards(context).toMutableList()
         val existingIndex = list.indexOfFirst { it.wordId == card.wordId }
         if (existingIndex >= 0) {
-            list[existingIndex] = card  // 같은 단어 카드는 최신 버전으로 교체
+            val existing = list[existingIndex]
+            // imageUrl/imageBase64가 새 카드에 없으면 기존 값 유지 (빈 URL로 덮어씌워지는 문제 방지)
+            list[existingIndex] = card.copy(
+                imageUrl = card.imageUrl ?: existing.imageUrl,
+                imageBase64 = card.imageBase64 ?: existing.imageBase64
+            )
         } else {
             list.add(0, card)
         }

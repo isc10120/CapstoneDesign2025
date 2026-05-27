@@ -43,6 +43,7 @@ class PveQuestionViewModel(application: Application) : AndroidViewModel(applicat
 
     var wordId: Int = 0
     var wordText: String = ""
+    var partOfSpeech: String = ""
 
     private var currentQuestion: QuestionResponse? = null
 
@@ -51,20 +52,27 @@ class PveQuestionViewModel(application: Application) : AndroidViewModel(applicat
         if (current !is PveQuestionUiState.Idle && current !is PveQuestionUiState.Error) return
         _uiState.value = PveQuestionUiState.LoadingQuestion
         viewModelScope.launch {
-            try {
-                val questionType = QUESTION_TYPES.random()
-                val response = ApiClient.api.generateQuestion(questionType, QuestionRequest(wordId.toLong())).data
-                    ?: throw Exception("서버 응답 데이터가 없습니다")
-                currentQuestion = response
-                _uiState.value = PveQuestionUiState.QuestionReady(
-                    question = buildQuestionText(response),
-                    hint = response.hint?.takeIf { it.isNotBlank() }?.let { "힌트: $it" } ?: "",
-                    questionType = response.questionType,
-                    options = response.options
-                )
-            } catch (e: Exception) {
-                _uiState.value = PveQuestionUiState.Error("문제 생성 실패: ${e.message}")
+            val isNoun = partOfSpeech.contains("noun", ignoreCase = true) ||
+                         partOfSpeech.contains("명사", ignoreCase = true)
+            val availableTypes = if (isNoun) QUESTION_TYPES.filter { it != "synonym" } else QUESTION_TYPES
+            var lastError: String? = null
+            for (questionType in availableTypes.shuffled()) {
+                try {
+                    val response = ApiClient.api.generateQuestion(questionType, QuestionRequest(wordId.toLong())).data
+                        ?: continue
+                    currentQuestion = response
+                    _uiState.value = PveQuestionUiState.QuestionReady(
+                        question = buildQuestionText(response),
+                        hint = response.hint?.takeIf { it.isNotBlank() }?.let { "힌트: $it" } ?: "",
+                        questionType = response.questionType,
+                        options = response.options
+                    )
+                    return@launch
+                } catch (e: Exception) {
+                    lastError = e.message
+                }
             }
+            _uiState.value = PveQuestionUiState.Error("문제 생성 실패: $lastError\n\n(백엔드 서버가 실행 중인지 확인하세요)")
         }
     }
 

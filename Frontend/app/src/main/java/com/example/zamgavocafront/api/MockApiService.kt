@@ -213,7 +213,7 @@ class MockApiService : ZamgaVocaApiService {
     override suspend fun usePvpSkill(req: PvpSkillRequest): ApiResponse<PvpSkillResponse> =
         ApiResponse(success = true, data = PvpSkillResponse(
             skillName = "Mock Skill", skillType = "ATTACK",
-            damageDealt = 50, statusApplied = null, shieldBlocked = false, collected = true
+            damageDealt = 50, statusApplied = null, shieldBlocked = false
         ))
 
     override suspend fun getPvpHistory(): ApiResponse<List<BattleResultResponse>> =

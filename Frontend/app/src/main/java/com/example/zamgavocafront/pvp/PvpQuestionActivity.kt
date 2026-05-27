@@ -17,6 +17,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import coil.load
 import com.example.zamgavocafront.R
 import com.example.zamgavocafront.model.Difficulty
+import com.example.zamgavocafront.utils.pvpEffectTypeLabel
+import com.example.zamgavocafront.utils.questionTypeLabel
 import com.example.zamgavocafront.viewmodel.PvpQuestionUiState
 import com.example.zamgavocafront.viewmodel.PvpQuestionViewModel
 import com.google.android.material.textfield.TextInputLayout
@@ -25,11 +27,12 @@ import kotlinx.coroutines.launch
 class PvpQuestionActivity : AppCompatActivity() {
 
     companion object {
-        const val EXTRA_WORD_ID      = "word_id"
-        const val EXTRA_WORD_TEXT    = "word_text"
-        const val EXTRA_WORD_MEANING = "word_meaning"
-        const val EXTRA_DIFFICULTY   = "difficulty"
-        const val EXTRA_SKILL_ID     = "skill_id"
+        const val EXTRA_WORD_ID         = "word_id"
+        const val EXTRA_WORD_TEXT       = "word_text"
+        const val EXTRA_WORD_MEANING    = "word_meaning"
+        const val EXTRA_DIFFICULTY      = "difficulty"
+        const val EXTRA_SKILL_ID        = "skill_id"
+        const val EXTRA_PART_OF_SPEECH  = "part_of_speech"
     }
 
     private val viewModel: PvpQuestionViewModel by viewModels()
@@ -61,12 +64,13 @@ class PvpQuestionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pvp_question)
 
-        viewModel.wordId     = intent.getIntExtra(EXTRA_WORD_ID, 0)
-        viewModel.wordText   = intent.getStringExtra(EXTRA_WORD_TEXT) ?: ""
-        viewModel.wordMeaning = intent.getStringExtra(EXTRA_WORD_MEANING) ?: ""
-        viewModel.skillId    = intent.getLongExtra(EXTRA_SKILL_ID, -1L).takeIf { it >= 0 }
-        viewModel.difficulty = intent.getStringExtra(EXTRA_DIFFICULTY)
+        viewModel.wordId       = intent.getIntExtra(EXTRA_WORD_ID, 0)
+        viewModel.wordText     = intent.getStringExtra(EXTRA_WORD_TEXT) ?: ""
+        viewModel.wordMeaning  = intent.getStringExtra(EXTRA_WORD_MEANING) ?: ""
+        viewModel.skillId      = intent.getLongExtra(EXTRA_SKILL_ID, -1L).takeIf { it >= 0 }
+        viewModel.difficulty   = intent.getStringExtra(EXTRA_DIFFICULTY)
             ?.let { runCatching { Difficulty.valueOf(it) }.getOrNull() } ?: Difficulty.MEDIUM
+        viewModel.partOfSpeech = intent.getStringExtra(EXTRA_PART_OF_SPEECH) ?: ""
 
         tvWordHeader    = findViewById(R.id.tv_word_header)
         tvGradeBadge    = findViewById(R.id.tv_grade_badge)
@@ -212,16 +216,6 @@ class PvpQuestionActivity : AppCompatActivity() {
         }
     }
 
-    private fun questionTypeLabel(questionType: String): String = when (questionType.uppercase()) {
-        "SPELLING"         -> "빈칸에 알맞은 글자를 채워 단어를 완성하세요:"
-        "ANAGRAM"          -> "섞인 글자를 올바른 순서로 배열하세요:"
-        "WORD_DEFINITION"  -> "올바른 뜻을 고르세요:"
-        "SYNONYM"          -> "올바른 유의어를 고르세요:"
-        "SENTENCE_WRITING" -> "다음 상황에 맞게 영어 문장을 작성하세요:"
-        "TRANSLATION"      -> "다음 한국어 문장을 영어로 번역하세요:"
-        else               -> "답을 입력하세요:"
-    }
-
     private fun showSkillCardDialog(state: PvpQuestionUiState.Correct) {
         val skill = state.skill ?: return
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_skill_card, null)
@@ -251,20 +245,37 @@ class PvpQuestionActivity : AppCompatActivity() {
 
         tvName.text = skill.name
         tvDesc.text = skill.explain
+
         val displayDamage = state.pvpDamage ?: skill.damage
-        tvDamage.text = "+$displayDamage 데미지!"
-        tvEffect.text = if (state.effectType != null && state.effectTurns != null)
-            "부가효과: ${state.effectType} ${state.effectTurns}턴"
-        else "부가효과: X"
-        tvTotal.text = "누적 데미지: ${PvpWordManager.getTotalDamage(this)}"
+        tvDamage.text = when {
+            state.paralyzed && displayDamage == 0 -> "⚡ 마비: 공격 실패!"
+            else -> "+$displayDamage 데미지!"
+        }
+
+        tvEffect.text = when {
+            state.paralyzed && displayDamage == 0 -> "⚡ 마비 상태로 인해 이번 공격이 막혔습니다."
+            state.shieldBlocked -> "🛡 상대의 방어막에 막혔습니다!"
+            state.effectType != null && state.effectTurns != null ->
+                "부가효과: ${pvpEffectTypeLabel(state.effectType)} ${state.effectTurns}턴"
+            else -> "부가효과: X"
+        }
+
+        tvTotal.text = buildString {
+            append("누적 데미지: ${PvpWordManager.getTotalDamage(this@PvpQuestionActivity)}")
+            if (state.poisonDamageTaken > 0) append("\n☠ 독 피해: ${state.poisonDamageTaken}")
+        }
         tvCollected.text = "📦 '${skill.name}' 카드 수집 완료"
 
         dialogView.scaleX = 0.6f; dialogView.scaleY = 0.6f; dialogView.alpha = 0f
         dialogView.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(250).start()
 
+        val buttonLabel = when {
+            state.paralyzed && displayDamage == 0 -> "확인"
+            else -> "⚔ 공격 완료!"
+        }
         AlertDialog.Builder(this)
             .setView(dialogView)
-            .setPositiveButton("⚔ 공격 완료!") { _, _ -> finish() }
+            .setPositiveButton(buttonLabel) { _, _ -> finish() }
             .setCancelable(false)
             .show()
     }
