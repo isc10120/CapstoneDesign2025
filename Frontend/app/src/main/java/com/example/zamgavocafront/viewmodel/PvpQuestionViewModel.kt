@@ -33,7 +33,10 @@ sealed class PvpQuestionUiState {
         val skill: SkillResponse?,
         val pvpDamage: Int? = null,
         val effectType: String? = null,
-        val effectTurns: Int? = null
+        val effectTurns: Int? = null,
+        val shieldBlocked: Boolean = false,
+        val poisonDamageTaken: Int = 0,
+        val paralyzed: Boolean = false
     ) : PvpQuestionUiState()
     data class Wrong(
         val score: Int,
@@ -56,6 +59,7 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
     var wordMeaning: String = ""
     var skillId: Long? = null
     var difficulty: Difficulty = Difficulty.MEDIUM
+    var partOfSpeech: String = ""
 
     private var currentQuestion: QuestionResponse? = null
 
@@ -68,22 +72,29 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
         if (current !is PvpQuestionUiState.Idle && current !is PvpQuestionUiState.Error) return
         _uiState.value = PvpQuestionUiState.LoadingQuestion
         viewModelScope.launch {
-            try {
-                val questionType = QUESTION_TYPES.random()
-                val response = ApiClient.api.generateQuestion(questionType, QuestionRequest(wordId.toLong())).data
-                    ?: throw Exception("서버 응답 데이터가 없습니다")
-                currentQuestion = response
-                _uiState.value = PvpQuestionUiState.QuestionReady(
-                    question = buildQuestionText(response),
-                    hint = buildHintText(response),
-                    questionType = response.questionType,
-                    options = response.options
-                )
-            } catch (e: Exception) {
-                _uiState.value = PvpQuestionUiState.Error(
-                    "문제 생성 실패: ${e.message}\n\n(백엔드 서버가 실행 중인지 확인하세요)"
-                )
+            val isNoun = partOfSpeech.contains("noun", ignoreCase = true) ||
+                         partOfSpeech.contains("명사", ignoreCase = true)
+            val availableTypes = if (isNoun) QUESTION_TYPES.filter { it != "synonym" } else QUESTION_TYPES
+            var lastError: String? = null
+            for (questionType in availableTypes.shuffled()) {
+                try {
+                    val response = ApiClient.api.generateQuestion(questionType, QuestionRequest(wordId.toLong())).data
+                        ?: continue
+                    currentQuestion = response
+                    _uiState.value = PvpQuestionUiState.QuestionReady(
+                        question = buildQuestionText(response),
+                        hint = buildHintText(response),
+                        questionType = response.questionType,
+                        options = response.options
+                    )
+                    return@launch
+                } catch (e: Exception) {
+                    lastError = e.message
+                }
             }
+            _uiState.value = PvpQuestionUiState.Error(
+                "문제 생성 실패: $lastError\n\n(백엔드 서버가 실행 중인지 확인하세요)"
+            )
         }
     }
 
@@ -152,6 +163,10 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
         var pvpDamage: Int? = null
         var effectType: String? = null
         var effectTurns: Int? = null
+        var shieldBlocked = false
+        var poisonDamageTaken = 0
+        var paralyzed = false
+
         if (resolvedSkillId != null) {
             val pvpResp = runCatching {
                 ApiClient.api.usePvpSkill(PvpSkillRequest(skillId = resolvedSkillId, wordId = wordId.toLong()))
@@ -159,6 +174,9 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
             pvpDamage = pvpResp?.damageDealt
             effectType = pvpResp?.statusApplied?.type
             effectTurns = pvpResp?.statusApplied?.turns
+            shieldBlocked = pvpResp?.shieldBlocked ?: false
+            poisonDamageTaken = pvpResp?.poisonDamageTaken ?: 0
+            paralyzed = pvpResp?.paralyzed ?: false
         }
 
         PvpWordManager.addDamage(context, pvpDamage ?: skill?.damage ?: 50)
@@ -175,7 +193,8 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
                     imageBase64 = skill.imageBase64,
                     grade = difficulty.grade(),
                     imageUrl = skill.imageURL.takeIf { it.isNotBlank() },
-                    wordMeaning = wordMeaning
+                    wordMeaning = wordMeaning,
+                    partOfSpeech = partOfSpeech
                 )
             )
         }
@@ -185,7 +204,10 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
             skill = skill,
             pvpDamage = pvpDamage,
             effectType = effectType,
-            effectTurns = effectTurns
+            effectTurns = effectTurns,
+            shieldBlocked = shieldBlocked,
+            poisonDamageTaken = poisonDamageTaken,
+            paralyzed = paralyzed
         )
     }
 

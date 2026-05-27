@@ -159,6 +159,7 @@ class PveDungeonActivity : AppCompatActivity() {
             putExtra(PveQuestionActivity.EXTRA_SKILL_GRADE, card.grade)
             putExtra(PveQuestionActivity.EXTRA_SKILL_DAMAGE, card.damage)
             putExtra(PveQuestionActivity.EXTRA_EFFECT_TYPE, PveBattleEngine.getCardEffect(card).name)
+            putExtra(PveQuestionActivity.EXTRA_PART_OF_SPEECH, card.partOfSpeech)
         }
         questionLauncher.launch(intent)
     }

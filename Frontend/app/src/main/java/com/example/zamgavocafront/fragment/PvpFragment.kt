@@ -98,6 +98,7 @@ class PvpFragment : Fragment() {
                 putExtra(PvpQuestionActivity.EXTRA_WORD_MEANING, word.meaning)
                 putExtra(PvpQuestionActivity.EXTRA_DIFFICULTY, word.difficulty.name)
                 putExtra(PvpQuestionActivity.EXTRA_SKILL_ID, word.skillId ?: -1L)
+                putExtra(PvpQuestionActivity.EXTRA_PART_OF_SPEECH, word.partOfSpeech)
             })
             requireActivity().overridePendingTransition(R.anim.slide_up, R.anim.no_anim)
         }
@@ -191,29 +192,24 @@ class PvpFragment : Fragment() {
     }
 
     private fun updateBuffDisplay(my: SideStatus, enemy: SideStatus) {
-        fun findEffect(effects: List<com.example.zamgavocafront.api.dto.StatusEffect>, type: String) =
-            effects.find { it.type == type }
+        fun SideStatus.effectTurns(type: String) =
+            statusEffects.find { it.type == type }?.let { "${it.remainingTurns}턴" } ?: ""
 
-        // 나
-        tvP1Attack.text   = my.statusEffects.find { it.type == "DAMAGE_BUFF" }?.let { "${it.remainingTurns}턴" } ?: ""
-        tvP1Shield.text   = if (my.shieldCount > 0) "×${my.shieldCount}" else ""
-        tvP1Paralysis.text = my.statusEffects.find { it.type == "PARALYZE" }?.let { "${it.remainingTurns}턴" } ?: ""
-        tvP1Poison.text   = my.statusEffects.find { it.type == "POISON" }?.let { "${it.remainingTurns}턴" } ?: ""
+        tvP1Attack.text    = my.effectTurns("DAMAGE_BUFF")
+        tvP1Shield.text    = if (my.shieldCount > 0) "×${my.shieldCount}" else ""
+        tvP1Paralysis.text = my.effectTurns("PARALYZE")
+        tvP1Poison.text    = my.effectTurns("POISON")
 
-        // 상대
-        tvP2Attack.text    = enemy.statusEffects.find { it.type == "DAMAGE_BUFF" }?.let { "${it.remainingTurns}턴" } ?: ""
+        tvP2Attack.text    = enemy.effectTurns("DAMAGE_BUFF")
         tvP2Shield.text    = if (enemy.shieldCount > 0) "×${enemy.shieldCount}" else ""
-        tvP2Paralysis.text = enemy.statusEffects.find { it.type == "PARALYZE" }?.let { "${it.remainingTurns}턴" } ?: ""
-        tvP2Poison.text    = enemy.statusEffects.find { it.type == "POISON" }?.let { "${it.remainingTurns}턴" } ?: ""
+        tvP2Paralysis.text = enemy.effectTurns("PARALYZE")
+        tvP2Poison.text    = enemy.effectTurns("POISON")
     }
 
     private fun showResultDialog(result: BattleResultResponse) {
         val resultText = when (result.result) {
-            "WIN_A", "WIN_B" -> {
-                val myDmg = result.myTotalDamage
-                val opDmg = result.opponentTotalDamage
-                if (myDmg >= opDmg) "🏆 승리!" else "💀 패배..."
-            }
+            "WIN"  -> "🏆 승리!"
+            "LOSE" -> "💀 패배..."
             "DRAW" -> "🤝 무승부"
             else   -> "결과 없음"
         }

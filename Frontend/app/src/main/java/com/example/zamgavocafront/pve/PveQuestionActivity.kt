@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil.load
 import com.example.zamgavocafront.R
+import com.example.zamgavocafront.utils.questionTypeLabel
 import com.example.zamgavocafront.viewmodel.PveQuestionUiState
 import com.example.zamgavocafront.viewmodel.PveQuestionViewModel
 import com.google.android.material.textfield.TextInputLayout
@@ -24,13 +25,14 @@ import kotlinx.coroutines.launch
 class PveQuestionActivity : AppCompatActivity() {
 
     companion object {
-        const val EXTRA_WORD_ID      = "word_id"
-        const val EXTRA_WORD_TEXT    = "word_text"
-        const val EXTRA_SKILL_NAME   = "skill_name"
-        const val EXTRA_SKILL_GRADE  = "skill_grade"
-        const val EXTRA_SKILL_DAMAGE = "skill_damage"
-        const val EXTRA_EFFECT_TYPE  = "effect_type"
-        const val RESULT_WORD_ID     = "result_word_id"
+        const val EXTRA_WORD_ID        = "word_id"
+        const val EXTRA_WORD_TEXT      = "word_text"
+        const val EXTRA_SKILL_NAME     = "skill_name"
+        const val EXTRA_SKILL_GRADE    = "skill_grade"
+        const val EXTRA_SKILL_DAMAGE   = "skill_damage"
+        const val EXTRA_EFFECT_TYPE    = "effect_type"
+        const val EXTRA_PART_OF_SPEECH = "part_of_speech"
+        const val RESULT_WORD_ID       = "result_word_id"
     }
 
     private val viewModel: PveQuestionViewModel by viewModels()
@@ -70,8 +72,9 @@ class PveQuestionActivity : AppCompatActivity() {
         setContentView(R.layout.activity_pve_question)
 
         // ViewModel에 전달
-        viewModel.wordId    = intent.getIntExtra(EXTRA_WORD_ID, 0)
-        viewModel.wordText  = intent.getStringExtra(EXTRA_WORD_TEXT) ?: ""
+        viewModel.wordId       = intent.getIntExtra(EXTRA_WORD_ID, 0)
+        viewModel.wordText     = intent.getStringExtra(EXTRA_WORD_TEXT) ?: ""
+        viewModel.partOfSpeech = intent.getStringExtra(EXTRA_PART_OF_SPEECH) ?: ""
 
         // 스킬 카드 표시용 (ViewModel 불필요 — 화면에만 표시)
         skillName  = intent.getStringExtra(EXTRA_SKILL_NAME) ?: viewModel.wordText
@@ -148,7 +151,7 @@ class PveQuestionActivity : AppCompatActivity() {
                 isMultipleChoice = state.questionType.uppercase() in
                         setOf("WORD_DEFINITION", "SYNONYM")
 
-                tvQuestionLabel.text = questionTypeLabel(state.questionType)
+                tvQuestionLabel.text = "✏ " + questionTypeLabel(state.questionType)
                 tvKoreanSentence.text = state.question
                 tvWordHint.text = state.hint
                 tvWordHint.visibility = if (state.hint.isNotEmpty()) View.VISIBLE else View.GONE
@@ -211,16 +214,6 @@ class PveQuestionActivity : AppCompatActivity() {
                 btn.visibility = View.GONE
             }
         }
-    }
-
-    private fun questionTypeLabel(questionType: String): String = when (questionType.uppercase()) {
-        "SPELLING"         -> "✏ 빈칸에 알맞은 글자를 채워 단어를 완성하세요:"
-        "ANAGRAM"          -> "✏ 섞인 글자를 올바른 순서로 배열하세요:"
-        "WORD_DEFINITION"  -> "✏ 올바른 뜻을 고르세요:"
-        "SYNONYM"          -> "✏ 올바른 유의어를 고르세요:"
-        "SENTENCE_WRITING" -> "✏ 다음 상황에 맞게 영어 문장을 작성하세요:"
-        "TRANSLATION"      -> "✏ 다음 한국어 문장을 영어로 번역하세요:"
-        else               -> "✏ 답을 입력하세요:"
     }
 
     private fun showSkillActivationDialog(imageUrl: String?, imageBase64: String?) {

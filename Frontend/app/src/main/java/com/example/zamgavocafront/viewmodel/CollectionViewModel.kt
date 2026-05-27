@@ -39,6 +39,7 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
         try {
             val resp = ApiClient.api.getCollectedSkillList()
             if (resp.success && resp.data != null) {
+                val existingCards = CollectedCardManager.getCards(getApplication()).associateBy { it.wordId }
                 resp.data.forEach { skill ->
                     val localWord = WordRepository.allWords.find { it.id.toLong() == skill.wordId }
                     val grade = when (localWord?.difficulty) {
@@ -46,6 +47,9 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
                         Difficulty.MEDIUM -> "은급"
                         else -> "동급"
                     }
+                    // 서버가 빈 URL을 반환해도 기존 저장된 URL 유지
+                    val imageUrl = skill.imageURL.takeIf { it.isNotBlank() }
+                        ?: existingCards[skill.wordId.toInt()]?.imageUrl
                     CollectedCardManager.addCard(
                         getApplication(),
                         CollectedCardManager.CollectedCard(
@@ -56,8 +60,9 @@ class CollectionViewModel(application: Application) : AndroidViewModel(applicati
                             damage = skill.damage,
                             imageBase64 = null,
                             grade = grade,
-                            imageUrl = skill.imageURL.takeIf { it.isNotBlank() },
-                            wordMeaning = localWord?.meaning ?: ""
+                            imageUrl = imageUrl,
+                            wordMeaning = localWord?.meaning ?: "",
+                            partOfSpeech = localWord?.partOfSpeech ?: ""
                         )
                     )
                 }

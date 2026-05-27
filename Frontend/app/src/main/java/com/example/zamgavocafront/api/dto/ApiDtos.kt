@@ -178,7 +178,8 @@ data class PvpSkillResponse(
     val damageDealt: Int,
     val statusApplied: StatusApplied?,
     val shieldBlocked: Boolean,
-    val collected: Boolean
+    val poisonDamageTaken: Int = 0,
+    val paralyzed: Boolean = false
 )
 
 data class StatusApplied(
