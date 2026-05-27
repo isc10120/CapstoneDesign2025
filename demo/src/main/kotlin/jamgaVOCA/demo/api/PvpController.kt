@@ -3,6 +3,7 @@ package jamgaVOCA.demo.api
 import jamgaVOCA.demo.api.annotation.AuthUser
 import jamgaVOCA.demo.domain.user.User
 import jamgaVOCA.demo.service.BattleService
+import jamgaVOCA.demo.service.UserService
 import jamgaVOCA.demo.api.dto.pvp.BattleStatusResponse
 import jamgaVOCA.demo.api.dto.pvp.BattleResultResponse
 import jamgaVOCA.demo.api.dto.pvp.BattleHistoryResponse
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/v1/pvp")
 class PvpController(
     private val battleService: BattleService,
+    private val userService: UserService,
     private val skillService: SkillService,
     private val skillRepository: SkillRepository,
     private val weekCollectedWordRepository: WeekCollectedWordRepository,
@@ -61,6 +63,9 @@ class PvpController(
 
     @PostMapping("/skill")
     fun useSkill(@AuthUser user: User, @RequestBody request: PvpSkillRequest): ApiResponse<PvpSkillResponse> {
+        // 일일 스킬 제한 체크 및 업데이트
+        userService.updateDailySkillCount(user.id!!)
+
         // 스킬 조회
         val skill = skillRepository.findById(request.skillId)
             .orElseThrow { AppException(ErrorCode.SKILL_NOT_FOUND) }
@@ -68,9 +73,11 @@ class PvpController(
         // 현재 배틀 조회
         val battle = battleService.getCurrentBattle(user.id!!)
 
-        // WeekCollectedWord 검증 - 이번 주 수집된 단어인지 확인
-       if (!weekCollectedWordRepository.existsByUserIdAndWordId(user.id!!, request.wordId))
-            throw AppException(ErrorCode.NOT_COLLECTED_THIS_WEEK)
+        // WeekCollectedWord 검증 및 삭제 - 이번 주 수집된 단어인지 확인
+        val weekCollectedWord = weekCollectedWordRepository.findByUserIdAndWordId(user.id!!, request.wordId)
+            .orElseThrow { AppException(ErrorCode.NOT_COLLECTED_THIS_WEEK) }
+        
+        weekCollectedWordRepository.delete(weekCollectedWord)
 
         // 스킬 효과 적용
         val applyResult = battleService.applySkill(battle, user.id!!, skill)

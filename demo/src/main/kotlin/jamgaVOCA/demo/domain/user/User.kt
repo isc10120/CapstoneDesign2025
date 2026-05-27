@@ -35,7 +35,16 @@ class User(
     var createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "is_dummy", nullable = false)
-    val isDummy: Boolean = false
+    val isDummy: Boolean = false,
+
+    @Column(name = "last_daily_word_date")
+    var lastDailyWordDate: java.time.LocalDate? = null,
+
+    @Column(name = "daily_skill_count", nullable = false)
+    var dailySkillCount: Int = 0,
+
+    @Column(name = "last_skill_date")
+    var lastSkillDate: java.time.LocalDate? = null
 
 ) : UserDetails {
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)

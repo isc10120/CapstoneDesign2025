@@ -122,10 +122,18 @@ class BattleService(
 
     // ===== 배틀 조회 =====
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun getCurrentBattle(userId: Long): Battle {
         val user = getUser(userId)
         val weekStart = LocalDate.now().with(DayOfWeek.MONDAY)
+        val existingBattle = findBattleByUser(user, weekStart)
+
+        if (existingBattle != null) {
+            return existingBattle
+        }
+
+        log.warn("[BATTLE] 배틀을 찾지 못함. 더미와 매칭 시도 - userId=$userId")
+        matchNewUserWithDummy(user)
         return findBattleByUser(user, weekStart)
             ?: throw AppException(ErrorCode.BATTLE_NOT_FOUND)
     }

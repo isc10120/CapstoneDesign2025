@@ -49,6 +49,13 @@ class WordService(
     @Transactional
     fun getNewDailyWordList(userId: Long, level: String): List<WordResponse> {
         val user = userService.getUser(userId)
+        val today = java.time.LocalDate.now()
+
+        if (user.lastDailyWordDate == today) {
+            throw AppException(ErrorCode.DAILY_WORD_LIST_ALREADY_GENERATED)
+        }
+
+        user.lastDailyWordDate = today
 
         val wordLevel = WordLevel.entries.find { it.name == level.uppercase() }
             ?: throw AppException(ErrorCode.INVALID_WORD_LEVEL)

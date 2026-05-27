@@ -36,6 +36,8 @@ enum class ErrorCode(
     NOT_COLLECTED_THIS_WEEK(HttpStatus.BAD_REQUEST, "NOT_COLLECTED_THIS_WEEK", "이번 주에 수집된 단어가 아닙니다."),
     INVALID_WORD_LEVEL(HttpStatus.BAD_REQUEST, "INVALID_WORD_LEVEL", "유효하지 않은 단어 난이도입니다."),
     DAILY_NUDGE_WORD_NOT_FOUND(HttpStatus.NOT_FOUND, "DAILY_NUDGE_WORD_NOT_FOUND", "일일 넛지 단어를 찾을 수 없습니다."),
+    DAILY_WORD_LIST_ALREADY_GENERATED(HttpStatus.BAD_REQUEST, "DAILY_WORD_LIST_ALREADY_GENERATED", "오늘은 이미 일일 단어를 생성했습니다."),
+    DAILY_SKILL_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "DAILY_SKILL_LIMIT_EXCEEDED", "일일 스킬 사용 횟수(10회)를 초과했습니다."),
 
     // 문제
     WORD_TOO_SHORT_FOR_SPELLING(HttpStatus.BAD_REQUEST, "WORD_TOO_SHORT_FOR_SPELLING", "3글자 이하 단어는 spelling 문제를 지원하지 않습니다."),

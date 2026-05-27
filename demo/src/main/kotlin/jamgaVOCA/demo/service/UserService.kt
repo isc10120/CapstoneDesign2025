@@ -27,6 +27,22 @@ class UserService(
     fun save(user: User): User =
         userRepository.save(user)
 
+    @Transactional
+    fun updateDailySkillCount(userId: Long) {
+        val user = getUser(userId)
+        val today = java.time.LocalDate.now()
+
+        if (user.lastSkillDate == today) {
+            if (user.dailySkillCount >= 10) {
+                throw AppException(ErrorCode.DAILY_SKILL_LIMIT_EXCEEDED)
+            }
+            user.dailySkillCount++
+        } else {
+            user.lastSkillDate = today
+            user.dailySkillCount = 1
+        }
+    }
+
     fun findAll(): List<User> =
         userRepository.findAll()
 
