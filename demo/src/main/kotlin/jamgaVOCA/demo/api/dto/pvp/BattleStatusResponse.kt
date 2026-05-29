@@ -24,14 +24,14 @@ data class BattleStatusResponse(
                 my = SideStatus(
                     totalDamage = battle.damageOf(userId),
                     statusEffects = battle.effectsOf(userId).map {
-                        StatusEffectInfo(it.effectType.name, it.remainingTurns)
+                        StatusEffectInfo(it.id!!, it.effectType.name, it.remainingTurns)
                     },
                     shieldCount = battle.shieldOf(userId)
                 ),
                 enemy = SideStatus(
                     totalDamage = battle.damageOf(opponentUser.id!!),
                     statusEffects = battle.effectsOf(opponentUser.id!!).map {
-                        StatusEffectInfo(it.effectType.name, it.remainingTurns)
+                        StatusEffectInfo(it.id!!, it.effectType.name, it.remainingTurns)
                     },
                     shieldCount = battle.shieldOf(opponentUser.id!!)
                 )
@@ -52,6 +52,7 @@ data class SideStatus(
 )
 
 data class StatusEffectInfo(
+    val id: Long,
     val type: String,
     val remainingTurns: Int
 )

@@ -205,30 +205,66 @@ class BattleService(
         )
     }
 
+    fun failSkill(userId: Long, skillId: Long, wordId: Long): UseSkillResult {
+        // 실패 시에도 일일 스킬 횟수는 차감 (턴 소비 개념)
+        userService.updateDailySkillCount(userId)
+
+        val skill = skillService.getSkillEntity(skillId)
+        val battle = getCurrentBattle(userId)
+
+        // 수집한 단어 소모
+        val weekCollectedWord = weekCollectedWordRepository.findByUserIdAndWordId(userId, wordId)
+            .orElseThrow { AppException(ErrorCode.NOT_COLLECTED_THIS_WEEK) }
+        weekCollectedWordRepository.delete(weekCollectedWord)
+
+        // 실패 로직: 독뎀 + 효과 턴 소모만 진행
+        val opponentId = getOpponentId(battle, userId)
+        val poisonStacks = battle.effectsOf(userId).count { it.effectType == EffectType.POISON }
+        val poisonDamageTaken = poisonStacks * POISON_DAMAGE
+        addDamageScore(battle, opponentId, poisonDamageTaken)
+
+        tickEffects(battle, userId)
+
+        log.info("[BATTLE] 스킬 실패(턴 소비) - battleId=${battle.id}, userId=$userId, poisonDamageTaken=$poisonDamageTaken")
+
+        return UseSkillResult(
+            applyResult = SkillApplyResult(poisonDamageTaken = poisonDamageTaken),
+            skillName = skill.name,
+            skillType = skill.skillType.name,
+            battleId = battle.id!!
+        )
+    }
+
     // ===== 스킬 효과 적용 =====
 
     fun applySkill(battle: Battle, attackerId: Long, skill: Skill): SkillApplyResult {
         val opponentId = getOpponentId(battle, attackerId)
         log.debug(
-            "[BATTLE] 스킬 사용 - battleId={}, attacker={}, skill={}({}), baseDamage={}",
+            "[BATTLE] 스킬 사용 시도 - battleId={}, attacker={}, skill={}({})",
             battle.id,
             attackerId,
             skill.name,
-            skill.skillType,
-            skill.damage
+            skill.skillType
         )
 
-        // PARALYZE 체크 - 스택 수만큼 독립시행
+        // 1. PARALYZE 체크
         val paralyzeStacks = battle.effectsOf(attackerId)
             .count { it.effectType == EffectType.PARALYZE }
         val isParalyzed = (1..paralyzeStacks).any { Random.nextFloat() < 0.3f }
+
         if (isParalyzed) {
-            log.info("[BATTLE] 마비로 행동 불가 - battleId=${battle.id}, userId=$attackerId, stacks=$paralyzeStacks")
+            log.info("[BATTLE] 마비로 행동 불가 - userId=$attackerId")
+            // 마비 시: 독뎀 > 효과 턴 소모 후 종료
+            val poisonStacks = battle.effectsOf(attackerId).count { it.effectType == EffectType.POISON }
+            val poisonDamage = poisonStacks * POISON_DAMAGE
+            addDamageScore(battle, opponentId, poisonDamage)
+            
             tickEffects(battle, attackerId)
-            return SkillApplyResult(paralyzed = true)
+            
+            return SkillApplyResult(paralyzed = true, poisonDamageTaken = poisonDamage)
         }
 
-        // DAMAGE_BUFF 체크 - 합연산
+        // 2. 데미지 버프 체크
         val buffStacks = battle.effectsOf(attackerId)
             .count { it.effectType == EffectType.DAMAGE_BUFF }
         val finalDamage = if (buffStacks > 0) {
@@ -236,64 +272,55 @@ class BattleService(
         } else {
             skill.damage
         }
-        if (buffStacks > 0) {
-            log.debug("[BATTLE] 데미지 버프 적용 - userId=$attackerId, buffStacks=$buffStacks, baseDamage=${skill.damage} -> finalDamage=$finalDamage")
+
+        // 3. 정화 스킬일 시 정화 적용 (독뎀 전에 적용)
+        var cleansedEffectId: Long? = null
+        if (skill.skillType == SkillType.CLEANSE) {
+            cleansedEffectId = cleanse(battle, attackerId)
         }
 
-        // 독 데미지 계산 (턴 소모 전에)
+        // 4. 독뎀 적용 (정상 행동 시)
         val poisonStacks = battle.effectsOf(attackerId).count { it.effectType == EffectType.POISON }
         val poisonDamageTaken = poisonStacks * POISON_DAMAGE
-        if (poisonDamageTaken > 0) {
-            log.debug("[BATTLE] 독 데미지 - userId=$attackerId, stacks=$poisonStacks, damage=$poisonDamageTaken")
-        }
-
-        // 독 데미지 상대 점수에 반영
         addDamageScore(battle, opponentId, poisonDamageTaken)
 
-        // 스킬 타입별 처리
-        val shieldBlocked = addDamageScoreWithOpponentShield(battle, attackerId, finalDamage)
-        val statusApplied: StatusAppliedInfo?
+        // 5. 효과 턴 소모
+        tickEffects(battle, attackerId)
+
+        // 6. 정화를 제외한 스킬 효과 적용
+        var shieldBlocked = addDamageScoreWithOpponentShield(battle, attackerId, finalDamage)
+        var statusApplied: StatusAppliedInfo? = null
 
         when (skill.skillType) {
-            SkillType.ATTACK -> {
-                statusApplied = null
-            }
+            SkillType.ATTACK -> {}
             SkillType.POISON -> {
-                statusApplied = if (!shieldBlocked) {
-                    applyEffect(battle, opponentId, EffectType.POISON, skill.lasting ?: 3)
-                    StatusAppliedInfo("POISON", skill.lasting ?: 3)
-                } else null
+                if (!shieldBlocked) {
+                    statusApplied = applyEffect(battle, opponentId, EffectType.POISON, skill.lasting ?: 3)
+                }
             }
             SkillType.PARALYZE -> {
-                statusApplied = if (!shieldBlocked) {
-                    applyEffect(battle, opponentId, EffectType.PARALYZE, skill.lasting ?: 3)
-                    StatusAppliedInfo("PARALYZE", skill.lasting ?: 3)
-                } else null
+                if (!shieldBlocked) {
+                    statusApplied = applyEffect(battle, opponentId, EffectType.PARALYZE, skill.lasting ?: 3)
+                }
             }
             SkillType.DEFEND -> {
                 applyShield(battle, attackerId, 1)
-                statusApplied = null
             }
             SkillType.DAMAGE_BUFF -> {
-                applyEffect(battle, attackerId, EffectType.DAMAGE_BUFF, skill.lasting ?: 3)
-                statusApplied = StatusAppliedInfo("DAMAGE_BUFF", skill.lasting ?: 3)
+                statusApplied = applyEffect(battle, attackerId, EffectType.DAMAGE_BUFF, skill.lasting ?: 3)
             }
-            SkillType.CLEANSE -> {
-                cleanse(battle, attackerId)
-                statusApplied = null
-            }
+            SkillType.CLEANSE -> {}
         }
-
-        // 효과 적용 후 턴 소모
-        tickEffects(battle, attackerId)
 
         val result = SkillApplyResult(
             damageDealt = if (shieldBlocked) 0 else finalDamage,
             statusApplied = statusApplied,
             shieldBlocked = shieldBlocked,
-            poisonDamageTaken = poisonDamageTaken
+            poisonDamageTaken = poisonDamageTaken,
+            cleansedEffectId = cleansedEffectId
         )
-        log.info("[BATTLE] 스킬 결과 - battleId=${battle.id}, attacker=$attackerId, skill=${skill.name}, damageDealt=${result.damageDealt}, shieldBlocked=$shieldBlocked, status=${statusApplied?.type}, poison=$poisonDamageTaken, score=(A=${battle.userAScore}, B=${battle.userBScore})")
+        
+        log.info("[BATTLE] 스킬 결과 - battleId=${battle.id}, attacker=$attackerId, skill=${skill.name}, damageDealt=${result.damageDealt}, status=${statusApplied?.type}, poison=$poisonDamageTaken")
         return result
     }
 
@@ -305,16 +332,19 @@ class BattleService(
         battleEffectRepository.deleteAll(effects.filter { it.remainingTurns <= 0 })
     }
 
-    private fun cleanse(battle: Battle, userId: Long) {
+    private fun cleanse(battle: Battle, userId: Long): Long? {
         val debuffs = battle.effectsOf(userId)
             .filter { it.effectType == EffectType.POISON || it.effectType == EffectType.PARALYZE }
         
-        if (debuffs.isNotEmpty()) {
+        return if (debuffs.isNotEmpty()) {
             val randomDebuff = debuffs.random()
+            val deletedId = randomDebuff.id!!
             battleEffectRepository.delete(randomDebuff)
-            log.info("[BATTLE] 정화 적용 - userId=$userId, 삭제된 디버프=${randomDebuff.effectType}")
+            log.info("[BATTLE] 정화 적용 - userId=$userId, 삭제된 디버프=${randomDebuff.effectType}, id=$deletedId")
+            deletedId
         } else {
             log.debug("[BATTLE] 정화 실패 - 삭제할 디버프 없음: userId=$userId")
+            null
         }
     }
 
@@ -334,9 +364,9 @@ class BattleService(
         else battle.userBShield += count
     }
 
-    private fun applyEffect(battle: Battle, targetUserId: Long, effectType: EffectType, turns: Int) {
+    private fun applyEffect(battle: Battle, targetUserId: Long, effectType: EffectType, turns: Int): StatusAppliedInfo {
         val targetUser = if (battle.isUserA(targetUserId)) battle.userA else battle.userB
-        battleEffectRepository.save(
+        val effect = battleEffectRepository.save(
             BattleEffect(
                 battle = battle,
                 targetUser = targetUser,
@@ -344,6 +374,7 @@ class BattleService(
                 remainingTurns = turns
             )
         )
+        return StatusAppliedInfo(effect.id!!, effectType.name, turns)
     }
 
     private fun addDamageScore(battle: Battle, userId: Long, damage: Int) {

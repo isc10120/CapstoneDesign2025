@@ -8,5 +8,9 @@ data class StompSkillMessage(
     val skillType: String,
     val damageDealt: Int,
     val statusApplied: StatusAppliedInfo?,
-    val shieldBlocked: Boolean
+    val shieldBlocked: Boolean,
+    val poisonDamageTaken: Int = 0,
+    val paralyzed: Boolean = false,
+    val isFailed: Boolean = false,
+    val cleansedEffectId: Long? = null
 )

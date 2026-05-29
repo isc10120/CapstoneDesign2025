@@ -64,7 +64,35 @@ class PvpController(
                 skillType = result.skillType,
                 damageDealt = result.applyResult.damageDealt,
                 statusApplied = result.applyResult.statusApplied,
-                shieldBlocked = result.applyResult.shieldBlocked
+                shieldBlocked = result.applyResult.shieldBlocked,
+                poisonDamageTaken = result.applyResult.poisonDamageTaken,
+                paralyzed = result.applyResult.paralyzed,
+                cleansedEffectId = result.applyResult.cleansedEffectId
+            )
+        )
+
+        return ApiResponse.success(
+            PvpSkillResponse.from(result.applyResult, result.skillName, result.skillType)
+        )
+    }
+
+    @PostMapping("/skill/fail")
+    fun failSkill(@AuthUser user: User, @RequestBody request: PvpSkillRequest): ApiResponse<PvpSkillResponse> {
+        val result = battleService.failSkill(user.id!!, request.skillId, request.wordId)
+
+        // STOMP 푸시 (실패 알림)
+        messagingTemplate.convertAndSend(
+            "/topic/pvp/${result.battleId}",
+            StompSkillMessage(
+                senderId = user.id!!,
+                skillName = result.skillName,
+                skillType = result.skillType,
+                damageDealt = 0,
+                statusApplied = null,
+                shieldBlocked = false,
+                poisonDamageTaken = result.applyResult.poisonDamageTaken,
+                paralyzed = false,
+                isFailed = true
             )
         )
 

@@ -5,10 +5,12 @@ data class SkillApplyResult(
     val statusApplied: StatusAppliedInfo? = null,
     val shieldBlocked: Boolean = false,
     val poisonDamageTaken: Int = 0,
-    val paralyzed: Boolean = false
+    val paralyzed: Boolean = false,
+    val cleansedEffectId: Long? = null
 )
 
 data class StatusAppliedInfo(
+    val id: Long,
     val type: String,
     val turns: Int
 )

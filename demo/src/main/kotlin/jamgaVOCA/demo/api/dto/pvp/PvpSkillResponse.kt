@@ -11,6 +11,7 @@ data class PvpSkillResponse(
     val shieldBlocked: Boolean,
     val poisonDamageTaken: Int,
     val paralyzed: Boolean,
+    val cleansedEffectId: Long? = null
 ) {
     companion object {
         fun from(result: SkillApplyResult, skillName: String, skillType: String) =
@@ -21,7 +22,8 @@ data class PvpSkillResponse(
                 statusApplied = result.statusApplied,
                 shieldBlocked = result.shieldBlocked,
                 poisonDamageTaken = result.poisonDamageTaken,
-                paralyzed = result.paralyzed
+                paralyzed = result.paralyzed,
+                cleansedEffectId = result.cleansedEffectId
             )
     }
 }

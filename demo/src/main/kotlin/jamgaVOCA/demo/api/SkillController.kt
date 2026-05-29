@@ -26,9 +26,9 @@ class SkillController(
         return ApiResponse.success(data)
     }
 
-    @PostMapping("/collect-skill")
-    fun collectSkill(@AuthUser user: User, @RequestBody request: CollectSkillRequest): ApiResponse<Nothing> {
-        skillService.collectSkill(request.skillId, request.wordId, user.id!!)
-        return ApiResponse.success(null)
-    }
+//    @PostMapping("/collect-skill")
+//    fun collectSkill(@AuthUser user: User, @RequestBody request: CollectSkillRequest): ApiResponse<Nothing> {
+//        skillService.collectSkill(request.skillId, request.wordId, user.id!!)
+//        return ApiResponse.success(null)
+//    }
 }
