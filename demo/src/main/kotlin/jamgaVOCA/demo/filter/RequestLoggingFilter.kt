@@ -18,9 +18,9 @@ class RequestLoggingFilter : OncePerRequestFilter() {
         filterChain: FilterChain
     ) {
         val start = System.currentTimeMillis()
-        log.info("[REQUEST] ${request.method} ${request.requestURI} from ${request.remoteAddr}")
+        log.debug("[REQUEST] ${request.method} ${request.requestURI} from ${request.remoteAddr}")
         filterChain.doFilter(request, response)
         val elapsed = System.currentTimeMillis() - start
-        log.info("[RESPONSE] ${response.status} ${request.method} ${request.requestURI} (${elapsed}ms)")
+        log.debug("[RESPONSE] ${response.status} ${request.method} ${request.requestURI} (${elapsed}ms)")
     }
 }
