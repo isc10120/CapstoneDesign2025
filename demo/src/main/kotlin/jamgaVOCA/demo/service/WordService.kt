@@ -146,8 +146,7 @@ class WordService(
                     )
                 )
                 log.info("[WORD] 주간 단어 수집 완료 - userId=$userId, wordId=${request.id}, word=${dailyNudgeWord.word.englishWord}")
-                dailyNudgeWordRepository.delete(dailyNudgeWord)
-
+                // 넛지 수집 시 데일리 리스트에서 삭제하지 않도록 수정 (dailyNudgeWordRepository.delete 제거)
             } else {
                 dailyNudgeWordRepository.save(dailyNudgeWord)
                 log.debug("[WORD] 넛지 횟수 업데이트 - userId=$userId, wordId=${request.id}, nudgeCount=${dailyNudgeWord.nudgeCount}")
