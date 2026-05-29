@@ -166,7 +166,7 @@ class PvpQuestionActivity : AppCompatActivity() {
             is PvpQuestionUiState.Correct -> {
                 viewModel.onCorrectConsumed()
                 if (state.skill != null) showSkillCardDialog(state)
-                else showCorrectFallback(state.score)
+                else showCorrectFallback(state)
             }
 
             is PvpQuestionUiState.Wrong -> {
@@ -281,8 +281,14 @@ class PvpQuestionActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showCorrectFallback(score: Int) {
-        tvFeedback.text = "✅ 정답! (점수: $score / 100)\n스킬 카드를 불러오지 못했지만 데미지는 적용되었어요."
+    private fun showCorrectFallback(state: PvpQuestionUiState.Correct) {
+        val sb = StringBuilder("✅ 정답! (점수: ${state.score} / 100)")
+        if (state.pvpDamage != null) {
+            sb.append("\n+${state.pvpDamage} 데미지 적용! (스킬 카드 로드 실패)")
+        } else {
+            sb.append("\n스킬 정보를 불러오지 못해 PVP 데미지가 적용되지 않았어요.")
+        }
+        tvFeedback.text = sb.toString()
         tvFeedback.setBackgroundColor(ContextCompat.getColor(this, R.color.color_feedback_correct_bg))
         tvFeedback.setTextColor(ContextCompat.getColor(this, R.color.color_feedback_correct_text))
         tvFeedback.visibility = View.VISIBLE

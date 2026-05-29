@@ -79,11 +79,12 @@ class MockApiService : ZamgaVocaApiService {
     // ── 스킬 생성: 단어별 미리 정의된 mock 스킬 ──────────────────────
 
     override suspend fun generateSkill(req: SkillGenerateRequest): SkillGenerateResponse {
+        val word = WordRepository.allWords.find { it.word.equals(req.word, ignoreCase = true) }
         val (name, desc, dmg) = MOCK_SKILLS[req.word.lowercase()]
             ?: Triple("${req.word}의 일격", "${req.meaningKo}의 힘으로 상대를 공격한다.", 75)
 
         return SkillGenerateResponse(
-            id = null,
+            id = word?.id?.toLong(),
             word = req.word,
             name = name,
             description = desc,
@@ -198,7 +199,8 @@ class MockApiService : ZamgaVocaApiService {
                 definition = w.meaning,
                 partOfSpeech = "unknown",
                 example = w.exampleEn,
-                exampleKor = w.exampleKr
+                exampleKor = w.exampleKr,
+                skillId = w.id.toLong()
             )
         }
         return ApiResponse(success = true, data = list)

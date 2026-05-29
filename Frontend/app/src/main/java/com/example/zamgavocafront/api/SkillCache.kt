@@ -1,6 +1,5 @@
 package com.example.zamgavocafront.api
 
-import com.example.zamgavocafront.api.dto.SkillGenerateRequest
 import com.example.zamgavocafront.api.dto.SkillResponse
 import java.util.concurrent.ConcurrentHashMap
 
@@ -50,22 +49,7 @@ object SkillCache {
             }
         }
 
-        // 3) 여전히 스킬 없으면 직접 생성 (fallback)
-        if (meaning.isBlank()) return null
-        return runCatching {
-            val gen = ApiClient.api.generateSkill(SkillGenerateRequest(word = word, meaningKo = meaning))
-            SkillResponse(
-                skillId = gen.id ?: 0L,
-                name = gen.name,
-                explain = gen.description,
-                damage = gen.damage,
-                skillType = "ATTACK",
-                lasting = null,
-                imageURL = "",
-                imageBase64 = gen.imageBase64,
-                wordId = wordId.toLong()
-            ).also { cache[wordId] = it }
-        }.getOrNull()
+        return null
     }
 
     /** wordId에 해당하는 캐시된 스킬 반환. 없으면 null. */
