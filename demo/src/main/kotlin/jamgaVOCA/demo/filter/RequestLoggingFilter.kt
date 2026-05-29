@@ -36,11 +36,17 @@ class RequestLoggingFilter(
 
         val elapsed = System.currentTimeMillis() - start
         val userId = getUserId()
-        val rawBody = getBody(cachingResponse.contentAsByteArray, cachingResponse.characterEncoding)
-        val formattedBody = formatJson(rawBody)
 
-        log.info("[USER: $userId] [REQUEST] ${request.method} ${request.requestURI} from ${request.remoteAddr}")
-        log.info("[USER: $userId] [RESPONSE] ${response.status} ${request.method} ${request.requestURI} (${elapsed}ms) Body:\n$formattedBody")
+        // 요청 바디 추출 및 포맷팅
+        val rawRequestBody = getBody(cachingRequest.contentAsByteArray, request.characterEncoding)
+        val formattedRequestBody = formatJson(rawRequestBody)
+
+        // 응답 바디 추출 및 포맷팅
+        val rawResponseBody = getBody(cachingResponse.contentAsByteArray, cachingResponse.characterEncoding)
+        val formattedResponseBody = formatJson(rawResponseBody)
+
+        log.info("[USER: $userId] [REQUEST] ${request.method} ${request.requestURI} from ${request.remoteAddr} Body:\n$formattedRequestBody")
+        log.info("[USER: $userId] [RESPONSE] ${response.status} ${request.method} ${request.requestURI} (${elapsed}ms) Body:\n$formattedResponseBody")
 
         cachingResponse.copyBodyToResponse()
     }

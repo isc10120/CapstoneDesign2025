@@ -212,11 +212,6 @@ class BattleService(
         val skill = skillService.getSkillEntity(skillId)
         val battle = getCurrentBattle(userId)
 
-        // 수집한 단어 소모
-        val weekCollectedWord = weekCollectedWordRepository.findByUserIdAndWordId(userId, wordId)
-            .orElseThrow { AppException(ErrorCode.NOT_COLLECTED_THIS_WEEK) }
-        weekCollectedWordRepository.delete(weekCollectedWord)
-
         // 실패 로직: 독뎀 + 효과 턴 소모만 진행
         val opponentId = getOpponentId(battle, userId)
         val poisonStacks = battle.effectsOf(userId).count { it.effectType == EffectType.POISON }
