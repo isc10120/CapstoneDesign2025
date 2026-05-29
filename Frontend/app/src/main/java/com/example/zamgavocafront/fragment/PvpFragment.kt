@@ -214,18 +214,26 @@ class PvpFragment : Fragment() {
         myEffects: List<StatusEffect>, myShieldCount: Int,
         enemyEffects: List<StatusEffect>, enemyShieldCount: Int
     ) {
+        val activeColor = ContextCompat.getColor(requireContext(), R.color.color_feedback_wrong_text)
+        val inactiveColor = ContextCompat.getColor(requireContext(), android.R.color.transparent)
+
         fun List<StatusEffect>.effectTurns(type: String) =
             find { it.type == type }?.let { "${it.remainingTurns}턴" } ?: ""
 
-        tvP1Attack.text    = myEffects.effectTurns("DAMAGE_BUFF")
-        tvP1Shield.text    = if (myShieldCount > 0) "×$myShieldCount" else ""
-        tvP1Paralysis.text = myEffects.effectTurns("PARALYZE")
-        tvP1Poison.text    = myEffects.effectTurns("POISON")
+        fun TextView.setStatus(text: String) {
+            this.text = text
+            this.setTextColor(if (text.isNotEmpty()) activeColor else inactiveColor)
+        }
 
-        tvP2Attack.text    = enemyEffects.effectTurns("DAMAGE_BUFF")
-        tvP2Shield.text    = if (enemyShieldCount > 0) "×$enemyShieldCount" else ""
-        tvP2Paralysis.text = enemyEffects.effectTurns("PARALYZE")
-        tvP2Poison.text    = enemyEffects.effectTurns("POISON")
+        tvP1Attack.setStatus(myEffects.effectTurns("DAMAGE_BUFF"))
+        tvP1Shield.setStatus(if (myShieldCount > 0) "×$myShieldCount" else "")
+        tvP1Paralysis.setStatus(myEffects.effectTurns("PARALYZE"))
+        tvP1Poison.setStatus(myEffects.effectTurns("POISON"))
+
+        tvP2Attack.setStatus(enemyEffects.effectTurns("DAMAGE_BUFF"))
+        tvP2Shield.setStatus(if (enemyShieldCount > 0) "×$enemyShieldCount" else "")
+        tvP2Paralysis.setStatus(enemyEffects.effectTurns("PARALYZE"))
+        tvP2Poison.setStatus(enemyEffects.effectTurns("POISON"))
     }
 
     private fun showResultDialog(result: BattleResultResponse) {
