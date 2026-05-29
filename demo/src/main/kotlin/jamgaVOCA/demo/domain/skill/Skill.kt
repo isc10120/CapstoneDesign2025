@@ -8,7 +8,8 @@ import jakarta.persistence.*
 @Entity
 @Table(
     name = "skill",
-    indexes = [Index(name = "idx_skill_word_id", columnList = "word_id")]
+    indexes = [Index(name = "idx_skill_word_id", columnList = "word_id")],
+    uniqueConstraints = [UniqueConstraint(name = "uk_skill_word_id", columnNames = ["word_id"])]
 )
 class Skill(
 

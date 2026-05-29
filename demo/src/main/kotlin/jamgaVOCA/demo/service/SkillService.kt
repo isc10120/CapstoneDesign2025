@@ -48,12 +48,18 @@ class SkillService(
     }
 
     fun getSkillByWordId(wordId: Long): Skill? {
-        val skill = skillRepository.findByWordId(wordId)
+        val skills = skillRepository.findAllByWordId(wordId)
 
-        if (skill == null) {
+        if (skills.isEmpty()) {
             log.info("[SKILL] 스킬 없음, 비동기 생성 요청 - wordId=$wordId")
             skillGeneratorService.generate(wordId)
             return null
+        }
+
+        val skill = skills.first()
+
+        if (skills.size > 1) {
+            log.warn("[SKILL] 중복 스킬 감지 - wordId=$wordId, count=${skills.size}, firstSkillId=${skill.id}")
         }
 
         if (skill.imageUrl.isBlank()) {
