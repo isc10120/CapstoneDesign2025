@@ -306,7 +306,16 @@ class BattleService(
     }
 
     private fun cleanse(battle: Battle, userId: Long) {
-        battleEffectRepository.deleteAll(battle.effectsOf(userId))
+        val debuffs = battle.effectsOf(userId)
+            .filter { it.effectType == EffectType.POISON || it.effectType == EffectType.PARALYZE }
+        
+        if (debuffs.isNotEmpty()) {
+            val randomDebuff = debuffs.random()
+            battleEffectRepository.delete(randomDebuff)
+            log.info("[BATTLE] 정화 적용 - userId=$userId, 삭제된 디버프=${randomDebuff.effectType}")
+        } else {
+            log.debug("[BATTLE] 정화 실패 - 삭제할 디버프 없음: userId=$userId")
+        }
     }
 
     private fun addDamageScoreWithOpponentShield(battle: Battle, userId: Long, damage: Int): Boolean {
