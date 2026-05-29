@@ -7,6 +7,7 @@ import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.api.SkillCache
 import com.example.zamgavocafront.api.dto.EvaluateNewRequest
 import com.example.zamgavocafront.api.dto.PvpSkillRequest
+import com.example.zamgavocafront.api.dto.PvpSkillResponse
 import com.example.zamgavocafront.api.dto.QuestionRequest
 import com.example.zamgavocafront.api.dto.QuestionResponse
 import com.example.zamgavocafront.api.dto.SkillResponse
@@ -41,7 +42,8 @@ sealed class PvpQuestionUiState {
     data class Wrong(
         val score: Int,
         val feedback: String?,
-        val correction: String?
+        val correction: String?,
+        val poisonDamageTaken: Int = 0
     ) : PvpQuestionUiState()
     data class Error(val message: String, val isEvalError: Boolean = false) : PvpQuestionUiState()
 }
@@ -133,11 +135,7 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
                 if (evalResponse.correct) {
                     handleCorrect(evalResponse.score)
                 } else {
-                    _uiState.value = PvpQuestionUiState.Wrong(
-                        score = evalResponse.score,
-                        feedback = evalResponse.feedback,
-                        correction = evalResponse.correctAnswer
-                    )
+                    handleWrong(evalResponse.score, evalResponse.feedback, evalResponse.correctAnswer)
                 }
             } catch (e: Exception) {
                 _uiState.value = PvpQuestionUiState.Error(
@@ -208,6 +206,24 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
             shieldBlocked = shieldBlocked,
             poisonDamageTaken = poisonDamageTaken,
             paralyzed = paralyzed
+        )
+    }
+
+    private suspend fun handleWrong(score: Int, feedback: String?, correction: String?) {
+        val sid = skillId
+        var poisonDamageTaken = 0
+        if (sid != null) {
+            runCatching {
+                ApiClient.api.failPvpSkill(PvpSkillRequest(skillId = sid, wordId = wordId.toLong()))
+            }.getOrNull()?.data?.let { resp ->
+                poisonDamageTaken = resp.poisonDamageTaken
+            }
+        }
+        _uiState.value = PvpQuestionUiState.Wrong(
+            score = score,
+            feedback = feedback,
+            correction = correction,
+            poisonDamageTaken = poisonDamageTaken
         )
     }
 

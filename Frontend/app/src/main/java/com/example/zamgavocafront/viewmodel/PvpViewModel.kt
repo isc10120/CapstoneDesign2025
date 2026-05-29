@@ -9,6 +9,7 @@ import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.api.StompManager
 import com.example.zamgavocafront.api.dto.BattleResultResponse
 import com.example.zamgavocafront.api.dto.BattleStatusResponse
+import com.example.zamgavocafront.api.dto.StatusEffect
 import com.example.zamgavocafront.api.dto.StompSkillMessage
 import com.example.zamgavocafront.model.WordData
 import kotlinx.coroutines.Job
@@ -29,6 +30,13 @@ class PvpViewModel(application: Application) : AndroidViewModel(application) {
     private val _enemyDamage = MutableStateFlow(0)
     val enemyDamage: StateFlow<Int> = _enemyDamage.asStateFlow()
 
+    // 상태이상 — 초기값 서버 로드, STOMP로 실시간 갱신
+    private val _myStatusEffects = MutableStateFlow<List<StatusEffect>>(emptyList())
+    val myStatusEffects: StateFlow<List<StatusEffect>> = _myStatusEffects.asStateFlow()
+
+    private val _enemyStatusEffects = MutableStateFlow<List<StatusEffect>>(emptyList())
+    val enemyStatusEffects: StateFlow<List<StatusEffect>> = _enemyStatusEffects.asStateFlow()
+
     private val _latestResult = MutableStateFlow<BattleResultResponse?>(null)
     val latestResult: StateFlow<BattleResultResponse?> = _latestResult.asStateFlow()
 
@@ -48,6 +56,8 @@ class PvpViewModel(application: Application) : AndroidViewModel(application) {
                 if (resp.success && resp.data != null) {
                     _battleStatus.value = resp.data
                     _enemyDamage.value = resp.data.enemy.totalDamage
+                    _myStatusEffects.value = resp.data.my.statusEffects
+                    _enemyStatusEffects.value = resp.data.enemy.statusEffects
                     connectStomp(resp.data.battleId)
                 }
             } catch (_: Exception) {}
@@ -95,7 +105,28 @@ class PvpViewModel(application: Application) : AndroidViewModel(application) {
                         val msg = ApiClient.gson.fromJson(body, StompSkillMessage::class.java)
                         // senderId가 본인이면 무시 (서버 에코)
                         if (msg.senderId != myUserId) {
-                            _enemyDamage.value += msg.damageDealt
+                            // 실패(문제 오답)가 아닐 때만 데미지 증가
+                            if (!msg.isFailed) {
+                                _enemyDamage.value += msg.damageDealt
+                            }
+                            // 상대가 나에게 적용한 디버프 추가 (POISON, PARALYZE)
+                            msg.statusApplied?.let { applied ->
+                                val effect = StatusEffect(
+                                    id = applied.id,
+                                    type = applied.type,
+                                    remainingTurns = applied.turns
+                                )
+                                if (applied.type in DEBUFFS_ON_TARGET) {
+                                    _myStatusEffects.value = _myStatusEffects.value + effect
+                                } else {
+                                    _enemyStatusEffects.value = _enemyStatusEffects.value + effect
+                                }
+                            }
+                            // 상대가 자신의 디버프를 클렌즈한 경우 제거
+                            msg.cleansedEffectId?.let { effectId ->
+                                _enemyStatusEffects.value =
+                                    _enemyStatusEffects.value.filter { it.id != effectId }
+                            }
                         }
                     } catch (_: Exception) {}
                 }
@@ -108,5 +139,10 @@ class PvpViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         stompJob?.cancel()
+    }
+
+    companion object {
+        // 상대가 사용하면 나에게 적용되는 디버프 타입
+        private val DEBUFFS_ON_TARGET = setOf("POISON", "PARALYZE")
     }
 }
