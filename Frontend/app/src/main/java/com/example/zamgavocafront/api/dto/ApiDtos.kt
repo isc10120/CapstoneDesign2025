@@ -163,6 +163,7 @@ data class SideStatus(
 )
 
 data class StatusEffect(
+    val id: Long,
     val type: String,
     val remainingTurns: Int
 )
@@ -179,10 +180,12 @@ data class PvpSkillResponse(
     val statusApplied: StatusApplied?,
     val shieldBlocked: Boolean,
     val poisonDamageTaken: Int = 0,
-    val paralyzed: Boolean = false
+    val paralyzed: Boolean = false,
+    val cleansedEffectId: Long? = null
 )
 
 data class StatusApplied(
+    val id: Long,
     val type: String,
     val turns: Int
 )
@@ -203,7 +206,11 @@ data class StompSkillMessage(
     val skillType: String,
     val damageDealt: Int,
     val statusApplied: StatusApplied?,
-    val shieldBlocked: Boolean
+    val shieldBlocked: Boolean,
+    val poisonDamageTaken: Int = 0,
+    val paralyzed: Boolean = false,
+    val cleansedEffectId: Long? = null,
+    val isFailed: Boolean = false
 )
 
 // ───── /api/v1 Question Generation DTOs ─────

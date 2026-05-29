@@ -68,6 +68,9 @@ interface ZamgaVocaApiService {
     @POST("api/v1/pvp/skill")
     suspend fun usePvpSkill(@Body req: PvpSkillRequest): ApiResponse<PvpSkillResponse>
 
+    @POST("api/v1/pvp/skill/fail")
+    suspend fun failPvpSkill(@Body req: PvpSkillRequest): ApiResponse<PvpSkillResponse>
+
     @GET("api/v1/pvp/result/history")
     suspend fun getPvpHistory(): ApiResponse<List<BattleResultResponse>>
 

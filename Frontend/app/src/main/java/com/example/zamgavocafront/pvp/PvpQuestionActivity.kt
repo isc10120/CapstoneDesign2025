@@ -171,6 +171,7 @@ class PvpQuestionActivity : AppCompatActivity() {
 
             is PvpQuestionUiState.Wrong -> {
                 val sb = StringBuilder("❌ 오답! (점수: ${state.score} / 100)\n")
+                if (state.poisonDamageTaken > 0) sb.append("☠ 독 피해: ${state.poisonDamageTaken}\n")
                 state.feedback?.let { sb.append("\n피드백: $it") }
                 state.correction?.let { sb.append("\n정답: $it") }
                 tvFeedback.text = sb.toString()

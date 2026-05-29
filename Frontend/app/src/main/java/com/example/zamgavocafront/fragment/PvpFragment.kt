@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.zamgavocafront.R
 import com.example.zamgavocafront.api.dto.BattleResultResponse
-import com.example.zamgavocafront.api.dto.SideStatus
+import com.example.zamgavocafront.api.dto.StatusEffect
 import com.example.zamgavocafront.model.WordData
 import com.example.zamgavocafront.pvp.PvpQuestionActivity
 import com.example.zamgavocafront.pvp.PvpWordAdapter
@@ -125,14 +125,14 @@ class PvpFragment : Fragment() {
         val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         tvPlayer1Name.text = prefs.getString("nickName", "나") ?: "나"
 
-        // battleStatus 관찰
+        // battleStatus 관찰 (닉네임, 내 누적 데미지, 방어막 등 초기값)
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.battleStatus.collect { status ->
                     if (status != null) {
                         tvPlayer2Name.text = status.opponent.nickname
                         tvPlayer1Damage.text = status.my.totalDamage.toString()
-                        updateBuffDisplay(status.my, status.enemy)
+                        refreshBuffDisplay()
                     }
                 }
             }
@@ -144,6 +144,18 @@ class PvpFragment : Fragment() {
                 viewModel.enemyDamage.collect { damage ->
                     tvPlayer2Damage.text = damage.toString()
                 }
+            }
+        }
+
+        // 실시간 상태이상 관찰 (STOMP)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.myStatusEffects.collect { refreshBuffDisplay() }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.enemyStatusEffects.collect { refreshBuffDisplay() }
             }
         }
 
@@ -191,19 +203,29 @@ class PvpFragment : Fragment() {
         tvEmpty.visibility = if (words.isEmpty()) View.VISIBLE else View.GONE
     }
 
-    private fun updateBuffDisplay(my: SideStatus, enemy: SideStatus) {
-        fun SideStatus.effectTurns(type: String) =
-            statusEffects.find { it.type == type }?.let { "${it.remainingTurns}턴" } ?: ""
+    private fun refreshBuffDisplay() {
+        val status = viewModel.battleStatus.value ?: return
+        val myEffects = viewModel.myStatusEffects.value
+        val enemyEffects = viewModel.enemyStatusEffects.value
+        updateBuffDisplay(myEffects, status.my.shieldCount, enemyEffects, status.enemy.shieldCount)
+    }
 
-        tvP1Attack.text    = my.effectTurns("DAMAGE_BUFF")
-        tvP1Shield.text    = if (my.shieldCount > 0) "×${my.shieldCount}" else ""
-        tvP1Paralysis.text = my.effectTurns("PARALYZE")
-        tvP1Poison.text    = my.effectTurns("POISON")
+    private fun updateBuffDisplay(
+        myEffects: List<StatusEffect>, myShieldCount: Int,
+        enemyEffects: List<StatusEffect>, enemyShieldCount: Int
+    ) {
+        fun List<StatusEffect>.effectTurns(type: String) =
+            find { it.type == type }?.let { "${it.remainingTurns}턴" } ?: ""
 
-        tvP2Attack.text    = enemy.effectTurns("DAMAGE_BUFF")
-        tvP2Shield.text    = if (enemy.shieldCount > 0) "×${enemy.shieldCount}" else ""
-        tvP2Paralysis.text = enemy.effectTurns("PARALYZE")
-        tvP2Poison.text    = enemy.effectTurns("POISON")
+        tvP1Attack.text    = myEffects.effectTurns("DAMAGE_BUFF")
+        tvP1Shield.text    = if (myShieldCount > 0) "×$myShieldCount" else ""
+        tvP1Paralysis.text = myEffects.effectTurns("PARALYZE")
+        tvP1Poison.text    = myEffects.effectTurns("POISON")
+
+        tvP2Attack.text    = enemyEffects.effectTurns("DAMAGE_BUFF")
+        tvP2Shield.text    = if (enemyShieldCount > 0) "×$enemyShieldCount" else ""
+        tvP2Paralysis.text = enemyEffects.effectTurns("PARALYZE")
+        tvP2Poison.text    = enemyEffects.effectTurns("POISON")
     }
 
     private fun showResultDialog(result: BattleResultResponse) {
