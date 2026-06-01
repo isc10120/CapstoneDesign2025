@@ -33,7 +33,10 @@ class PvpQuestionActivity : AppCompatActivity() {
         const val EXTRA_DIFFICULTY      = "difficulty"
         const val EXTRA_SKILL_ID        = "skill_id"
         const val EXTRA_PART_OF_SPEECH  = "part_of_speech"
+        const val RESULT_ATTACK_SUCCESS = 100
     }
+
+    private var attackSucceeded = false
 
     private val viewModel: PvpQuestionViewModel by viewModels()
 
@@ -117,6 +120,7 @@ class PvpQuestionActivity : AppCompatActivity() {
     }
 
     override fun finish() {
+        if (attackSucceeded) setResult(RESULT_ATTACK_SUCCESS)
         super.finish()
         overridePendingTransition(R.anim.no_anim, R.anim.slide_down)
     }
@@ -274,6 +278,7 @@ class PvpQuestionActivity : AppCompatActivity() {
             state.paralyzed && displayDamage == 0 -> "확인"
             else -> "⚔ 공격 완료!"
         }
+        attackSucceeded = true
         AlertDialog.Builder(this)
             .setView(dialogView)
             .setPositiveButton(buttonLabel) { _, _ -> finish() }
@@ -295,6 +300,7 @@ class PvpQuestionActivity : AppCompatActivity() {
         btnSubmit.isEnabled = true
         btnSubmit.visibility = View.VISIBLE
         btnSubmit.text = "닫기"
+        attackSucceeded = true
         btnSubmit.setOnClickListener { finish() }
     }
 }

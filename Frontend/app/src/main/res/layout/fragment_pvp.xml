@@ -68,6 +68,17 @@
             android:src="@drawable/pvp_player2"
             android:scaleType="fitCenter"
             android:contentDescription="플레이어2" />
+
+        <ImageView
+            android:id="@+id/iv_skill_effect"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="10dp"
+            android:translationY="18dp"
+            android:visibility="gone"
+            android:scaleType="fitCenter"
+            android:contentDescription="스킬 이펙트" />
     </FrameLayout>
 
     <!-- 플레이어 정보 영역 -->

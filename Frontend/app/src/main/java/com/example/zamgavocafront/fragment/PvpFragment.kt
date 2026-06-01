@@ -8,17 +8,20 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import pl.droidsonroids.gif.GifDrawable
 import com.example.zamgavocafront.R
 import com.example.zamgavocafront.api.dto.BattleResultResponse
 import com.example.zamgavocafront.api.dto.StatusEffect
@@ -43,6 +46,16 @@ class PvpFragment : Fragment() {
     private lateinit var rvWords: RecyclerView
     private lateinit var tvEmpty: TextView
     private lateinit var adapter: PvpWordAdapter
+    private var ivSkillEffect: ImageView? = null
+    private var currentGifDrawable: GifDrawable? = null
+
+    private val questionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == PvpQuestionActivity.RESULT_ATTACK_SUCCESS) {
+            view?.postDelayed({ playSkillEffect() }, 300)
+        }
+    }
 
     // 버프/상태이상 텍스트뷰 — 플레이어1(나)
     private lateinit var tvP1Attack: TextView
@@ -86,6 +99,7 @@ class PvpFragment : Fragment() {
         tvP2Shield   = view.findViewById(R.id.tv_p2_buff_shield)
         tvP2Paralysis = view.findViewById(R.id.tv_p2_buff_paralysis)
         tvP2Poison   = view.findViewById(R.id.tv_p2_buff_poison)
+        ivSkillEffect = view.findViewById(R.id.iv_skill_effect)
 
         adapter = PvpWordAdapter(emptyList()) { word ->
             val attacksLeft = PvpWordManager.getAttacksLeft(requireContext())
@@ -93,7 +107,7 @@ class PvpFragment : Fragment() {
                 Toast.makeText(requireContext(), "오늘 공격 횟수를 모두 사용했어요! (10/10)", Toast.LENGTH_SHORT).show()
                 return@PvpWordAdapter
             }
-            startActivity(Intent(requireContext(), PvpQuestionActivity::class.java).apply {
+            questionLauncher.launch(Intent(requireContext(), PvpQuestionActivity::class.java).apply {
                 putExtra(PvpQuestionActivity.EXTRA_WORD_ID, word.id)
                 putExtra(PvpQuestionActivity.EXTRA_WORD_TEXT, word.word)
                 putExtra(PvpQuestionActivity.EXTRA_WORD_MEANING, word.meaning)
@@ -190,6 +204,22 @@ class PvpFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         timerHandler.removeCallbacks(timerRunnable)
+        currentGifDrawable?.stop()
+        currentGifDrawable = null
+        ivSkillEffect = null
+    }
+
+    private fun playSkillEffect() {
+        val iv = ivSkillEffect ?: return
+        currentGifDrawable?.stop()
+        val gifDrawable = GifDrawable(resources, R.drawable.skilleffect1)
+        gifDrawable.loopCount = 1
+        gifDrawable.addAnimationListener {
+            iv.post { iv.visibility = View.GONE }
+        }
+        currentGifDrawable = gifDrawable
+        iv.setImageDrawable(gifDrawable)
+        iv.visibility = View.VISIBLE
     }
 
     private fun updatePvpUi(words: List<WordData>) {
