@@ -7,5 +7,8 @@ data class SkillData(
     val description: String,
     val damage: Int,
     @JsonProperty("image_desc")
-    val imageDesc: String
+    val imageDesc: String,
+    @JsonProperty("skill_type")
+    val skillType: String,
+    val lasting: Int? = null
 )

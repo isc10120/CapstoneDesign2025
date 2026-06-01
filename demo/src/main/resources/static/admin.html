@@ -357,7 +357,7 @@
     const text = await res.text();
     let data = null;
     try { data = JSON.parse(text); } catch {}
-    if (!res.ok) throw Object.assign(new Error(data?.message ?? `HTTP ${res.status}`), { raw: text });
+    if (!res.ok) throw Object.assign(new Error(data?.error?.message ?? data?.message ?? `HTTP ${res.status}`), { raw: text, code: data?.error?.code });
     return data;
   }
 
@@ -548,6 +548,7 @@
 
     try {
       const data = await api('POST', `/api/v1/admin/skills/${id}/preview-images`);
+      if (!data.success) {} // ApiResponse의 data와 error 확인하기
       previewBase64s = data?.data ?? [];
       $('imgGenStatus').textContent = '이미지를 선택하세요.';
       $('imgOptions').innerHTML = previewBase64s.map((b64, i) => `
