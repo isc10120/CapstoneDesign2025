@@ -233,8 +233,16 @@ class PvpQuestionActivity : AppCompatActivity() {
         val tvDesc      = dialogView.findViewById<TextView>(R.id.tv_skill_desc)
         val tvTotal     = dialogView.findViewById<TextView>(R.id.tv_total_damage)
         val tvCollected = dialogView.findViewById<TextView>(R.id.tv_collected_badge)
+        val tvExpGained = dialogView.findViewById<TextView>(R.id.tv_exp_gained)
 
         ivFrame.setImageResource(viewModel.difficulty.frameDrawableRes())
+
+        // 동급(bronze) 카드는 카드 이름 위치를 위로 조정
+        if (viewModel.difficulty == com.example.zamgavocafront.model.Difficulty.EASY) {
+            val lp = tvName.layoutParams as android.widget.FrameLayout.LayoutParams
+            lp.bottomMargin += (8 * resources.displayMetrics.density).toInt()
+            tvName.layoutParams = lp
+        }
 
         when {
             skill.imageURL.isNotBlank() -> ivImage.load(skill.imageURL) {
@@ -270,6 +278,8 @@ class PvpQuestionActivity : AppCompatActivity() {
             if (state.poisonDamageTaken > 0) append("\n☠ 독 피해: ${state.poisonDamageTaken}")
         }
         tvCollected.text = "📦 '${skill.name}' 카드 수집 완료"
+        tvExpGained.text = "+15 경험치를 얻었습니다!"
+        tvExpGained.visibility = View.VISIBLE
 
         dialogView.scaleX = 0.6f; dialogView.scaleY = 0.6f; dialogView.alpha = 0f
         dialogView.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(250).start()
