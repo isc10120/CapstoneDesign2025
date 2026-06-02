@@ -2,55 +2,72 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="#EEF1FA"
+    android:orientation="vertical">
 
     <!-- 헤더 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_height="56dp"
+        android:background="@color/main_navy"
         android:gravity="center_vertical"
-        android:padding="16dp"
-        android:background="@color/main_navy">
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp">
 
         <ImageButton
             android:id="@+id/btn_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_revert"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="@color/white"
-            android:layout_marginEnd="12dp" />
+            android:contentDescription="뒤로"
+            android:src="@android:drawable/ic_menu_revert"
+            android:tint="@color/white" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:text="덱 선택 / 관리"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            android:textSize="17sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btn_new_deck"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="새 덱 구성"
-            android:textSize="12sp"
+            android:layout_height="36dp"
             android:backgroundTint="#F4C400"
+            android:text="새 덱 구성"
             android:textColor="@color/main_navy"
+            android:textSize="12sp"
             style="@style/Widget.MaterialComponents.Button" />
     </LinearLayout>
 
-    <!-- 안내 -->
-    <TextView
+    <!-- 안내 배너 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="덱을 선택해 입장할 스테이지에 사용하세요. (최대 3개 덱 보관 가능)"
-        android:textSize="12sp"
-        android:textColor="@color/overlay_text_secondary"
-        android:padding="12dp" />
+        android:background="@color/white"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="🃏"
+            android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="덱을 선택해 스테이지에 입장하세요. 최대 3개 덱 보관 가능."
+            android:textColor="@color/overlay_text_secondary"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <!-- 덱 목록 -->
     <androidx.recyclerview.widget.RecyclerView
@@ -58,7 +75,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:clipToPadding="false"
         android:paddingHorizontal="12dp"
-        android:clipToPadding="false" />
+        android:paddingTop="8dp" />
 
 </LinearLayout>
