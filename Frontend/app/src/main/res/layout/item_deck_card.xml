@@ -2,59 +2,77 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="180dp"
+    android:layout_height="170dp"
     android:layout_margin="5dp">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:cardBackgroundColor="#2A2A4E"
         app:cardCornerRadius="10dp"
-        app:cardElevation="3dp">
+        app:cardElevation="4dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
             android:gravity="center_horizontal"
-            android:padding="8dp">
+            android:orientation="vertical"
+            android:padding="10dp">
 
-            <!-- 등급 뱃지 -->
-            <TextView
-                android:id="@+id/tv_grade"
-                android:layout_width="wrap_content"
+            <!-- 등급 + 효과 타입 (상단 행) -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="동급"
-                android:textSize="9sp"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp"
-                android:background="@drawable/bg_count_badge"
-                android:layout_marginBottom="4dp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="6dp">
 
-            <!-- 스킬 이름 -->
+                <TextView
+                    android:id="@+id/tv_grade"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_count_badge"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:text="동급"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tv_effect_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚔ 공격"
+                    android:textColor="#F4C400"
+                    android:textSize="9sp" />
+            </LinearLayout>
+
+            <!-- 스킬 이름 (가운데, 메인) -->
             <TextView
                 android:id="@+id/tv_skill_name"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:text="스킬명"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:textColor="@color/main_navy"
+                android:ellipsize="end"
                 android:gravity="center"
-                android:maxLines="2"
-                android:ellipsize="end" />
+                android:maxLines="3"
+                android:text="스킬명"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-            <!-- 효과 타입 -->
-            <TextView
-                android:id="@+id/tv_effect_type"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⚔ 공격"
-                android:textSize="10sp"
-                android:textColor="#555"
-                android:layout_marginBottom="2dp" />
+            <!-- 구분선 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#44445E"
+                android:layout_marginVertical="6dp" />
 
             <!-- 데미지 -->
             <TextView
@@ -62,24 +80,27 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="DMG 50"
-                android:textSize="11sp"
+                android:textColor="#FF7777"
+                android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#F44336"
-                android:layout_marginBottom="2dp" />
+                android:layout_marginBottom="3dp" />
 
             <!-- 단어 -->
             <TextView
                 android:id="@+id/tv_word"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
                 android:text="word"
+                android:textColor="#8888AA"
                 android:textSize="9sp"
-                android:textColor="@color/overlay_text_hint"
-                android:gravity="center" />
+                android:textStyle="italic" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- 선택 오버레이: 녹색 테두리 + 체크 -->
+    <!-- 선택 오버레이 -->
     <FrameLayout
         android:id="@+id/selected_overlay"
         android:layout_width="match_parent"
@@ -92,29 +113,30 @@
             android:layout_height="32dp"
             android:layout_gravity="top|end"
             android:layout_margin="4dp"
-            android:text="✓"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/white"
+            android:background="#CC4CAF50"
             android:gravity="center"
-            android:background="#CC4CAF50" />
+            android:text="✓"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
     </FrameLayout>
 
-    <!-- 사용 불가 오버레이 (클리어 후 재사용 제한) -->
+    <!-- 잠금 오버레이 -->
     <FrameLayout
         android:id="@+id/locked_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#AA333333"
+        android:background="#AA111122"
         android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="🔒\n재사용 불가"
-            android:textSize="11sp"
+            android:gravity="center"
+            android:text="🔒&#10;재사용 불가"
             android:textColor="@color/white"
-            android:gravity="center" />
+            android:textSize="11sp" />
     </FrameLayout>
+
 </FrameLayout>
