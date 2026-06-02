@@ -2,7 +2,9 @@ package com.example.zamgavocafront.pve
 
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Base64
 import androidx.core.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
@@ -14,8 +16,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.lifecycleScope
+import coil.load
 import com.example.zamgavocafront.R
+import com.example.zamgavocafront.api.ApiClient
 import com.example.zamgavocafront.pvp.CollectedCardManager
+import kotlinx.coroutines.launch
 
 class PveDungeonActivity : AppCompatActivity() {
 
@@ -86,6 +92,7 @@ class PveDungeonActivity : AppCompatActivity() {
         rvCards = findViewById(R.id.rv_cards)
 
         findViewById<Button>(R.id.btn_retreat).setOnClickListener { confirmRetreat() }
+        findViewById<Button>(R.id.btn_exit).setOnClickListener { finish() }
     }
 
     private fun setupRecyclerViews() {
@@ -94,7 +101,7 @@ class PveDungeonActivity : AppCompatActivity() {
         rvMonsters.adapter = monsterAdapter
 
         cardAdapter = DungeonCardAdapter { card -> onCardSelected(card) }
-        rvCards.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvCards.layoutManager = GridLayoutManager(this, 3)
         rvCards.adapter = cardAdapter
     }
 
@@ -249,7 +256,23 @@ class PveDungeonActivity : AppCompatActivity() {
     }
 
     private fun onRoundCleared() {
+        val wasBossRound = PveBattleEngine.state.isBossRound
         val hasNext = PveBattleEngine.advanceToNextRound()
+
+        // 라운드 완료 경험치 지급 API 호출
+        lifecycleScope.launch {
+            runCatching {
+                if (wasBossRound) ApiClient.api.completeBossRound()
+                else ApiClient.api.completeMobRound()
+            }.getOrNull()?.data?.let { result ->
+                Toast.makeText(
+                    this@PveDungeonActivity,
+                    "경험치 ${result.gainedExp}를 얻었습니다! (LV.${result.level})",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
         if (hasNext) {
             val s = PveBattleEngine.state
             val roundLabel = if (s.isBossRound) "🔥 보스 라운드!" else "라운드 ${s.roundIndex + 1}"
@@ -334,7 +357,7 @@ class PveDungeonActivity : AppCompatActivity() {
         }
     }
 
-    // ── 덱 카드 어댑터 ───────────────────────────────────────────────
+    // ── 덱 카드 어댑터 (item_pve_card 재활용, 2열 그리드) ────────────
     private inner class DungeonCardAdapter(
         private val onClick: (CollectedCardManager.CollectedCard) -> Unit
     ) : RecyclerView.Adapter<DungeonCardAdapter.VH>() {
@@ -349,32 +372,61 @@ class PveDungeonActivity : AppCompatActivity() {
         }
 
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
-            val tvGrade: TextView = v.findViewById(R.id.tv_card_grade)
-            val tvSkillName: TextView = v.findViewById(R.id.tv_card_skill_name)
-            val tvEffectIcon: TextView = v.findViewById(R.id.tv_card_effect_icon)
-            val tvDamage: TextView = v.findViewById(R.id.tv_card_damage)
-            val tvWord: TextView = v.findViewById(R.id.tv_card_word)
+            val ivImage: ImageView   = v.findViewById(R.id.iv_skill_image)
+            val ivFrame: ImageView   = v.findViewById(R.id.iv_card_frame)
+            val tvName: TextView     = v.findViewById(R.id.tv_skill_name)
+            val tvDamage: TextView   = v.findViewById(R.id.tv_skill_damage_compact)
+            val tvWord: TextView     = v.findViewById(R.id.tv_word)
+            val flFrame: FrameLayout = v.findViewById(R.id.fl_card_frame)
             val cooldownOverlay: FrameLayout = v.findViewById(R.id.cooldown_overlay)
             val tvCooldown: TextView = v.findViewById(R.id.tv_cooldown)
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
-            VH(LayoutInflater.from(parent.context).inflate(R.layout.item_battle_card, parent, false))
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+            val v = LayoutInflater.from(parent.context).inflate(R.layout.item_pve_card, parent, false)
+            v.post {
+                val fl = v.findViewById<FrameLayout>(R.id.fl_card_frame)
+                val lp = fl.layoutParams
+                lp.height = (v.width * 280f / 180f).toInt()
+                fl.layoutParams = lp
+            }
+            return VH(v)
+        }
 
         override fun getItemCount() = allCards.size
 
         override fun onBindViewHolder(h: VH, pos: Int) {
             val card = allCards[pos]
-            val effect = PveBattleEngine.getCardEffect(card)
             val cd = PveBattleEngine.getCooldown(card.wordId)
-            val available = availableIds.contains(card.wordId)
 
-            h.tvGrade.text = card.grade
-            h.tvGrade.backgroundTintList = ColorStateList.valueOf(gradeColor(card.grade))
-            h.tvSkillName.text = card.skillName
-            h.tvEffectIcon.text = effect.icon
-            h.tvDamage.text = "${card.damage}"
-            h.tvWord.text = card.word
+            h.tvName.text   = card.skillName
+            h.tvDamage.text = "${card.damage} DMG"
+            h.tvWord.text   = card.word
+
+            // 동급(bronze) 카드는 카드 이름 위치를 위로 조정
+            val nameLp = h.tvName.layoutParams as android.widget.FrameLayout.LayoutParams
+            val baseMarginPx = (58 * h.itemView.resources.displayMetrics.density).toInt()
+            nameLp.bottomMargin = if (card.grade == "동급") baseMarginPx + (8 * h.itemView.resources.displayMetrics.density).toInt() else baseMarginPx
+            h.tvName.layoutParams = nameLp
+
+            h.ivFrame.setImageResource(when (card.grade) {
+                "금급" -> R.drawable.cardframe_gold
+                "은급" -> R.drawable.cardframe_silver
+                else   -> R.drawable.cardframe_bronze
+            })
+
+            when {
+                !card.imageUrl.isNullOrBlank() -> h.ivImage.load(card.imageUrl) {
+                    crossfade(true)
+                    placeholder(android.R.drawable.ic_menu_gallery)
+                    error(android.R.drawable.ic_menu_gallery)
+                }
+                card.imageBase64 != null -> runCatching {
+                    val bytes = Base64.decode(card.imageBase64, Base64.DEFAULT)
+                    h.ivImage.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
+                }.onFailure { h.ivImage.setImageResource(android.R.drawable.ic_menu_gallery) }
+                else -> h.ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
+            }
 
             val onCooldown = cd > 0
             h.cooldownOverlay.visibility = if (onCooldown) View.VISIBLE else View.GONE
@@ -382,12 +434,6 @@ class PveDungeonActivity : AppCompatActivity() {
             h.itemView.alpha = if (onCooldown) 0.45f else 1.0f
 
             h.itemView.setOnClickListener { onClick(card) }
-        }
-
-        private fun gradeColor(grade: String): Int = when (grade) {
-            "금급" -> ContextCompat.getColor(this@PveDungeonActivity, R.color.color_grade_gold)
-            "은급" -> ContextCompat.getColor(this@PveDungeonActivity, R.color.color_grade_silver)
-            else   -> ContextCompat.getColor(this@PveDungeonActivity, R.color.color_grade_bronze)
         }
     }
 }

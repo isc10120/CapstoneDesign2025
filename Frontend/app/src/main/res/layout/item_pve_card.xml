@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 카드 프레임 영역 (높이는 adapter에서 동적 설정) -->
+        <FrameLayout
+            android:id="@+id/fl_card_frame"
+            android:layout_width="match_parent"
+            android:layout_height="0dp">
+
+            <ImageView
+                android:id="@+id/iv_skill_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="72dp"
+                android:layout_marginRight="1.5dp"
+                android:scaleType="centerCrop"
+                android:background="#CCCCCC" />
+
+            <ImageView
+                android:id="@+id/iv_card_frame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/cardframe_silver"
+                android:scaleType="fitXY" />
+
+            <TextView
+                android:id="@+id/tv_skill_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="58dp"
+                android:gravity="center"
+                android:paddingHorizontal="10dp"
+                android:text="스킬명"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="#222222"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tv_skill_damage_compact"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="25dp"
+                android:gravity="center"
+                android:paddingHorizontal="10dp"
+                android:text="-- DMG"
+                android:textSize="10sp"
+                android:textColor="#CC3333"
+                android:maxLines="1" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tv_word"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="3dp"
+            android:paddingBottom="2dp"
+            android:text="word"
+            android:textSize="9sp"
+            android:textStyle="italic"
+            android:textColor="#1A1A2E"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+    </LinearLayout>
+
+    <!-- 쿨타임 오버레이 -->
+    <FrameLayout
+        android:id="@+id/cooldown_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_cooldown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="쿨타임\n3턴"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+    </FrameLayout>
+
+</FrameLayout>

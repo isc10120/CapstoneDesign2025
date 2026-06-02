@@ -1,71 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="6dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    app:cardBackgroundColor="#2A2A4E">
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingHorizontal="12dp">
 
-    <LinearLayout
-        android:layout_width="120dp"
+    <!-- 몬스터 이름 (스프라이트 위) -->
+    <TextView
+        android:id="@+id/tv_monster_name"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="12dp">
+        android:gravity="center"
+        android:layout_marginBottom="3dp"
+        android:text="고블린"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="3" />
 
-        <!-- 몬스터 이모지 -->
-        <TextView
-            android:id="@+id/tv_monster_emoji"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="👺"
-            android:textSize="40sp"
-            android:layout_marginBottom="6dp" />
+    <!-- HP 바 (스프라이트 위) -->
+    <ProgressBar
+        android:id="@+id/pb_monster_hp"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="90dp"
+        android:layout_height="7dp"
+        android:layout_marginBottom="2dp"
+        android:max="100"
+        android:progress="100"
+        android:progressBackgroundTint="#55222244"
+        android:progressTint="#F44336" />
 
-        <!-- 몬스터 이름 -->
-        <TextView
-            android:id="@+id/tv_monster_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="고블린"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:gravity="center"
-            android:layout_marginBottom="4dp" />
+    <TextView
+        android:id="@+id/tv_monster_hp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginBottom="4dp"
+        android:text="80 / 80"
+        android:textColor="#FFAAAA"
+        android:textSize="9sp"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2" />
 
-        <!-- HP 바 -->
-        <ProgressBar
-            android:id="@+id/pb_monster_hp"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:max="100"
-            android:progress="100"
-            android:progressTint="#F44336"
-            android:progressBackgroundTint="#333333"
-            android:layout_marginBottom="2dp" />
+    <!-- 몬스터 이모지 (스프라이트) -->
+    <TextView
+        android:id="@+id/tv_monster_emoji"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="👺"
+        android:textSize="72sp" />
 
-        <TextView
-            android:id="@+id/tv_monster_hp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="80 / 80"
-            android:textSize="10sp"
-            android:textColor="#FF7777"
-            android:gravity="center"
-            android:layout_marginBottom="6dp" />
+    <!-- 공격 카운트다운 -->
+    <TextView
+        android:id="@+id/tv_attack_countdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="⚡ 2턴 후 공격"
+        android:textColor="#FFA500"
+        android:textSize="9sp"
+        android:textStyle="bold"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2" />
 
-        <!-- 공격 카운트다운 -->
-        <TextView
-            android:id="@+id/tv_attack_countdown"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="⚡ 공격 2턴 후"
-            android:textSize="10sp"
-            android:textColor="#FFA500"
-            android:gravity="center" />
-    </LinearLayout>
-</androidx.cardview.widget.CardView>
+</LinearLayout>

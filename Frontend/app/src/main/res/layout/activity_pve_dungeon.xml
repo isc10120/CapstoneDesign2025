@@ -3,17 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#1A1A2E">
+    android:background="#EEF1FA"
+    android:orientation="vertical">
 
-    <!-- 상단: 스테이지 / 턴 / 라운드 -->
+    <!-- 상단 헤더: 스테이지 / 라운드 / 턴 (PvP 타이머 바 위치) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
+        android:background="@color/main_navy"
+        android:gravity="center"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp"
-        android:background="#2A2A4E">
+        android:paddingHorizontal="16dp">
 
         <TextView
             android:id="@+id/tv_stage_round"
@@ -21,155 +21,194 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="스테이지 1 · 라운드 1/5"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tv_turn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="턴 1"
-            android:textSize="13sp"
-            android:textColor="#F4C400" />
+            android:textColor="@color/main_yellow"
+            android:textSize="14sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- 플레이어 상태이상 표시 -->
+    <!-- 플레이어 상태이상 -->
     <TextView
         android:id="@+id/tv_player_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#220044AA"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="5dp"
         android:text=""
-        android:textSize="12sp"
         android:textColor="#FFD700"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="4dp"
+        android:textSize="12sp"
         android:visibility="gone" />
 
-    <!-- 몬스터 영역 -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_monsters"
+    <!-- 배틀 씬: pvp_background + 몬스터 (PvP의 210dp FrameLayout과 동일) -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="12dp"
-        android:clipToPadding="false" />
+        android:layout_height="210dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
-    <!-- 플레이어 HP -->
-    <androidx.cardview.widget.CardView
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/pvp_background"
+            android:contentDescription="던전 배경" />
+
+        <!-- 몬스터 RecyclerView: 씬 중앙에 스프라이트처럼 배치 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_monsters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:clipToPadding="false"
+            android:paddingHorizontal="8dp" />
+
+    </FrameLayout>
+
+    <!-- 플레이어 정보 영역 (PvP 플레이어 정보 영역과 동일 위치) -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginBottom="8dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#2A2A4E">
+        android:background="@color/white"
+        android:orientation="vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="6dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="🧙 플레이어"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
-
-                <TextView
-                    android:id="@+id/tv_player_hp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="500 / 500"
-                    android:textSize="13sp"
-                    android:textColor="#7FFF7F" />
-            </LinearLayout>
-
-            <ProgressBar
-                android:id="@+id/pb_player_hp"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="12dp"
-                android:max="100"
-                android:progress="100"
-                android:progressTint="#4CAF50"
-                android:progressBackgroundTint="#333355" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
 
             <TextView
-                android:id="@+id/tv_player_buffs"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text=""
-                android:textSize="11sp"
-                android:textColor="#FFD700"
-                android:layout_marginTop="4dp"
-                android:visibility="gone" />
+                android:layout_weight="1"
+                android:text="🧙 내 HP"
+                android:textColor="@color/overlay_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_player_hp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="500 / 500"
+                android:textColor="#2E7D32"
+                android:textSize="13sp"
+                android:textStyle="bold" />
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
-    <!-- 구분선 -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#333355"
-        android:layout_marginHorizontal="12dp" />
-
-    <!-- 카드 영역 헤더 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="12dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="4dp">
+        <ProgressBar
+            android:id="@+id/pb_player_hp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:max="100"
+            android:progress="100"
+            android:progressBackgroundTint="#DDDDDD"
+            android:progressTint="#4CAF50" />
 
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/tv_player_buffs"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="사용 가능한 카드"
-            android:textSize="12sp"
-            android:textColor="#AAAACC" />
-
-        <TextView
-            android:id="@+id/tv_available_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 / 0장"
-            android:textSize="12sp"
-            android:textColor="#AAAACC" />
+            android:layout_marginTop="4dp"
+            android:text=""
+            android:textColor="#7A5800"
+            android:textSize="11sp"
+            android:visibility="gone" />
     </LinearLayout>
 
-    <!-- 카드 가로 스크롤 -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_cards"
+    <!-- 카드 드로어 (PvP bg_word_drawer와 동일) -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:paddingHorizontal="8dp"
-        android:clipToPadding="false" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_word_drawer"
+        android:elevation="10dp"
+        android:orientation="vertical">
 
-    <!-- 포기 버튼 -->
-    <Button
-        android:id="@+id/btn_retreat"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginVertical="8dp"
-        android:text="던전 포기"
-        android:textSize="13sp"
-        android:backgroundTint="#8B0000"
-        style="@style/Widget.MaterialComponents.Button" />
+        <!-- 드로어 헤더 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="⚔ 사용 가능한 카드"
+                android:textColor="#5C4200"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_available_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 / 0장"
+                android:textColor="#7A5800"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <!-- 카드 가로 스크롤 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_cards"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingHorizontal="8dp"
+            android:paddingBottom="4dp" />
+
+        <!-- 버튼 행: 나가기 + 던전 포기 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="10dp">
+
+            <Button
+                android:id="@+id/btn_exit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:backgroundTint="#455A64"
+                android:text="나가기"
+                android:textSize="13sp"
+                style="@style/Widget.MaterialComponents.Button" />
+
+            <Button
+                android:id="@+id/btn_retreat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="#8B0000"
+                android:text="🚪 던전 포기"
+                android:textSize="13sp"
+                style="@style/Widget.MaterialComponents.Button" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>
