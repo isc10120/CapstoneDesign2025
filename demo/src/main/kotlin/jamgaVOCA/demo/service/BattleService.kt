@@ -68,7 +68,32 @@ class BattleService(
                 battle.userBScore,
                 battle.result
             )
+            grantPvpExp(battle)
         }
+    }
+
+    private fun grantPvpExp(battle: Battle) {
+        val userA = battle.userA
+        val userB = battle.userB
+        // 더미 유저는 경험치 지급 제외
+        when (battle.result) {
+            BattleResult.WIN_A -> {
+                if (!userA.isDummy) userService.addExp(userA.id!!, userB.level * 30)
+                if (!userB.isDummy) userService.addExp(userB.id!!, userA.level * 10)
+            }
+            BattleResult.WIN_B -> {
+                if (!userB.isDummy) userService.addExp(userB.id!!, userA.level * 30)
+                if (!userA.isDummy) userService.addExp(userA.id!!, userB.level * 10)
+            }
+            BattleResult.DRAW -> {
+                val expA = userB.level * 10
+                val expB = userA.level * 10
+                if (!userA.isDummy) userService.addExp(userA.id!!, expA)
+                if (!userB.isDummy) userService.addExp(userB.id!!, expB)
+            }
+            null -> {}
+        }
+        log.info("[BATTLE] PVP 경험치 지급 - battleId=${battle.id}, result=${battle.result}")
     }
 
     private fun createWeeklyMatches() {

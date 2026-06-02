@@ -8,4 +8,5 @@ interface UserWordSkillRepository : JpaRepository<UserWordSkill, Long> {
     fun findAllByUserIdAndWordId(userId: Long, wordId: Long): List<UserWordSkill>
     fun findByUserIdAndWordIdAndSkillId(userId: Long, wordId: Long, skillId: Long): Optional<UserWordSkill>
     fun existsByUserIdAndWordIdAndSkillId(userId: Long, wordId: Long, skillId: Long): Boolean
+    fun existsByUserIdAndSkillId(userId: Long, skillId: Long): Boolean
 }

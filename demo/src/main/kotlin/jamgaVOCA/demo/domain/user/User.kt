@@ -31,6 +31,9 @@ class User(
     @Column(name = "exp_point", nullable = false)
     var expPoint: Int = 0,
 
+    @Column(name = "level", nullable = false)
+    var level: Int = 1,
+
     @Column(name = "created_at", nullable = false)
     var createdAt: LocalDateTime = LocalDateTime.now(),
 

@@ -25,6 +25,13 @@ enum class ErrorCode(
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "INVALID_PASSWORD", "비밀번호가 일치하지 않습니다."),
     DUMMY_USER_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "DUMMY_USER_NOT_FOUND", "더미 유저가 존재하지 않습니다."),
 
+    // 덱
+    DECK_NOT_FOUND(HttpStatus.NOT_FOUND, "DECK_NOT_FOUND", "존재하지 않는 덱입니다."),
+    DECK_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "DECK_SIZE_EXCEEDED", "덱 최대 카드 수를 초과했습니다."),
+    DECK_SIZE_TOO_SMALL(HttpStatus.BAD_REQUEST, "DECK_SIZE_TOO_SMALL", "덱 최소 카드 수(10장)를 충족하지 못했습니다."),
+    SKILL_NOT_IN_COLLECTION(HttpStatus.BAD_REQUEST, "SKILL_NOT_IN_COLLECTION", "보유하지 않은 스킬입니다."),
+    SKILL_ALREADY_IN_DECK(HttpStatus.BAD_REQUEST, "SKILL_ALREADY_IN_DECK", "이미 덱에 포함된 스킬입니다."),
+
     // 배틀
     BATTLE_NOT_FOUND(HttpStatus.NOT_FOUND, "BATTLE_NOT_FOUND", "진행 중인 배틀이 없습니다."),
 

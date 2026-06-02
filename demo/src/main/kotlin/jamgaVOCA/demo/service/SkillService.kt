@@ -111,6 +111,7 @@ class SkillService(
             skill = skill
         )
         userWordSkillRepository.save(userWordSkill)
+        userService.addExp(userId, 15)
         log.info("[SKILL] 스킬 수집 완료 - userId=$userId, skillId=$skillId, skillName=${skill.name}, wordId=$wordId")
     }
 }
