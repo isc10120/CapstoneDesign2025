@@ -3,30 +3,170 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
     android:background="#F5F5F5">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- 헤더 -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🏆"
-        android:textSize="64sp"
-        android:layout_marginBottom="16dp" />
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="8dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="리더보드"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="@color/main_navy"
-        android:layout_marginBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="랭킹"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/main_navy" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    </LinearLayout>
+
+    <!-- 탭 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="곧 출시 예정입니다!"
-        android:textSize="14sp"
-        android:textColor="@color/overlay_text_hint" />
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/btn_tab_exp"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="경험치"
+            android:textSize="13sp"
+            android:backgroundTint="@color/main_navy"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btn_tab_skills"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="수집 스킬"
+            android:textSize="13sp"
+            android:backgroundTint="#CCCCCC"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+
+    <!-- 컬럼 헤더 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:background="@android:color/white">
+
+        <TextView
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:text="순위" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:text="닉네임" />
+
+        <TextView
+            android:id="@+id/tv_value_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textColor="#888888"
+            android:text="경험치" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE" />
+
+    <!-- 랭킹 목록 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_ranking"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp" />
+
+    <!-- 내 순위 고정 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#DDDDDD" />
+
+    <LinearLayout
+        android:id="@+id/ll_my_entry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:gravity="center_vertical"
+        android:background="#EEF0FF">
+
+        <TextView
+            android:id="@+id/tv_my_rank"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/main_navy"
+            android:text="-" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="8dp">
+
+            <TextView
+                android:id="@+id/tv_my_nickname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#1A1A2E"
+                android:text="나" />
+
+            <TextView
+                android:id="@+id/tv_my_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="11sp"
+                android:textColor="#888888"
+                android:text="Lv.1" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_my_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/main_navy"
+            android:text="0" />
+
+    </LinearLayout>
 
 </LinearLayout>
