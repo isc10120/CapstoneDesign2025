@@ -107,4 +107,46 @@ interface ZamgaVocaApiService {
 
     @POST("api/v1/auth/refresh")
     suspend fun refreshToken(@Body req: RefreshTokenRequest): ApiResponse<RefreshTokenResponse>
+
+    // ───── /api/v1 Deck API ─────
+
+    @GET("api/v1/decks")
+    suspend fun getDecks(): ApiResponse<List<DeckListItemResponse>>
+
+    @GET("api/v1/decks/{deckId}")
+    suspend fun getDeckDetail(@Path("deckId") deckId: Long): ApiResponse<DeckDetailResponse>
+
+    @POST("api/v1/decks")
+    suspend fun createDeck(@Body req: DeckCreateRequest): ApiResponse<DeckDetailResponse>
+
+    @PUT("api/v1/decks/{deckId}")
+    suspend fun updateDeck(
+        @Path("deckId") deckId: Long,
+        @Body req: DeckUpdateRequest
+    ): ApiResponse<DeckDetailResponse>
+
+    @DELETE("api/v1/decks/{deckId}")
+    suspend fun deleteDeck(@Path("deckId") deckId: Long): ApiResponse<Any?>
+
+    // ───── /api/v1 PVE API ─────
+
+    @POST("api/v1/pve/mob-round")
+    suspend fun completeMobRound(): ApiResponse<PveRoundResultResponse>
+
+    @POST("api/v1/pve/boss-round")
+    suspend fun completeBossRound(): ApiResponse<PveRoundResultResponse>
+
+    // ───── /api/v1 Ranking API ─────
+
+    @GET("api/v1/rankings/exp")
+    suspend fun getExpRanking(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): ApiResponse<RankingResponse>
+
+    @GET("api/v1/rankings/skills")
+    suspend fun getSkillsRanking(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): ApiResponse<RankingResponse>
 }

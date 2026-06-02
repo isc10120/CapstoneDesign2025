@@ -3,6 +3,14 @@ package com.example.zamgavocafront.api
 import com.example.zamgavocafront.WordRepository
 import com.example.zamgavocafront.api.dto.*
 
+private val mockDecks = mutableListOf(
+    DeckDetailResponse(
+        deckId = 1L,
+        name = "기본 덱",
+        skillIds = listOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L)
+    )
+)
+
 /**
  * 백엔드 API 키 없이 테스트할 수 있는 Mock 구현체.
  * ApiClient.USE_MOCK = true 일 때 사용됨.
@@ -288,6 +296,91 @@ class MockApiService : ZamgaVocaApiService {
 
     override suspend fun refreshToken(req: RefreshTokenRequest): ApiResponse<RefreshTokenResponse> =
         ApiResponse(success = true, data = RefreshTokenResponse(accessToken = "mock_access_token"))
+
+    // ── /api/v1 Deck API (Mock) ───────────────────────────────────────
+
+    override suspend fun getDecks(): ApiResponse<List<DeckListItemResponse>> {
+        val items = mockDecks.map { deck ->
+            DeckListItemResponse(
+                deckId = deck.deckId,
+                name = deck.name,
+                skillCount = deck.skillIds.size,
+                firstSkill = null
+            )
+        }
+        return ApiResponse(success = true, data = items)
+    }
+
+    override suspend fun getDeckDetail(deckId: Long): ApiResponse<DeckDetailResponse> {
+        val deck = mockDecks.find { it.deckId == deckId }
+            ?: return ApiResponse(success = false, data = null,
+                error = ApiError("NOT_FOUND", "덱을 찾을 수 없습니다."))
+        return ApiResponse(success = true, data = deck)
+    }
+
+    override suspend fun createDeck(req: DeckCreateRequest): ApiResponse<DeckDetailResponse> {
+        val newId = (mockDecks.maxOfOrNull { it.deckId } ?: 0L) + 1L
+        val deck = DeckDetailResponse(deckId = newId, name = req.name, skillIds = req.skillIds)
+        mockDecks.add(deck)
+        return ApiResponse(success = true, data = deck)
+    }
+
+    override suspend fun updateDeck(deckId: Long, req: DeckUpdateRequest): ApiResponse<DeckDetailResponse> {
+        val idx = mockDecks.indexOfFirst { it.deckId == deckId }
+        if (idx < 0) return ApiResponse(success = false, data = null,
+            error = ApiError("NOT_FOUND", "덱을 찾을 수 없습니다."))
+        val old = mockDecks[idx]
+        val updated = DeckDetailResponse(
+            deckId = deckId,
+            name = req.name ?: old.name,
+            skillIds = req.skillIds ?: old.skillIds
+        )
+        mockDecks[idx] = updated
+        return ApiResponse(success = true, data = updated)
+    }
+
+    override suspend fun deleteDeck(deckId: Long): ApiResponse<Any?> {
+        mockDecks.removeAll { it.deckId == deckId }
+        return ApiResponse(success = true, data = null)
+    }
+
+    // ── /api/v1 PVE API (Mock) ────────────────────────────────────────
+
+    override suspend fun completeMobRound(): ApiResponse<PveRoundResultResponse> =
+        ApiResponse(success = true, data = PveRoundResultResponse(
+            gainedExp = 9, totalExp = 124, level = 3
+        ))
+
+    override suspend fun completeBossRound(): ApiResponse<PveRoundResultResponse> =
+        ApiResponse(success = true, data = PveRoundResultResponse(
+            gainedExp = 15, totalExp = 139, level = 3
+        ))
+
+    // ── /api/v1 Ranking API (Mock) ────────────────────────────────────
+
+    override suspend fun getExpRanking(page: Int, size: Int): ApiResponse<RankingResponse> {
+        val entries = listOf(
+            RankingEntry(rank = 1, userId = 3L, nickname = "홍길동", level = 12, value = 1200L),
+            RankingEntry(rank = 2, userId = 7L, nickname = "이순신", level = 8, value = 520L),
+            RankingEntry(rank = 3, userId = 5L, nickname = "강감찬", level = 6, value = 390L),
+        )
+        val myEntry = RankingEntry(rank = 15, userId = 1L, nickname = "테스트유저", level = 3, value = 124L)
+        return ApiResponse(success = true, data = RankingResponse(
+            entries = entries, totalElements = 42L, totalPages = 3, myEntry = myEntry
+        ))
+    }
+
+    override suspend fun getSkillsRanking(page: Int, size: Int): ApiResponse<RankingResponse> {
+        val entries = listOf(
+            RankingEntry(rank = 1, userId = 3L, nickname = "홍길동", level = 12, value = 87L),
+            RankingEntry(rank = 2, userId = 7L, nickname = "이순신", level = 8, value = 54L),
+            RankingEntry(rank = 3, userId = 5L, nickname = "강감찬", level = 6, value = 31L),
+        )
+        val myEntry = RankingEntry(rank = 20, userId = 1L, nickname = "테스트유저", level = 3, value = 12L)
+        return ApiResponse(success = true, data = RankingResponse(
+            entries = entries, totalElements = 42L, totalPages = 3, myEntry = myEntry
+        ))
+    }
 
     // ── helpers ──────────────────────────────────────────────────────
 
