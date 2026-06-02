@@ -42,7 +42,10 @@ class Skill(
     var skillType: SkillType,
 
     @Column
-    var lasting: Int? = null
+    var lasting: Int? = null,
+
+    @Column(name = "dominant_color", length = 7)
+    var dominantColor: String? = null  // #RRGGBB
 ) {
     @OneToMany(mappedBy = "skill", fetch = FetchType.LAZY)
     val userWordSkills: MutableList<UserWordSkill> = mutableListOf()

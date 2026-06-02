@@ -197,6 +197,8 @@ class BattleService(
         val applyResult: SkillApplyResult,
         val skillName: String,
         val skillType: String,
+        val skillImageUrl: String,
+        val skillDominantColor: String?,
         val battleId: Long,
         val senderLevel: Int,
         val senderExp: Int
@@ -229,6 +231,8 @@ class BattleService(
             applyResult = applyResult,
             skillName = skill.name,
             skillType = skill.skillType.name,
+            skillImageUrl = skill.imageUrl,
+            skillDominantColor = skill.dominantColor,
             battleId = battle.id!!,
             senderLevel = updatedUser.level,
             senderExp = updatedUser.expPoint
@@ -257,6 +261,8 @@ class BattleService(
             applyResult = SkillApplyResult(poisonDamageTaken = poisonDamageTaken),
             skillName = skill.name,
             skillType = skill.skillType.name,
+            skillImageUrl = skill.imageUrl,
+            skillDominantColor = skill.dominantColor,
             battleId = battle.id!!,
             senderLevel = user.level,
             senderExp = user.expPoint

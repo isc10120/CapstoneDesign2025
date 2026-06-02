@@ -64,6 +64,8 @@ class PvpController(
                 senderExp = result.senderExp,
                 skillName = result.skillName,
                 skillType = result.skillType,
+                skillImageUrl = result.skillImageUrl,
+                skillDominantColor = result.skillDominantColor,
                 damageDealt = result.applyResult.damageDealt,
                 statusApplied = result.applyResult.statusApplied,
                 shieldBlocked = result.applyResult.shieldBlocked,
@@ -74,7 +76,7 @@ class PvpController(
         )
 
         return ApiResponse.success(
-            PvpSkillResponse.from(result.applyResult, result.skillName, result.skillType, result.senderLevel, result.senderExp)
+            PvpSkillResponse.from(result.applyResult, result.skillName, result.skillType, result.skillImageUrl, result.skillDominantColor, result.senderLevel, result.senderExp)
         )
     }
 
@@ -91,6 +93,8 @@ class PvpController(
                 senderExp = result.senderExp,
                 skillName = result.skillName,
                 skillType = result.skillType,
+                skillImageUrl = result.skillImageUrl,
+                skillDominantColor = result.skillDominantColor,
                 damageDealt = 0,
                 statusApplied = null,
                 shieldBlocked = false,
@@ -101,7 +105,7 @@ class PvpController(
         )
 
         return ApiResponse.success(
-            PvpSkillResponse.from(result.applyResult, result.skillName, result.skillType, result.senderLevel, result.senderExp)
+            PvpSkillResponse.from(result.applyResult, result.skillName, result.skillType, result.skillImageUrl, result.skillDominantColor, result.senderLevel, result.senderExp)
         )
     }
 }

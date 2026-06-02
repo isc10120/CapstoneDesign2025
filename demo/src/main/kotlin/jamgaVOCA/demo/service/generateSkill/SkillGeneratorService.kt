@@ -8,6 +8,7 @@ import jamgaVOCA.demo.domain.word.WordRepository
 import jamgaVOCA.demo.domain.skill.Skill
 import jamgaVOCA.demo.domain.skill.SkillType
 import jamgaVOCA.demo.domain.word.WordLevel
+import jamgaVOCA.demo.infra.ImageColorExtractor
 import jamgaVOCA.demo.infra.S3UploadService
 import jamgaVOCA.demo.infra.ai.AiChatClient
 import jamgaVOCA.demo.infra.ai.AiImageClient
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class SkillGeneratorService(
@@ -22,7 +24,8 @@ class SkillGeneratorService(
     private val wordRepository: WordRepository,
     private val s3UploadService: S3UploadService,
     private val aiChatClient: AiChatClient,
-    private val aiImageClient: AiImageClient
+    private val aiImageClient: AiImageClient,
+    private val imageColorExtractor: ImageColorExtractor
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val generatingWordIds = mutableSetOf<Long>()
@@ -115,8 +118,10 @@ class SkillGeneratorService(
 
             try {
                 val base64 = aiImageClient.requestImageBase64WithRetry(skill.imageDesc)
+                val dominantColor = imageColorExtractor.extract(base64)
                 val imageUrl = s3UploadService.uploadBase64Image(base64)
                 skill.imageUrl = imageUrl
+                skill.dominantColor = dominantColor
                 skillRepository.save(skill)
                 log.info("Image generated successfully for skillId=$skillId")
             } catch (e: Exception) {

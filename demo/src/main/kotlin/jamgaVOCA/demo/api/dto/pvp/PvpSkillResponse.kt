@@ -6,6 +6,8 @@ import jamgaVOCA.demo.service.dto.StatusAppliedInfo
 data class PvpSkillResponse(
     val skillName: String,
     val skillType: String,
+    val skillImageUrl: String,
+    val skillDominantColor: String?,
     val damageDealt: Int,
     val statusApplied: StatusAppliedInfo?,
     val shieldBlocked: Boolean,
@@ -16,10 +18,12 @@ data class PvpSkillResponse(
     val currentExp: Int
 ) {
     companion object {
-        fun from(result: SkillApplyResult, skillName: String, skillType: String, level: Int, exp: Int) =
+        fun from(result: SkillApplyResult, skillName: String, skillType: String, imageUrl: String, dominantColor: String?, level: Int, exp: Int) =
             PvpSkillResponse(
                 skillName = skillName,
                 skillType = skillType,
+                skillImageUrl = imageUrl,
+                skillDominantColor = dominantColor,
                 damageDealt = result.damageDealt,
                 statusApplied = result.statusApplied,
                 shieldBlocked = result.shieldBlocked,

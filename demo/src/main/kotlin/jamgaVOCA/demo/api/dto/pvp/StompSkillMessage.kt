@@ -8,6 +8,8 @@ data class StompSkillMessage(
     val senderExp: Int,
     val skillName: String,
     val skillType: String,
+    val skillImageUrl: String,
+    val skillDominantColor: String?,
     val damageDealt: Int,
     val statusApplied: StatusAppliedInfo?,
     val shieldBlocked: Boolean,

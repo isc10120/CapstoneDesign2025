@@ -10,6 +10,7 @@ import jamgaVOCA.demo.domain.userwordskill.UserWordSkillRepository
 import jamgaVOCA.demo.domain.word.WordRepository
 import jamgaVOCA.demo.service.generateSkill.SkillGeneratorService
 import jakarta.servlet.http.HttpSession
+import jamgaVOCA.demo.infra.ImageColorExtractor
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,7 +21,8 @@ class SkillService(
     private val userWordSkillRepository: UserWordSkillRepository,
     private val userService: UserService,
     private val wordRepository: WordRepository,
-    private val skillGeneratorService: SkillGeneratorService
+    private val skillGeneratorService: SkillGeneratorService,
+    private val imageColorExtractor: ImageColorExtractor
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -65,6 +67,11 @@ class SkillService(
         if (skill.imageUrl.isBlank()) {
             log.info("[SKILL] 이미지 없는 스킬 감지, 재생성 요청 - skillId=${skill.id}, wordId=$wordId")
             skillGeneratorService.generateImage(skill.id!!)
+        }
+        else if (skill.dominantColor.isNullOrBlank()) {
+            log.info("[SKILL] 대표 색상 없는 스킬 감지, 색상 추출 요청 - skillId=${skill.id}, wordId=$wordId")
+            skill.dominantColor = imageColorExtractor.extractFromUrl(skill.imageUrl)
+            skillRepository.save(skill)
         }
 
         return skill
