@@ -209,7 +209,7 @@ class PveQuestionActivity : AppCompatActivity() {
                 btn.text = options[index]
                 btn.isEnabled = true
                 btn.visibility = View.VISIBLE
-                btn.setOnClickListener { viewModel.submitAnswer("$index") }
+                btn.setOnClickListener { viewModel.submitAnswer(options[index]) }
             } else {
                 btn.visibility = View.GONE
             }
@@ -244,6 +244,14 @@ class PveQuestionActivity : AppCompatActivity() {
         }
 
         ivFrame.setImageResource(gradeFrameRes(skillGrade))
+
+        // 동급(bronze) 카드는 카드 이름 위치를 위로 조정
+        if (skillGrade == "동급") {
+            val lp = tvName.layoutParams as android.widget.FrameLayout.LayoutParams
+            lp.bottomMargin += (8 * resources.displayMetrics.density).toInt()
+            tvName.layoutParams = lp
+        }
+
         tvName.text = skillName
         tvDamage.text = "+$skillDamage 데미지!"
         tvEffect?.text = "부가효과: X"

@@ -4,155 +4,242 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="#EEF1FA">
 
-    <!-- 헤더 -->
+    <!-- 상단 바 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_height="48dp"
+        android:background="@color/main_navy"
         android:gravity="center_vertical"
-        android:padding="16dp"
-        android:background="@color/main_navy">
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="⚔ PVE 던전"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btn_deck"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="덱 구성"
-            android:textSize="13sp"
+            android:layout_height="36dp"
             android:backgroundTint="#F4C400"
+            android:text="덱 구성"
             android:textColor="@color/main_navy"
+            android:textSize="12sp"
             style="@style/Widget.MaterialComponents.Button" />
     </LinearLayout>
 
-    <!-- 활성 덱 정보 -->
-    <androidx.cardview.widget.CardView
+    <!-- 던전 씬 -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="12dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="2dp">
+        android:layout_height="140dp">
 
-        <LinearLayout
+        <ImageView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="12dp">
+            android:layout_height="match_parent"
+            android:contentDescription="던전 배경"
+            android:scaleType="centerCrop"
+            android:src="@drawable/pvp_background" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#AA000022" />
+
+        <!-- 전투 중 스테이지 정보 -->
+        <LinearLayout
+            android:id="@+id/layout_stage_info"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="선택된 덱:"
-                android:textSize="13sp"
-                android:textColor="@color/overlay_text_secondary" />
+                android:layout_marginBottom="6dp"
+                android:text="⚔ 진행 중인 전투"
+                android:textColor="#BBBBBB"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tv_continue_stage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 던전 미진입 상태 -->
+        <LinearLayout
+            android:id="@+id/layout_no_battle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🗺️"
+                android:textSize="38sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="던전을 탐험하세요"
+                android:textColor="#CCCCCC"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 덱 / 클리어 현황 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="선택된 덱"
+                android:textColor="@color/overlay_text_secondary"
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/tv_active_deck"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="덱 없음 - 덱 구성 후 선택해주세요"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="없음"
+                android:textColor="@color/main_navy"
                 android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/main_navy" />
+                android:textStyle="bold" />
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
-    <!-- 진행 중인 스테이지 카드 (전투 중일 때만 표시) -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_continue"
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="8dp"
+            android:background="#EEEEEE" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="클리어 스테이지"
+                android:textColor="@color/overlay_text_secondary"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tv_cleared_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="0 스테이지"
+                android:textColor="@color/main_navy"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 카드 드로어 -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginBottom="8dp"
-        android:visibility="gone"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="3dp"
-        app:cardBackgroundColor="#FFF8E1">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_word_drawer"
+        android:elevation="10dp"
+        android:orientation="vertical">
 
+        <!-- 드로어 헤더 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="14dp">
+            android:orientation="horizontal"
+            android:paddingBottom="10dp"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="14dp">
 
-            <LinearLayout
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="⚔ 진행 중인 스테이지"
-                    android:textSize="12sp"
-                    android:textColor="@color/overlay_text_secondary"
-                    android:layout_marginBottom="2dp" />
-
-                <TextView
-                    android:id="@+id/tv_continue_stage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=""
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/main_navy" />
-            </LinearLayout>
+                android:text="덱 카드"
+                android:textColor="#5C4200"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
             <Button
                 android:id="@+id/btn_continue"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="이어서 진행"
-                android:textSize="13sp"
+                android:layout_height="36dp"
                 android:backgroundTint="#FF9800"
+                android:text="이어서 진행"
+                android:textSize="12sp"
+                android:visibility="gone"
+                style="@style/Widget.MaterialComponents.Button" />
+
+            <Button
+                android:id="@+id/btn_enter_random"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:backgroundTint="@color/main_navy"
+                android:text="🎲 던전 도전"
+                android:textSize="12sp"
                 style="@style/Widget.MaterialComponents.Button" />
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
-    <!-- 랜덤 던전 입장 버튼 -->
-    <Button
-        android:id="@+id/btn_enter_random"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginBottom="12dp"
-        android:text="🎲 랜덤 던전 도전"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:backgroundTint="@color/main_navy"
-        style="@style/Widget.MaterialComponents.Button" />
+        <!-- 카드 그리드 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_deck_cards"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="8dp"
+            android:paddingHorizontal="8dp" />
 
-    <!-- 스테이지 현황 -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="스테이지 현황"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@color/overlay_text_secondary"
-        android:paddingHorizontal="16dp"
-        android:paddingBottom="4dp" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_stages"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingHorizontal="12dp"
-        android:clipToPadding="false" />
+        <!-- 덱 없을 때 -->
+        <TextView
+            android:id="@+id/tv_empty"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="덱 카드가 없어요.\n카드를 수집하고 덱을 구성해보세요!"
+            android:textColor="#7A5800"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </LinearLayout>
 
 </LinearLayout>

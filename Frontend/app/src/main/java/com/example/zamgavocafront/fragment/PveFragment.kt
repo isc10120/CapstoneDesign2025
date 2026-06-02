@@ -1,35 +1,42 @@
 package com.example.zamgavocafront.fragment
 
 import android.content.Intent
-import android.content.res.ColorStateList
+import android.graphics.BitmapFactory
 import android.os.Bundle
-import androidx.core.content.ContextCompat
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.example.zamgavocafront.R
 import com.example.zamgavocafront.pve.DeckManager
 import com.example.zamgavocafront.pve.DeckSelectActivity
 import com.example.zamgavocafront.pve.PveBattleEngine
 import com.example.zamgavocafront.pve.PveDungeonActivity
 import com.example.zamgavocafront.pve.PveStageData
-import com.example.zamgavocafront.pve.StageTemplate
+import com.example.zamgavocafront.pvp.CollectedCardManager
 
 class PveFragment : Fragment() {
 
     private lateinit var tvActiveDeck: TextView
-    private lateinit var cardContinue: CardView
+    private lateinit var tvClearedCount: TextView
     private lateinit var tvContinueStage: TextView
+    private lateinit var layoutStageInfo: LinearLayout
+    private lateinit var layoutNoBattle: LinearLayout
     private lateinit var btnContinue: Button
     private lateinit var btnEnterRandom: Button
-    private lateinit var rvStages: RecyclerView
+    private lateinit var rvDeckCards: RecyclerView
+    private lateinit var tvEmpty: TextView
+    private lateinit var deckAdapter: DeckCardAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -38,40 +45,45 @@ class PveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        tvActiveDeck = view.findViewById(R.id.tv_active_deck)
-        cardContinue = view.findViewById(R.id.card_continue)
+        tvActiveDeck    = view.findViewById(R.id.tv_active_deck)
+        tvClearedCount  = view.findViewById(R.id.tv_cleared_count)
         tvContinueStage = view.findViewById(R.id.tv_continue_stage)
-        btnContinue = view.findViewById(R.id.btn_continue)
-        btnEnterRandom = view.findViewById(R.id.btn_enter_random)
-        rvStages = view.findViewById(R.id.rv_stages)
+        layoutStageInfo = view.findViewById(R.id.layout_stage_info)
+        layoutNoBattle  = view.findViewById(R.id.layout_no_battle)
+        btnContinue     = view.findViewById(R.id.btn_continue)
+        btnEnterRandom  = view.findViewById(R.id.btn_enter_random)
+        rvDeckCards     = view.findViewById(R.id.rv_deck_cards)
+        tvEmpty         = view.findViewById(R.id.tv_empty)
 
         view.findViewById<Button>(R.id.btn_deck).setOnClickListener {
             startActivity(Intent(requireContext(), DeckSelectActivity::class.java))
         }
-
         btnContinue.setOnClickListener { onContinueBattle() }
         btnEnterRandom.setOnClickListener { onEnterRandom() }
 
-        rvStages.layoutManager = LinearLayoutManager(requireContext())
-        rvStages.adapter = StageAdapter(PveStageData.stages)
+        deckAdapter = DeckCardAdapter(emptyList())
+        rvDeckCards.layoutManager = GridLayoutManager(requireContext(), 3)
+        rvDeckCards.adapter = deckAdapter
     }
 
     override fun onResume() {
         super.onResume()
-        updateActiveDeckDisplay()
-        updateContinueUI()
+        updateDeckDisplay()
+        updateBattleState()
     }
 
-    private fun updateActiveDeckDisplay() {
+    private fun updateDeckDisplay() {
         val deck = DeckManager.getActiveDeck(requireContext())
-        tvActiveDeck.text = if (deck != null) {
-            "${deck.name}  (${deck.cardWordIds.size}장)"
-        } else {
-            "덱 없음 - 덱 구성 후 선택해주세요"
-        }
+        tvActiveDeck.text = if (deck != null) "${deck.name} (${deck.cardWordIds.size}장)" else "없음"
+        tvClearedCount.text = "${DeckManager.getClearedStageCount(requireContext())} 스테이지"
+
+        val cards = if (deck != null) DeckManager.resolveCards(requireContext(), deck) else emptyList()
+        deckAdapter.updateCards(cards)
+        rvDeckCards.visibility = if (cards.isEmpty()) View.GONE else View.VISIBLE
+        tvEmpty.visibility = if (cards.isEmpty()) View.VISIBLE else View.GONE
     }
 
-    private fun updateContinueUI() {
+    private fun updateBattleState() {
         if (PveBattleEngine.isActive) {
             val s = PveBattleEngine.state
             val stage = PveStageData.stages.firstOrNull { it.id == s.stageId }
@@ -81,27 +93,26 @@ class PveFragment : Fragment() {
             } else {
                 "스테이지 ${s.stageId}"
             }
-            cardContinue.visibility = View.VISIBLE
+            layoutStageInfo.visibility = View.VISIBLE
+            layoutNoBattle.visibility = View.GONE
+            btnContinue.visibility = View.VISIBLE
             btnEnterRandom.visibility = View.GONE
         } else {
-            cardContinue.visibility = View.GONE
+            layoutStageInfo.visibility = View.GONE
+            layoutNoBattle.visibility = View.VISIBLE
+            btnContinue.visibility = View.GONE
             btnEnterRandom.visibility = View.VISIBLE
         }
-        // 스테이지 현황 목록 갱신
-        rvStages.adapter?.notifyDataSetChanged()
     }
 
-    /** 진행 중인 전투를 이어서 진행 */
     private fun onContinueBattle() {
         val s = PveBattleEngine.state
-        val intent = Intent(requireContext(), PveDungeonActivity::class.java).apply {
+        startActivity(Intent(requireContext(), PveDungeonActivity::class.java).apply {
             putExtra(PveDungeonActivity.EXTRA_STAGE_ID, s.stageId)
-            putExtra(PveDungeonActivity.EXTRA_DECK_SLOT, 0) // 전투 활성 상태이므로 무시됨
-        }
-        startActivity(intent)
+            putExtra(PveDungeonActivity.EXTRA_DECK_SLOT, 0)
+        })
     }
 
-    /** 랜덤 스테이지로 새 전투 시작 */
     private fun onEnterRandom() {
         val deck = DeckManager.getActiveDeck(requireContext())
         if (deck == null) {
@@ -115,7 +126,6 @@ class PveFragment : Fragment() {
                 .show()
             return
         }
-
         if (!DeckManager.isDeckValid(deck, playerLevel = 1)) {
             AlertDialog.Builder(requireContext())
                 .setTitle("덱 부족")
@@ -124,52 +134,78 @@ class PveFragment : Fragment() {
                 .show()
             return
         }
-
         val cards = DeckManager.resolveCards(requireContext(), deck)
         val randomStage = PveStageData.stages.random()
-
         AlertDialog.Builder(requireContext())
             .setTitle("${randomStage.emoji} ${randomStage.name}")
-            .setMessage("랜덤으로 선택된 스테이지!\n잡몹 4라운드 + 보스 1라운드\n\n선택된 덱: ${deck.name} (${cards.size}장)\n\n입장하시겠습니까?")
+            .setMessage(
+                "랜덤으로 선택된 스테이지!\n잡몹 4라운드 + 보스 1라운드\n\n" +
+                "선택된 덱: ${deck.name} (${cards.size}장)\n\n입장하시겠습니까?"
+            )
             .setPositiveButton("입장!") { _, _ ->
-                val intent = Intent(requireContext(), PveDungeonActivity::class.java).apply {
+                startActivity(Intent(requireContext(), PveDungeonActivity::class.java).apply {
                     putExtra(PveDungeonActivity.EXTRA_STAGE_ID, randomStage.id)
                     putExtra(PveDungeonActivity.EXTRA_DECK_SLOT, deck.slotIndex)
-                }
-                startActivity(intent)
+                })
             }
             .setNegativeButton("취소", null)
             .show()
     }
 
-    // ── 스테이지 현황 어댑터 (클릭 없이 현황만 표시) ──────────────────
-    private inner class StageAdapter(
-        private val stages: List<StageTemplate>
-    ) : RecyclerView.Adapter<StageAdapter.VH>() {
+    // ── 덱 카드 어댑터 ────────────────────────────────────────────────
+    private inner class DeckCardAdapter(
+        private var cards: List<CollectedCardManager.CollectedCard>
+    ) : RecyclerView.Adapter<DeckCardAdapter.VH>() {
 
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
-            val tvEmoji: TextView = v.findViewById(R.id.tv_stage_emoji)
-            val tvName: TextView = v.findViewById(R.id.tv_stage_name)
-            val tvDetail: TextView = v.findViewById(R.id.tv_stage_detail)
-            val tvStatus: TextView = v.findViewById(R.id.tv_stage_status)
+            val ivImage: ImageView  = v.findViewById(R.id.iv_skill_image)
+            val ivFrame: ImageView  = v.findViewById(R.id.iv_card_frame)
+            val tvName: TextView    = v.findViewById(R.id.tv_skill_name)
+            val tvDamage: TextView  = v.findViewById(R.id.tv_skill_damage_compact)
+            val tvWord: TextView    = v.findViewById(R.id.tv_word)
+            val flFrame: FrameLayout = v.findViewById(R.id.fl_card_frame)
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
-            VH(LayoutInflater.from(parent.context).inflate(R.layout.item_stage, parent, false))
+        fun updateCards(newCards: List<CollectedCardManager.CollectedCard>) {
+            cards = newCards
+            notifyDataSetChanged()
+        }
 
-        override fun getItemCount() = stages.size
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+            val v = LayoutInflater.from(parent.context).inflate(R.layout.item_pve_card, parent, false)
+            v.post {
+                val fl = v.findViewById<FrameLayout>(R.id.fl_card_frame)
+                val lp = fl.layoutParams
+                lp.height = (v.width * 280f / 180f).toInt()
+                fl.layoutParams = lp
+            }
+            return VH(v)
+        }
+
+        override fun getItemCount() = cards.size
 
         override fun onBindViewHolder(h: VH, pos: Int) {
-            val stage = stages[pos]
-            val cleared = DeckManager.getClearedStageCount(requireContext())
-            h.tvEmoji.text = stage.emoji
-            h.tvName.text = "스테이지 ${stage.id}  ${stage.name}"
-            h.tvDetail.text = "잡몹 4라운드 + 보스 1라운드"
-            h.tvStatus.text = if (pos < cleared) "✅ 클리어" else "미클리어"
-            h.tvStatus.backgroundTintList = ColorStateList.valueOf(
-                if (pos < cleared) ContextCompat.getColor(h.itemView.context, R.color.difficulty_easy)
-                else ContextCompat.getColor(h.itemView.context, R.color.difficulty_medium)
-            )
+            val card = cards[pos]
+            h.tvName.text   = card.skillName
+            h.tvDamage.text = "${card.damage} DMG"
+            h.tvWord.text   = card.word
+            h.ivFrame.setImageResource(when (card.grade) {
+                "금급" -> R.drawable.cardframe_gold
+                "은급" -> R.drawable.cardframe_silver
+                else   -> R.drawable.cardframe_bronze
+            })
+            when {
+                !card.imageUrl.isNullOrBlank() -> h.ivImage.load(card.imageUrl) {
+                    crossfade(true)
+                    placeholder(android.R.drawable.ic_menu_gallery)
+                    error(android.R.drawable.ic_menu_gallery)
+                }
+                card.imageBase64 != null -> runCatching {
+                    val bytes = Base64.decode(card.imageBase64, Base64.DEFAULT)
+                    h.ivImage.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
+                }.onFailure { h.ivImage.setImageResource(android.R.drawable.ic_menu_gallery) }
+                else -> h.ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
+            }
         }
     }
 }
