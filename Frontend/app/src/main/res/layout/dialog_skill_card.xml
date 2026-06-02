@@ -122,4 +122,16 @@
         android:textColor="#388E3C"
         android:textStyle="bold" />
 
+    <!-- 경험치 획득 알림 (PVP 카드 수집 시에만 표시) -->
+    <TextView
+        android:id="@+id/tv_exp_gained"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="+15 경험치를 얻었습니다!"
+        android:textSize="12sp"
+        android:textColor="#1565C0"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
 </LinearLayout>

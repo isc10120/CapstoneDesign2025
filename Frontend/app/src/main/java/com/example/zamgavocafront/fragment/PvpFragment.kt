@@ -49,6 +49,9 @@ class PvpFragment : Fragment() {
     private var ivSkillEffect: ImageView? = null
     private var currentGifDrawable: GifDrawable? = null
 
+    private lateinit var tvP1Level: TextView
+    private lateinit var tvP2Level: TextView
+
     private val questionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -100,6 +103,8 @@ class PvpFragment : Fragment() {
         tvP2Paralysis = view.findViewById(R.id.tv_p2_buff_paralysis)
         tvP2Poison   = view.findViewById(R.id.tv_p2_buff_poison)
         ivSkillEffect = view.findViewById(R.id.iv_skill_effect)
+        tvP1Level = view.findViewById(R.id.tv_p1_level)
+        tvP2Level = view.findViewById(R.id.tv_p2_level)
 
         adapter = PvpWordAdapter(emptyList()) { word ->
             val attacksLeft = PvpWordManager.getAttacksLeft(requireContext())
@@ -147,6 +152,8 @@ class PvpFragment : Fragment() {
                     if (status != null) {
                         tvPlayer2Name.text = status.opponent.nickname
                         tvPlayer1Damage.text = status.my.totalDamage.toString()
+                        tvP1Level.text = "LV.${status.my.level}"
+                        tvP2Level.text = "LV.${status.opponent.level}"
                         refreshBuffDisplay()
                     }
                 }
@@ -280,7 +287,7 @@ class PvpFragment : Fragment() {
             .setMessage(
                 "$resultText\n\n" +
                 "나: ${result.myTotalDamage} 데미지\n" +
-                "상대 (${result.opponentNickName}): ${result.opponentTotalDamage} 데미지"
+                "상대 (${result.opponentNickname}): ${result.opponentTotalDamage} 데미지"
             )
             .setPositiveButton("확인") { _, _ -> viewModel.confirmResult() }
             .setCancelable(false)
