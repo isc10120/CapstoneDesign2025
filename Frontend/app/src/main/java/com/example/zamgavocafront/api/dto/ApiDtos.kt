@@ -153,13 +153,16 @@ data class BattleStatusResponse(
 
 data class OpponentInfo(
     val userId: Long,
-    val nickname: String
+    val nickname: String,
+    val level: Int = 1
 )
 
 data class SideStatus(
     val totalDamage: Int,
     val statusEffects: List<StatusEffect>,
-    val shieldCount: Int
+    val shieldCount: Int,
+    val level: Int = 1,
+    val expPoint: Int = 0
 )
 
 data class StatusEffect(
@@ -181,7 +184,9 @@ data class PvpSkillResponse(
     val shieldBlocked: Boolean,
     val poisonDamageTaken: Int = 0,
     val paralyzed: Boolean = false,
-    val cleansedEffectId: Long? = null
+    val cleansedEffectId: Long? = null,
+    val currentLevel: Int? = null,
+    val currentExp: Int? = null
 )
 
 data class StatusApplied(
@@ -197,11 +202,16 @@ data class BattleResultResponse(
     val result: String?,
     val myTotalDamage: Int,
     val opponentTotalDamage: Int,
-    val opponentNickName: String
+    val opponentNickname: String,
+    val opponentLevel: Int = 1,
+    val currentLevel: Int = 1,
+    val currentExp: Int = 0
 )
 
 data class StompSkillMessage(
     val senderId: Long,
+    val senderLevel: Int = 1,
+    val senderExp: Int = 0,
     val skillName: String,
     val skillType: String,
     val damageDealt: Int,
@@ -265,6 +275,8 @@ data class SignInResponse(
     val userId: Long,
     val email: String,
     val nickName: String,
+    val level: Int = 1,
+    val expPoint: Int = 0,
     val nudgeEnabled: Boolean,
     val nudgeInterval: Int,
     val silentNudge: List<SilentNudgeRange>
@@ -281,4 +293,62 @@ data class RefreshTokenRequest(
 
 data class RefreshTokenResponse(
     val accessToken: String
+)
+
+// ───── /api/v1 Deck DTOs ─────
+
+data class DeckFirstSkill(
+    val skillId: Long,
+    val name: String,
+    val imageUrl: String,
+    val skillType: String,
+    val damage: Int
+)
+
+data class DeckListItemResponse(
+    val deckId: Long,
+    val name: String,
+    val skillCount: Int,
+    val firstSkill: DeckFirstSkill?
+)
+
+data class DeckDetailResponse(
+    val deckId: Long,
+    val name: String,
+    val skillIds: List<Long>
+)
+
+data class DeckCreateRequest(
+    val name: String,
+    val skillIds: List<Long>
+)
+
+data class DeckUpdateRequest(
+    val name: String? = null,
+    val skillIds: List<Long>? = null
+)
+
+// ───── /api/v1 PVE DTOs ─────
+
+data class PveRoundResultResponse(
+    val gainedExp: Int,
+    val totalExp: Int,
+    val level: Int
+)
+
+// ───── /api/v1 Ranking DTOs ─────
+
+data class RankingEntry(
+    val rank: Int,
+    val userId: Long,
+    val nickname: String,
+    val level: Int,
+    val value: Long
+)
+
+data class RankingResponse(
+    val entries: List<RankingEntry>,
+    val totalElements: Long,
+    val totalPages: Int,
+    val myEntry: RankingEntry
 )
