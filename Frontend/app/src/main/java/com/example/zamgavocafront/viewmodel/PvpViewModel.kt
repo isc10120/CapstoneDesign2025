@@ -13,7 +13,9 @@ import com.example.zamgavocafront.api.dto.StatusEffect
 import com.example.zamgavocafront.api.dto.StompSkillMessage
 import com.example.zamgavocafront.model.WordData
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -39,6 +41,10 @@ class PvpViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _latestResult = MutableStateFlow<BattleResultResponse?>(null)
     val latestResult: StateFlow<BattleResultResponse?> = _latestResult.asStateFlow()
+
+    // 상대가 스킬을 사용했을 때 이펙트 색상 이벤트 (null = 색상 없음)
+    private val _opponentSkillColor = MutableSharedFlow<String?>(extraBufferCapacity = 1)
+    val opponentSkillColor: SharedFlow<String?> = _opponentSkillColor
 
     private var stompJob: Job? = null
     private var connectedBattleId: Long = -1L
@@ -105,9 +111,10 @@ class PvpViewModel(application: Application) : AndroidViewModel(application) {
                         val msg = ApiClient.gson.fromJson(body, StompSkillMessage::class.java)
                         // senderId가 본인이면 무시 (서버 에코)
                         if (msg.senderId != myUserId) {
-                            // 실패(문제 오답)가 아닐 때만 데미지 증가
+                            // 실패(문제 오답)가 아닐 때만 데미지 증가 및 이펙트 재생
                             if (!msg.isFailed) {
                                 _enemyDamage.value += msg.damageDealt
+                                _opponentSkillColor.tryEmit(msg.skillDominantColor)
                             }
                             // 상대가 나에게 적용한 디버프 추가 (POISON, PARALYZE)
                             msg.statusApplied?.let { applied ->

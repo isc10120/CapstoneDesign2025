@@ -2,6 +2,9 @@ package com.example.zamgavocafront.fragment
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -46,8 +49,10 @@ class PvpFragment : Fragment() {
     private lateinit var rvWords: RecyclerView
     private lateinit var tvEmpty: TextView
     private lateinit var adapter: PvpWordAdapter
-    private var ivSkillEffect: ImageView? = null
-    private var currentGifDrawable: GifDrawable? = null
+    private var ivSkillEffect: ImageView? = null      // 내가 상대 공격 시 (우측)
+    private var ivSkillEffectP1: ImageView? = null    // 상대가 나를 공격 시 (좌측)
+    private var currentGifP2: GifDrawable? = null
+    private var currentGifP1: GifDrawable? = null
 
     private lateinit var tvP1Level: TextView
     private lateinit var tvP2Level: TextView
@@ -56,7 +61,8 @@ class PvpFragment : Fragment() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == PvpQuestionActivity.RESULT_ATTACK_SUCCESS) {
-            view?.postDelayed({ playSkillEffect() }, 300)
+            val color = result.data?.getStringExtra("skill_dominant_color")
+            view?.postDelayed({ playMyAttackEffect(color) }, 300)
         }
     }
 
@@ -103,6 +109,7 @@ class PvpFragment : Fragment() {
         tvP2Paralysis = view.findViewById(R.id.tv_p2_buff_paralysis)
         tvP2Poison   = view.findViewById(R.id.tv_p2_buff_poison)
         ivSkillEffect = view.findViewById(R.id.iv_skill_effect)
+        ivSkillEffectP1 = view.findViewById(R.id.iv_skill_effect_p1)
         tvP1Level = view.findViewById(R.id.tv_p1_level)
         tvP2Level = view.findViewById(R.id.tv_p2_level)
 
@@ -181,6 +188,15 @@ class PvpFragment : Fragment() {
             }
         }
 
+        // 상대 스킬 이펙트 관찰 (STOMP)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.opponentSkillColor.collect { color ->
+                    view?.postDelayed({ playOpponentAttackEffect(color) }, 100)
+                }
+            }
+        }
+
         // 단어 목록 관찰
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -211,23 +227,33 @@ class PvpFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         timerHandler.removeCallbacks(timerRunnable)
-        currentGifDrawable?.stop()
-        currentGifDrawable = null
+        currentGifP2?.stop(); currentGifP2 = null
+        currentGifP1?.stop(); currentGifP1 = null
         ivSkillEffect = null
+        ivSkillEffectP1 = null
     }
 
-    private fun playSkillEffect() {
-        val iv = ivSkillEffect ?: return
-        currentGifDrawable?.stop()
-        val gifDrawable = GifDrawable(resources, R.drawable.skilleffect1)
-        gifDrawable.loopCount = 1
-        gifDrawable.addAnimationListener {
-            iv.post { iv.visibility = View.GONE }
+    private fun playSkillEffect(iv: ImageView?, color: String?, gifRef: (GifDrawable?) -> Unit, setGif: (GifDrawable) -> Unit) {
+        iv ?: return
+        gifRef(null)
+        val gif = GifDrawable(resources, R.drawable.skilleffect1)
+        if (color != null) {
+            runCatching {
+                gif.colorFilter = PorterDuffColorFilter(Color.parseColor(color), PorterDuff.Mode.MULTIPLY)
+            }
         }
-        currentGifDrawable = gifDrawable
-        iv.setImageDrawable(gifDrawable)
+        gif.loopCount = 1
+        gif.addAnimationListener { iv.post { iv.visibility = View.GONE } }
+        setGif(gif)
+        iv.setImageDrawable(gif)
         iv.visibility = View.VISIBLE
     }
+
+    private fun playMyAttackEffect(color: String?) =
+        playSkillEffect(ivSkillEffect, color, { currentGifP2?.stop() }) { currentGifP2 = it }
+
+    private fun playOpponentAttackEffect(color: String?) =
+        playSkillEffect(ivSkillEffectP1, color, { currentGifP1?.stop() }) { currentGifP1 = it }
 
     private fun updatePvpUi(words: List<WordData>) {
         val ctx = requireContext()

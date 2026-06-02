@@ -179,6 +179,8 @@ data class PvpSkillRequest(
 data class PvpSkillResponse(
     val skillName: String,
     val skillType: String,
+    val skillImageUrl: String? = null,
+    val skillDominantColor: String? = null,
     val damageDealt: Int,
     val statusApplied: StatusApplied?,
     val shieldBlocked: Boolean,
@@ -214,6 +216,8 @@ data class StompSkillMessage(
     val senderExp: Int = 0,
     val skillName: String,
     val skillType: String,
+    val skillImageUrl: String? = null,
+    val skillDominantColor: String? = null,
     val damageDealt: Int,
     val statusApplied: StatusApplied?,
     val shieldBlocked: Boolean,
