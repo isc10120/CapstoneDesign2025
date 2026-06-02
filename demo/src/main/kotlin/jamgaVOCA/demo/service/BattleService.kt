@@ -197,7 +197,9 @@ class BattleService(
         val applyResult: SkillApplyResult,
         val skillName: String,
         val skillType: String,
-        val battleId: Long
+        val battleId: Long,
+        val senderLevel: Int,
+        val senderExp: Int
     )
 
     fun useSkill(userId: Long, skillId: Long, wordId: Long): UseSkillResult {
@@ -219,14 +221,17 @@ class BattleService(
         // 스킬 효과 적용
         val applyResult = applySkill(battle, userId, skill)
 
-        // UserWordSkill 수집 처리
+        // UserWordSkill 수집 처리 (신규 카드면 +15 exp 지급)
         skillService.collectSkill(skillId, wordId, userId)
 
+        val updatedUser = userService.getUser(userId)
         return UseSkillResult(
             applyResult = applyResult,
             skillName = skill.name,
             skillType = skill.skillType.name,
-            battleId = battle.id!!
+            battleId = battle.id!!,
+            senderLevel = updatedUser.level,
+            senderExp = updatedUser.expPoint
         )
     }
 
@@ -247,11 +252,14 @@ class BattleService(
 
         log.info("[BATTLE] 스킬 실패(턴 소비) - battleId=${battle.id}, userId=$userId, poisonDamageTaken=$poisonDamageTaken")
 
+        val user = userService.getUser(userId)
         return UseSkillResult(
             applyResult = SkillApplyResult(poisonDamageTaken = poisonDamageTaken),
             skillName = skill.name,
             skillType = skill.skillType.name,
-            battleId = battle.id!!
+            battleId = battle.id!!,
+            senderLevel = user.level,
+            senderExp = user.expPoint
         )
     }
 

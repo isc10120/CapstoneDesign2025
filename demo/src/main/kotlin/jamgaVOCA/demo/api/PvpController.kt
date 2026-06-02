@@ -60,6 +60,8 @@ class PvpController(
             "/topic/pvp/${result.battleId}",
             StompSkillMessage(
                 senderId = user.id!!,
+                senderLevel = result.senderLevel,
+                senderExp = result.senderExp,
                 skillName = result.skillName,
                 skillType = result.skillType,
                 damageDealt = result.applyResult.damageDealt,
@@ -72,7 +74,7 @@ class PvpController(
         )
 
         return ApiResponse.success(
-            PvpSkillResponse.from(result.applyResult, result.skillName, result.skillType)
+            PvpSkillResponse.from(result.applyResult, result.skillName, result.skillType, result.senderLevel, result.senderExp)
         )
     }
 
@@ -85,6 +87,8 @@ class PvpController(
             "/topic/pvp/${result.battleId}",
             StompSkillMessage(
                 senderId = user.id!!,
+                senderLevel = result.senderLevel,
+                senderExp = result.senderExp,
                 skillName = result.skillName,
                 skillType = result.skillType,
                 damageDealt = 0,
@@ -97,7 +101,7 @@ class PvpController(
         )
 
         return ApiResponse.success(
-            PvpSkillResponse.from(result.applyResult, result.skillName, result.skillType)
+            PvpSkillResponse.from(result.applyResult, result.skillName, result.skillType, result.senderLevel, result.senderExp)
         )
     }
 }

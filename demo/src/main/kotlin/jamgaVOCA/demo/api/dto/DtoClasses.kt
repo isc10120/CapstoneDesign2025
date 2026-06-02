@@ -55,6 +55,8 @@ data class SignInResponse(
     val userId: Long,
     val email: String,
     val nickName: String,
+    val level: Int,
+    val expPoint: Int,
     val nudgeEnabled: Boolean,
     val nudgeInterval: Int,
     val silentNudge: List<SilentNudgeRange>

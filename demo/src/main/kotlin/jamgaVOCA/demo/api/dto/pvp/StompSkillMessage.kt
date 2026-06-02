@@ -4,6 +4,8 @@ import jamgaVOCA.demo.service.dto.StatusAppliedInfo
 
 data class StompSkillMessage(
     val senderId: Long,
+    val senderLevel: Int,
+    val senderExp: Int,
     val skillName: String,
     val skillType: String,
     val damageDealt: Int,

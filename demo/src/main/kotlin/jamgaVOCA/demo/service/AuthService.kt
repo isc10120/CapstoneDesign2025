@@ -85,6 +85,8 @@ class AuthService(
             userId = user.id!!,
             email = user.email,
             nickName = user.nickname,
+            level = user.level,
+            expPoint = user.expPoint,
             nudgeEnabled = settings.nudgeEnabled,
             nudgeInterval = settings.nudgeInterval,
             silentNudge = listOfNotNull(
