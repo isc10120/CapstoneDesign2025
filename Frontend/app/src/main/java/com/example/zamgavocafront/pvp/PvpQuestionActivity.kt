@@ -37,6 +37,7 @@ class PvpQuestionActivity : AppCompatActivity() {
     }
 
     private var attackSucceeded = false
+    private var skillDominantColor: String? = null
 
     private val viewModel: PvpQuestionViewModel by viewModels()
 
@@ -120,7 +121,12 @@ class PvpQuestionActivity : AppCompatActivity() {
     }
 
     override fun finish() {
-        if (attackSucceeded) setResult(RESULT_ATTACK_SUCCESS)
+        if (attackSucceeded) {
+            val data = android.content.Intent().apply {
+                putExtra("skill_dominant_color", skillDominantColor)
+            }
+            setResult(RESULT_ATTACK_SUCCESS, data)
+        }
         super.finish()
         overridePendingTransition(R.anim.no_anim, R.anim.slide_down)
     }
@@ -168,6 +174,7 @@ class PvpQuestionActivity : AppCompatActivity() {
             }
 
             is PvpQuestionUiState.Correct -> {
+                skillDominantColor = state.dominantColor
                 viewModel.onCorrectConsumed()
                 if (state.skill != null) showSkillCardDialog(state)
                 else showCorrectFallback(state)

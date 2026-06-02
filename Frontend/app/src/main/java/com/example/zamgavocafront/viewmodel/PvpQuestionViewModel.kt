@@ -37,7 +37,8 @@ sealed class PvpQuestionUiState {
         val effectTurns: Int? = null,
         val shieldBlocked: Boolean = false,
         val poisonDamageTaken: Int = 0,
-        val paralyzed: Boolean = false
+        val paralyzed: Boolean = false,
+        val dominantColor: String? = null
     ) : PvpQuestionUiState()
     data class Wrong(
         val score: Int,
@@ -164,6 +165,7 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
         var shieldBlocked = false
         var poisonDamageTaken = 0
         var paralyzed = false
+        var dominantColor: String? = null
 
         if (resolvedSkillId != null) {
             val pvpResp = runCatching {
@@ -175,6 +177,7 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
             shieldBlocked = pvpResp?.shieldBlocked ?: false
             poisonDamageTaken = pvpResp?.poisonDamageTaken ?: 0
             paralyzed = pvpResp?.paralyzed ?: false
+            dominantColor = pvpResp?.skillDominantColor
         }
 
         PvpWordManager.addDamage(context, pvpDamage ?: skill?.damage ?: 50)
@@ -205,7 +208,8 @@ class PvpQuestionViewModel(application: Application) : AndroidViewModel(applicat
             effectTurns = effectTurns,
             shieldBlocked = shieldBlocked,
             poisonDamageTaken = poisonDamageTaken,
-            paralyzed = paralyzed
+            paralyzed = paralyzed,
+            dominantColor = dominantColor
         )
     }
 

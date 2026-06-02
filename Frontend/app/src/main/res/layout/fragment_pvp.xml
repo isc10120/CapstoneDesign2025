@@ -69,6 +69,7 @@
             android:scaleType="fitCenter"
             android:contentDescription="플레이어2" />
 
+        <!-- 내가 상대를 공격할 때 이펙트 (상대 캐릭터 위치) -->
         <ImageView
             android:id="@+id/iv_skill_effect"
             android:layout_width="160dp"
@@ -79,6 +80,18 @@
             android:visibility="gone"
             android:scaleType="fitCenter"
             android:contentDescription="스킬 이펙트" />
+
+        <!-- 상대가 나를 공격할 때 이펙트 (내 캐릭터 위치) -->
+        <ImageView
+            android:id="@+id/iv_skill_effect_p1"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="10dp"
+            android:translationY="18dp"
+            android:visibility="gone"
+            android:scaleType="fitCenter"
+            android:contentDescription="상대 스킬 이펙트" />
 
         <TextView
             android:id="@+id/tv_p1_level"
