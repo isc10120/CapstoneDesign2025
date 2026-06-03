@@ -144,11 +144,13 @@ class SkillGeneratorService(
             """.trimIndent()
             WordLevel.INTERMEDIATE -> """
                 [난이도: 중급]
-                - skill_type: "ATTACK"(약 50%) 또는 "DEFEND" / "DAMAGE_BUFF" / "CLEANSE" 중 하나(약 50%). 단어의 뜻과 어울리는 타입을 창의적으로 선택하라.
+                - skill_type: "ATTACK" / "DEFEND" / "DAMAGE_BUFF" / "CLEANSE" / "POISON" / "PARALYZE" 중 하나. 단어의 뜻과 어울리는 타입을 창의적으로 선택하라.
                 - damage:
                   - ATTACK: 30~80 사이 정수
                   - DEFEND / DAMAGE_BUFF / CLEANSE: 0
+                  - POISON / PARALYZE: 50~75 사이 정수 (첫 타격 데미지)
                 - lasting:
+                  - POISON / PARALYZE: 3~5 사이 정수 (독/마비 지속 턴 수)
                   - DAMAGE_BUFF: 1 (다음 공격 1회에만 적용)
                   - 나머지: null
             """.trimIndent()
@@ -168,7 +170,7 @@ class SkillGeneratorService(
 
         val userPrompt = """
             당신은 2D 픽셀 RPG 게임의 스킬 디자이너입니다.
-            단어 '${word}'와 그 뜻인 '${meaningKo}'를 넣어 RPG 스킬을 창작해줘.
+            단어 '${word}'와 그 뜻인 '${meaningKo}'를 넣어 RPG 스킬을 창작해주세요.
             반드시 아래 JSON 형식으로 답변. 다른 말 금지, 항목 누락 금지.
 
             { "name": "스킬명", "description": "설명", "damage": 숫자, "image_desc": "짧은 영어 이미지 묘사", "skill_type": "타입", "lasting": 숫자_또는_null }
@@ -178,7 +180,7 @@ class SkillGeneratorService(
             [스킬 타입 설명]
             - ATTACK: 상대에게 직접 데미지를 주는 공격 스킬
             - DEFEND: 상대의 다음 공격을 1회 무효화하는 방어 스킬 (자신에게 사용)
-            - DAMAGE_BUFF: 자신의 다음 공격 데미지를 50% 증가시키는 버프 스킬
+            - DAMAGE_BUFF: 자신의 다음 공격의 데미지를 버프 스킬
             - CLEANSE: 자신에게 걸린 디버프(독/마비) 중 무작위 1개를 제거하는 정화 스킬
             - POISON: 상대에게 데미지를 주고 lasting 턴 동안 매 턴 추가 독 데미지를 입히는 스킬
             - PARALYZE: 상대에게 데미지를 주고 lasting 턴 동안 30% 확률로 행동 불가 상태를 부여하는 스킬
