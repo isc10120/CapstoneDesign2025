@@ -373,10 +373,13 @@ class BattleService(
 
     // ===== private 헬퍼 =====
 
-     private fun tickEffects(battle: Battle, userId: Long) {
+    private fun tickEffects(battle: Battle, userId: Long) {
         val effects = battle.effectsOf(userId)
-        effects.forEach { it.remainingTurns-- }
-        battleEffectRepository.deleteAll(effects.filter { it.remainingTurns <= 0 })
+        val (expired, alive) = effects
+            .onEach { it.remainingTurns-- }
+            .partition { it.remainingTurns <= 0 }
+
+        battleEffectRepository.deleteAllInBatch(expired)
     }
 
     private fun cleanse(battle: Battle, userId: Long): Long? {
