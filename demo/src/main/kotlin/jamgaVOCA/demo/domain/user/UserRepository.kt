@@ -11,6 +11,7 @@ interface UserRepository : JpaRepository<User, Long> {
     fun existsByEmail(email: String): Boolean
     fun existsByNickname(nickname: String): Boolean
     fun findByIsDummyTrue(): User?
+    fun findByIsDummyTrueAndLevel(level: Int): User?
 
     fun findAllByIsDummyFalseOrderByExpPointDescLevelDesc(pageable: Pageable): Page<User>
 

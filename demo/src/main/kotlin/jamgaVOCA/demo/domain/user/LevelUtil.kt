@@ -12,4 +12,10 @@ object LevelUtil {
     }
 
     fun maxDeckSize(level: Int): Int = if (level <= 10) 10 else minOf(level, 20)
+
+    fun minExpForLevel(level: Int): Int = when {
+        level <= 1 -> 0
+        level <= 20 -> EXP_TABLE[level - 1]
+        else -> EXP_TABLE.last() + (level - 20) * 1000
+    }
 }

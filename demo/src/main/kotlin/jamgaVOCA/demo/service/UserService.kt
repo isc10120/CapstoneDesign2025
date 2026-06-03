@@ -61,4 +61,18 @@ class UserService(
     fun findByIsDummyTrue(): User =
         userRepository.findByIsDummyTrue()
             ?: throw AppException(ErrorCode.DUMMY_USER_NOT_FOUND)
+
+    @Transactional
+    fun findOrCreateDummyByLevel(level: Int): User =
+        userRepository.findByIsDummyTrueAndLevel(level)
+            ?: userRepository.save(
+                User(
+                    nickname = "dummy_lv$level",
+                    email = "dummy_lv$level@dummy.com",
+                    passwordHash = "",
+                    level = level,
+                    expPoint = LevelUtil.minExpForLevel(level),
+                    isDummy = true
+                )
+            )
 }

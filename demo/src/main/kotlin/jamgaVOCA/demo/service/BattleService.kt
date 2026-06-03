@@ -99,18 +99,26 @@ class BattleService(
     private fun createWeeklyMatches() {
         val weekStart = LocalDate.now().with(DayOfWeek.MONDAY)
         val weekEnd = weekStart.plusDays(6)
-        val dummyUser = getDummyUser()
 
-        // 더미 유저 제외한 실제 유저만 셔플
+        // 레벨 기준 정렬 후 동레벨대 매칭, 같은 레벨 내에서는 랜덤
         val users = userService.findAll()
             .filter { !it.isDummy }
-            .shuffled()
+            .groupBy { it.level }
+            .toSortedMap()
+            .values
+            .flatMap { it.shuffled() }
 
         log.info("[BATTLE] 주간 매칭 생성 - 대상 유저 수: ${users.size}, 기간: $weekStart ~ $weekEnd")
         var matchCount = 0
         users.chunked(2).forEach { pair ->
             val userA = pair[0]
-            val userB = if (pair.size == 2) pair[1] else dummyUser
+            val userB = if (pair.size == 2) {
+                pair[1]
+            } else {
+                val dummy = userService.findOrCreateDummyByLevel(userA.level)
+                log.debug("[BATTLE] 더미 매칭 - dummyId=${dummy.id}, level=${dummy.level}, userId=${userA.id}")
+                dummy
+            }
 
             battleRepository.save(
                 Battle(
@@ -137,15 +145,16 @@ class BattleService(
             return
         }
 
+        val dummy = userService.findOrCreateDummyByLevel(user.level)
         battleRepository.save(
             Battle(
                 userA = user,
-                userB = getDummyUser(),
+                userB = dummy,
                 weekStart = weekStart,
                 weekEnd = weekEnd
             )
         )
-        log.info("[BATTLE] 신규 유저 더미 매칭 완료 - userId=${user.id}, 기간: $weekStart ~ $weekEnd")
+        log.info("[BATTLE] 신규 유저 더미 매칭 완료 - userId=${user.id}, dummyId=${dummy.id}, level=${dummy.level}, 기간: $weekStart ~ $weekEnd")
     }
 
     // ===== 배틀 조회 =====
@@ -425,8 +434,7 @@ class BattleService(
         if (battle.isUserA(userId)) battle.userB.id!!
         else battle.userA.id!!
 
-    private fun getDummyUser(): User =
-        userService.findByIsDummyTrue()
+
 
 
     private fun getUser(userId: Long): User =
