@@ -110,13 +110,17 @@ class BattleService(
 
         log.info("[BATTLE] 주간 매칭 생성 - 대상 유저 수: ${users.size}, 기간: $weekStart ~ $weekEnd")
         var matchCount = 0
-        users.chunked(2).forEach { pair ->
-            val userA = pair[0]
-            val userB = if (pair.size == 2) {
-                pair[1]
+        var i = 0
+        while (i < users.size) {
+            val userA = users[i]
+            val userB = if (i + 1 < users.size && kotlin.math.abs(users[i + 1].level - userA.level) < 3) {
+                i += 2
+                users[i - 1]
             } else {
+                // 다음 유저가 없거나 레벨 차이 3 이상 → 더미 매칭
                 val dummy = userService.findOrCreateDummyByLevel(userA.level)
                 log.debug("[BATTLE] 더미 매칭 - dummyId=${dummy.id}, level=${dummy.level}, userId=${userA.id}")
+                i += 1
                 dummy
             }
 
@@ -128,7 +132,7 @@ class BattleService(
                     weekEnd = weekEnd
                 )
             )
-            log.debug("[BATTLE] 매칭 생성 - userA=${userA.id}, userB=${userB.id}(dummy=${userB.isDummy})")
+            log.debug("[BATTLE] 매칭 생성 - userA=${userA.id}(lv${userA.level}), userB=${userB.id}(lv${userB.level}, dummy=${userB.isDummy})")
             matchCount++
         }
         log.info("[BATTLE] 총 ${matchCount}건 매칭 완료")
