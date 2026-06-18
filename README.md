@@ -124,3 +124,152 @@ https://drive.google.com/drive/u/0/folders/1QcczFAZHuL8FF6tPKrwO50WiHKIlXnuK
     -a ACTION_SHOW_NUDGE_RANDOM
 
 ---
+
+# Backend — Spring Boot 서버
+
+## 기술 스택
+
+- **언어**: Kotlin
+- **프레임워크**: Spring Boot 3.4.3
+- **JDK**: 17
+- **DB**: PostgreSQL (로컬) / AWS RDS PostgreSQL (운영)
+- **ORM**: Spring Data JPA (Hibernate)
+- **인증**: JWT (jjwt 0.12.6) + Spring Security
+- **실시간 통신**: WebSocket (STOMP)
+- **AI**: Spring AI + OpenAI GPT-4o (단어/스킬 생성), gpt-image-1 (스킬 이미지 생성)
+- **Storage**: AWS S3 (스킬 이미지)
+- **빌드 도구**: Gradle (Kotlin DSL)
+
+## 소스 코드 구조
+
+```
+demo/src/main/kotlin/jamgaVOCA/demo/
+├── api/                  # REST 컨트롤러, DTO
+│   ├── dto/              # 요청/응답 DTO
+│   └── exception/        # 전역 예외 처리
+├── config/               # Security, JWT, WebSocket 설정
+├── domain/               # JPA 엔티티 및 Repository
+│   ├── user/             # 유저, 레벨 유틸
+│   ├── battle/           # PVP 배틀, 효과
+│   ├── deck/             # 덱, 덱 스킬
+│   ├── skill/            # 스킬
+│   ├── word/             # 단어
+│   └── userwordskill/    # 유저 수집 스킬
+├── service/              # 비즈니스 로직
+│   └── generateSkill/    # AI 스킬/이미지 생성
+└── infra/                # 외부 연동 (S3, 이미지 색상 추출)
+```
+
+## 필요한 환경 변수
+
+| 변수명 | 설명 |
+|--------|------|
+| `OPENAI_API_KEY` | OpenAI API 키 |
+| `JWT_SECRET` | JWT 서명 시크릿 |
+| `AWS_ACCESS_KEY_ID` | AWS 액세스 키 |
+| `AWS_SECRET_ACCESS_KEY` | AWS 시크릿 키 |
+| `DB_URL` | DB 접속 URL (로컬 기본값: `jdbc:postgresql://localhost:5432/app`) |
+| `DB_USER` | DB 유저 (로컬 기본값: `app`) |
+| `DB_PASSWORD` | DB 비밀번호 (로컬 기본값: `app`) |
+| `ADMIN_SECRET` | 관리자 API 시크릿 (로컬 기본값: `local-admin-secret`) |
+
+## How to Build
+
+**사전 요구사항**
+- JDK 17 이상
+- PostgreSQL 실행 중 (로컬 빌드 시)
+- Gradle (Wrapper 포함되어 있어 별도 설치 불필요)
+
+```bash
+# 레포 클론
+git clone https://github.com/isc10120/capstonedesign2025.git
+cd capstonedesign2025/demo
+
+# 빌드 (테스트 제외)
+./gradlew build -x test
+
+# 빌드 결과물 위치: demo/build/libs/demo-0.0.1-SNAPSHOT.jar
+```
+
+## How to Install
+
+### Docker Compose로 실행 (권장)
+
+**사전 요구사항**
+- Docker Desktop 설치
+
+**1. 환경 변수 파일 생성**
+
+`demo/` 디렉토리에 `.env` 파일을 생성합니다:
+```
+OPENAI_API_KEY=your_key
+JWT_SECRET=your_secret
+AWS_ACCESS_KEY_ID=your_key
+AWS_SECRET_ACCESS_KEY=your_secret
+```
+
+**2. 실행**
+```bash
+cd demo
+docker compose up --build
+```
+
+PostgreSQL 컨테이너가 먼저 기동되고 헬스체크 통과 후 앱이 시작됩니다.  
+DB 스키마는 최초 실행 시 자동 생성됩니다.  
+서버 주소: `http://localhost:8080`
+
+**3. 종료**
+```bash
+docker compose down          # 컨테이너만 종료 (DB 데이터 유지)
+docker compose down -v       # 컨테이너 + DB 볼륨 삭제
+```
+
+---
+
+### 로컬 직접 실행 (Docker 없이)
+
+**사전 요구사항**
+- JDK 17 이상
+- PostgreSQL 실행 중
+
+1. PostgreSQL에서 DB 생성
+```sql
+CREATE DATABASE app;
+CREATE USER app WITH PASSWORD 'app';
+GRANT ALL PRIVILEGES ON DATABASE app TO app;
+```
+
+2. 환경 변수 설정 후 실행
+```bash
+export OPENAI_API_KEY=your_key
+export JWT_SECRET=your_secret
+export AWS_ACCESS_KEY_ID=your_key
+export AWS_SECRET_ACCESS_KEY=your_secret
+
+./gradlew bootRun
+```
+
+서버 기본 포트: `8080`  
+DB 스키마는 JPA `ddl-auto: update` 로 자동 생성됩니다.
+
+## How to Test
+
+**API 수동 테스트**
+
+서버 실행 후 아래 순서로 테스트:
+
+1. 회원가입
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/sign-up \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"1234","nickName":"테스터"}'
+```
+
+2. 로그인 후 발급된 `accessToken` 을 이후 요청 헤더에 포함
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/sign-in \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"1234"}'
+```
+
+3. 이후 인증이 필요한 API는 `-H "Authorization: Bearer {accessToken}"` 헤더 추가
